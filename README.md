@@ -29,7 +29,7 @@ npm install
 Créez un fichier `.env` à la racine de chaque module (mobile, web, backend) en vous basant sur `.env.example` pour configurer vos clés API.
 
 ## 📋 Développement & Workflow
-- **Lead Technique :** NGHOMSI FEUKOUO Ravel (« Archlord »).
+- **Lead Technique :** NGHOMSI FEUKOUO Ravel (« Archlord ») github:@Archlord12345.
 - **Workflow Git :** Une branche par feature. Pull Request vers `main` validée par le Lead.
 - **Contrat API :** Référez-vous à `docs/contrat-api.md` avant tout développement réseau.
 
