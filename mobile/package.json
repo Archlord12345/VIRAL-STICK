@@ -8,12 +8,13 @@
     "ios": "react-native run-ios"
   },
   "dependencies": {
-    "react": "18.x",
-    "react-native": "0.7x"
+    "react": "18.2.0",
+    "react-native": "0.74.0",
+    "axios": "^1.7.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.x",
-    "@babel/runtime": "^7.x",
-    "metro-react-native-babel-preset": "^0.7x"
+    "@babel/core": "^7.20.0",
+    "@babel/runtime": "^7.20.0",
+    "metro-react-native-babel-preset": "^0.76.0"
   }
 }
