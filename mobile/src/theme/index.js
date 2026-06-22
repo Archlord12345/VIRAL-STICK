@@ -63,6 +63,16 @@ export const getShadow = (elevation) => {
   return { elevation: 0 };
 };
 
+export const createShadow = (color, elevation = 8) => {
+  return {
+    shadowColor: color,
+    shadowOffset: { width: 0, height: Math.round(elevation / 2) },
+    shadowOpacity: 0.24,
+    shadowRadius: elevation,
+    elevation: elevation,
+  };
+};
+
 // ─── Theme Context ────────────────────────────────────────────────────────
 const ThemeContext = createContext({ theme: lightTheme, toggleTheme: () => {} });
 

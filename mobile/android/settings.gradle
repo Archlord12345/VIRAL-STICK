@@ -1,5 +1,5 @@
 pluginManagement {
-    includeBuild("../node_modules/@react-native/gradle-plugin")
+    includeBuild(new File(settingsDir, "../node_modules/@react-native/gradle-plugin"))
 }
 
 plugins {
@@ -10,4 +10,4 @@ extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autoli
 
 rootProject.name = 'ViralStick'
 include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
+includeBuild(new File(settingsDir, "../node_modules/@react-native/gradle-plugin"))
