@@ -22,15 +22,13 @@ concurrency:
 
 env:
   NODE_VERSION: "20"
-  JAVA_VERSION: "17"
+  JAVA_VERSION: "21"
   # ── Environnement GitHub : "I_AM_ELON_MUSK" ──────────────────────
-  # Secrets (environment-scoped) :
+  # Secrets (environment-scoped, tous optionnels) :
   #   GEMINI_API_KEY
   #   DEEPSEEK_API_KEY
   #   MISTRAL_API_KEY
-  #
-  # ── Secrets globaux du repository ─────────────────────────────────
-  #   ANDROID_KEYSTORE          (base64 du fichier .keystore)
+  #   ANDROID_KEYSTORE          (base64 du .keystore — optionnel, active le build release signé)
   #   ANDROID_KEYSTORE_PASSWORD
   #   ANDROID_KEY_ALIAS
   #   ANDROID_KEY_PASSWORD
@@ -116,17 +114,26 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Decode Keystore
-        if: steps.check_android.outputs.exists == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
+      - name: Détecter keystore disponible
+        id: keystore_check
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE }}
         run: |
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/viral-stick.keystore
-            echo "Keystore décodé"
+            echo "available=true" >> $GITHUB_OUTPUT
+            echo "✅ Keystore détecté — build release signé activé"
           else
-            echo "ANDROID_KEYSTORE non défini — build non signé"
+            echo "available=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Keystore absent — build debug (non signé)"
           fi
+
+      - name: Decode Keystore
+        if: steps.check_android.outputs.exists == 'true' && steps.keystore_check.outputs.available == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/viral-stick.keystore
+          echo "✅ Keystore décodé"
         working-directory: mobile
 
       - name: Build APK
@@ -137,21 +144,28 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          WANT_RELEASE="false"
           if [ "${{ github.event.inputs.build_type }}" = "release" ] || [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            WANT_RELEASE="true"
+          fi
+          if [ "$WANT_RELEASE" = "true" ] && [ "${{ steps.keystore_check.outputs.available }}" = "true" ]; then
+            echo "🔐 assembleRelease (signé)"
             ./gradlew assembleRelease
           else
+            echo "🔓 assembleDebug (non signé)"
             ./gradlew assembleDebug
           fi
         working-directory: mobile/android
 
       - name: Build AAB
-        if: steps.check_android.outputs.exists == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
+        if: steps.check_android.outputs.exists == 'true' && steps.keystore_check.outputs.available == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          echo "📦 bundleRelease (signé)"
           ./gradlew bundleRelease
         working-directory: mobile/android
 
@@ -164,7 +178,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload AAB
-        if: steps.check_android.outputs.exists == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
+        if: steps.check_android.outputs.exists == 'true' && steps.keystore_check.outputs.available == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
         uses: actions/upload-artifact@v4
         with:
           name: viral-stick-aab-release
