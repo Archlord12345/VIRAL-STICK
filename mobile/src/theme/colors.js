@@ -1,111 +1,69 @@
 /**
- * Viral Stick — Design System Colors
- * KERNEL FORGE — 2026
- *
- * Dark theme: deep space purple/navy base with vivid neon accents
- * Light theme: clean white/lavender with electric purple & cyan accents
+ * General Intelligence Company — Design System Colors
+ * Adapted for Viral Stick React Native App
  */
 
-export const darkTheme = {
-  // Backgrounds
-  background: '#0A0A1A',
-  backgroundSecondary: '#12122A',
-  backgroundCard: 'rgba(30, 30, 60, 0.6)',
-  backgroundGlass: 'rgba(20, 20, 50, 0.45)',
-
-  // Accents / Brand
-  primary: '#7C3AED',       // Electric violet
-  primaryLight: '#A78BFA',
-  secondary: '#06B6D4',     // Neon cyan
-  secondaryLight: '#67E8F9',
-  accent: '#F59E0B',        // Amber for highlights
-  danger: '#EF4444',
-  success: '#10B981',
-
-  // Text
-  textPrimary: '#F3F4F6',
-  textSecondary: '#A1A1B3',
-  textMuted: '#6B7280',
-  textOnAccent: '#FFFFFF',
-
-  // Gradients (used as array for LinearGradient)
-  gradientPrimary: ['#7C3AED', '#3B82F6'],
-  gradientSecondary: ['#06B6D4', '#7C3AED'],
-  gradientCard: ['rgba(124,58,237,0.3)', 'rgba(6,182,212,0.1)'],
-  gradientDark: ['#0A0A1A', '#12122A'],
-
-  // Borders & dividers
-  border: 'rgba(124, 58, 237, 0.25)',
-  borderLight: 'rgba(167, 139, 250, 0.15)',
-  divider: 'rgba(255,255,255,0.06)',
-
-  // Shadows
-  shadowColor: '#7C3AED',
-
-  // Glassmorphism
-  glassBackground: 'rgba(255,255,255,0.05)',
-  glassBorder: 'rgba(255,255,255,0.12)',
-
-  // Companions accent colors
-  arch: '#7C3AED',
-  para: '#06B6D4',
-  secu: '#EF4444',
-  data: '#10B981',
-  bio: '#F59E0B',
-  ubu: '#EC4899',
-  art: '#8B5CF6',
-
-  isDark: true,
+export const colors = {
+  hudsonBlue: '#0081c0',
+  slateCyan: '#41a1cf',
+  graphiteNight: '#282834',
+  ink: '#171717',
+  carbon: '#2c2c2c',
+  iron: '#444141',
+  steel: '#646464',
+  fog: '#b4b8b4',
+  ash: '#a5afaf',
+  mist: '#cfd3cf',
+  sage: '#dee2de',
+  cream: '#fefffc',
+  linen: '#f9faf7',
+  paper: '#ffffff',
+  obsidian: '#1f1f29',
 };
 
 export const lightTheme = {
-  // Backgrounds
-  background: '#F5F3FF',
-  backgroundSecondary: '#EDE9FE',
-  backgroundCard: 'rgba(255,255,255,0.85)',
-  backgroundGlass: 'rgba(255,255,255,0.6)',
-
-  // Accents / Brand
-  primary: '#7C3AED',
-  primaryLight: '#A78BFA',
-  secondary: '#0891B2',
-  secondaryLight: '#22D3EE',
-  accent: '#D97706',
-  danger: '#DC2626',
-  success: '#059669',
+  // Surfaces & Backgrounds
+  background: colors.cream,
+  backgroundCard: colors.paper,
+  glassBackground: 'rgba(255, 255, 255, 0.6)',
+  glassBorder: colors.sage,
 
   // Text
-  textPrimary: '#1E1B4B',
-  textSecondary: '#4B5563',
-  textMuted: '#9CA3AF',
-  textOnAccent: '#FFFFFF',
+  textPrimary: colors.ink,
+  textSecondary: colors.carbon,
+  textMuted: colors.steel,
+  textAccent: colors.hudsonBlue,
 
-  // Gradients
-  gradientPrimary: ['#7C3AED', '#3B82F6'],
-  gradientSecondary: ['#0891B2', '#7C3AED'],
-  gradientCard: ['rgba(124,58,237,0.08)', 'rgba(6,182,212,0.04)'],
-  gradientDark: ['#F5F3FF', '#EDE9FE'],
+  // Accents / Actions
+  primaryAction: colors.obsidian, // Primary button fill
+  secondaryAction: colors.slateCyan, // Outlined borders
+  accent: colors.hudsonBlue,
 
-  // Borders & dividers
-  border: 'rgba(124, 58, 237, 0.2)',
-  borderLight: 'rgba(124, 58, 237, 0.1)',
-  divider: 'rgba(0,0,0,0.06)',
+  // Borders
+  border: colors.sage,
+  divider: colors.fog,
 
-  // Shadows
-  shadowColor: '#7C3AED',
-
-  // Glassmorphism
-  glassBackground: 'rgba(255,255,255,0.7)',
-  glassBorder: 'rgba(124,58,237,0.18)',
-
-  // Companions accent colors
-  arch: '#7C3AED',
-  para: '#0891B2',
-  secu: '#DC2626',
-  data: '#059669',
-  bio: '#D97706',
-  ubu: '#DB2777',
-  art: '#7C3AED',
-
+  // Shadow
+  shadowColor: colors.ink,
+  
   isDark: false,
+};
+
+// Dark theme is kept as a minimal fallback, adapted to maintain the GIC style
+export const darkTheme = {
+  background: colors.graphiteNight,
+  backgroundCard: colors.obsidian,
+  glassBackground: 'rgba(40, 40, 52, 0.7)',
+  glassBorder: colors.iron,
+  textPrimary: colors.paper,
+  textSecondary: colors.mist,
+  textMuted: colors.steel,
+  textAccent: colors.slateCyan,
+  primaryAction: colors.paper,
+  secondaryAction: colors.slateCyan,
+  accent: colors.hudsonBlue,
+  border: colors.iron,
+  divider: colors.iron,
+  shadowColor: '#000000',
+  isDark: true,
 };

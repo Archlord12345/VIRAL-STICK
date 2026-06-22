@@ -1,6 +1,6 @@
 /**
  * GlassCard — Glassmorphism container component
- * Viral Stick | KERNEL FORGE — 2026
+ * General Intelligence Company Style — 2026
  */
 
 import React, { useRef, useEffect } from 'react';
@@ -8,17 +8,14 @@ import {
   View,
   StyleSheet,
   Animated,
-  Platform,
 } from 'react-native';
-import { useTheme, radius, createShadow } from '../theme';
+import { useTheme, radius, getShadow, glassStyle } from '../theme';
 
 const GlassCard = ({
   children,
   style,
   animate = false,
   delay = 0,
-  pressable = false,
-  onPress,
 }) => {
   const { theme } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -49,11 +46,8 @@ const GlassCard = ({
 
   const containerStyle = [
     styles.card,
-    {
-      backgroundColor: theme.glassBackground,
-      borderColor: theme.glassBorder,
-      ...createShadow(theme.shadowColor, 16),
-    },
+    glassStyle(theme), // Uses theme-aware glassStyle
+    getShadow('sm'),   // Updated shadow token
     style,
   ];
 
@@ -71,9 +65,8 @@ const GlassCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    padding: 16,
+    // borderRadius and borderWidth are handled by glassStyle
+    padding: 20, // Adjusted padding to align with GIC
     overflow: 'hidden',
   },
 });

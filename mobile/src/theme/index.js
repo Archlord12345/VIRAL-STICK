@@ -1,71 +1,74 @@
 /**
- * Viral Stick — Theme System
- * KERNEL FORGE — 2026
- *
- * Exports spacing, typography, shadows, and theme context helpers.
+ * General Intelligence Company — Theme System
+ * Adapted for Viral Stick React Native App
  */
 
 import React, { createContext, useContext, useState } from 'react';
 import { darkTheme, lightTheme } from './colors';
 
-// ─── Spacing scale ─────────────────────────────────────────────────────────
+// ─── Spacing scale (4px base) ──────────────────────────────────────────────
 export const spacing = {
   xs: 4,
   sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 48,
-  xxxl: 64,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+  huge: 48,
 };
 
 // ─── Border radii ─────────────────────────────────────────────────────────
 export const radius = {
-  sm: 8,
-  md: 14,
-  lg: 20,
-  xl: 28,
-  full: 999,
+  button: 4,
+  cards: 12,
+  elevatedCards: 16,
+  heroCards: 24,
+  nav: 50,
 };
 
 // ─── Typography ────────────────────────────────────────────────────────────
 export const typography = {
+  // We use standard fonts available, approximating the editorial feel
   fontFamily: {
-    regular: 'System',
-    medium: 'System',
-    bold: 'System',
+    display: 'System', // ppmondwest
+    body: 'System',    // af
   },
   fontSize: {
-    xs: 11,
-    sm: 13,
-    md: 15,
-    lg: 18,
-    xl: 22,
-    xxl: 28,
-    xxxl: 36,
-    hero: 44,
+    caption: 13,
+    bodySm: 15,
+    subheading: 18,
+    heading: 40,
+    headingLg: 48,
+    display: 54,
   },
   lineHeight: {
-    tight: 1.2,
-    normal: 1.5,
-    relaxed: 1.75,
+    caption: 1.4,
+    bodySm: 1.5,
+    subheading: 1.3,
+    heading: 1.1,
   },
+  letterSpacing: {
+    caption: -0.156,
+    bodySm: -0.15,
+    subheading: -0.18,
+    heading: -0.8,
+  }
 };
 
-// ─── Shadow presets ───────────────────────────────────────────────────────
-export const createShadow = (color = '#7C3AED', elevation = 12) => ({
-  shadowColor: color,
-  shadowOffset: { width: 0, height: elevation / 3 },
-  shadowOpacity: 0.35,
-  shadowRadius: elevation,
-  elevation,
-});
+// ─── Shadow presets (adapted from GIC) ─────────────────────────────────────
+export const getShadow = (elevation) => {
+  if (elevation === 'sm') return { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 2 };
+  if (elevation === 'subtle') return { shadowColor: '#dee2de', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 1, elevation: 1 };
+  return { elevation: 0 };
+};
 
 // ─── Theme Context ────────────────────────────────────────────────────────
-const ThemeContext = createContext({ theme: darkTheme, toggleTheme: () => {} });
+const ThemeContext = createContext({ theme: lightTheme, toggleTheme: () => {} });
 
 export const ThemeProvider = ({ children }) => {
-  const [isDark, setIsDark] = useState(true);
+  // Default to light theme as per GIC design
+  const [isDark, setIsDark] = useState(false);
   const theme = isDark ? darkTheme : lightTheme;
 
   const toggleTheme = () => setIsDark(prev => !prev);
@@ -79,11 +82,10 @@ export const ThemeProvider = ({ children }) => {
 
 export const useTheme = () => useContext(ThemeContext);
 
-// ─── Glassmorphism card style helper ─────────────────────────────────────
+// ─── Frosted/Glass style helper ──────────────────────────────────────────
 export const glassStyle = (theme) => ({
   backgroundColor: theme.glassBackground,
   borderWidth: 1,
   borderColor: theme.glassBorder,
-  borderRadius: radius.lg,
-  ...createShadow(theme.shadowColor),
+  borderRadius: radius.heroCards,
 });
