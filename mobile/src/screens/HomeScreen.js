@@ -1,101 +1,42 @@
+
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { theme } from '../theme/theme';
 
-/**
- * HomeScreen - Point d'entrée de l'application mobile.
- * Permet d'accéder aux 3 modules principaux : Context Reader, Voice-to-Meme, et Status Remixer.
- * 
- * Responsable principal : Mobile Dev 2 (MD2)
- */
-const HomeScreen = ({ navigation }) => {
+export default function HomeScreen({ navigation }) {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Viral Stick 🚀</Text>
-        <Text style={styles.subtitle}>Générateur de Mèmes Multimodal</Text>
-      </View>
+    <View style={styles.container}>
+      <Text style={styles.title}>VIRAL STICK 🚀</Text>
+      <Text style={styles.subtitle}>Générateur de Mèmes Multimodal</Text>
 
-      <View style={styles.menuContainer}>
-        <TouchableOpacity 
-          style={styles.card}
-          onPress={() => navigation.navigate('ContextReader')}
-        >
-          <Text style={styles.cardEmoji}>📝</Text>
-          <Text style={styles.cardTitle}>Context Reader</Text>
-          <Text style={styles.cardDesc}>Colle une discussion $\rightarrow$ mème généré</Text>
+      <View style={styles.menu}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ContextReader')}>
+          <Text style={styles.buttonText}>📝 Context Reader</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.card}
-          onPress={() => navigation.navigate('VoiceToMeme')}
-        >
-          <Text style={styles.cardEmoji}>🎙️</Text>
-          <Text style={styles.cardTitle}>Voice-to-Meme</Text>
-          <Text style={styles.cardDesc}>Enregistre une note vocale $\rightarrow$ mème audio/texte</Text>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('VoiceToMeme')}>
+          <Text style={styles.buttonText}>🎙️ Voice-To-Meme</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.card}
-          onPress={() => navigation.navigate('StatusRemixer')}
-        >
-          <Text style={styles.cardEmoji}>🖼️</Text>
-          <Text style={styles.cardTitle}>Status Remixer</Text>
-          <Text style={styles.cardDesc}>Importe une image $\rightarrow$ mème personnalisé</Text>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('StatusRemixer')}>
+          <Text style={styles.buttonText}>🖼️ Status Remixer</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+
+      <View style={styles.companionBox}>
+        <Text style={styles.companionText}>💬 Archy : "Bienvenue dans la Forge ! Choisis un outil pour commencer."</Text>
+      </View>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#121212',
-  },
-  header: {
-    padding: 24,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#888888',
-    marginTop: 8,
-  },
-  menuContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    gap: 16,
-  },
-  card: {
-    backgroundColor: '#1E1E1E',
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#333333',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cardEmoji: {
-    fontSize: 32,
-    marginRight: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  cardDesc: {
-    fontSize: 12,
-    color: '#AAAAAA',
-    marginTop: 4,
-  }
+  container: { flex: 1, backgroundColor: theme.colors.background, padding: 20, justifyContent: 'center' },
+  title: { fontSize: 32, fontWeight: 'bold', color: theme.colors.accent, textAlign: 'center' },
+  subtitle: { fontSize: 16, color: theme.colors.textMuted, textAlign: 'center', marginBottom: 40 },
+  menu: { gap: 15 },
+  button: { backgroundColor: theme.colors.surface, padding: 20, borderRadius: 12, borderWidth: 1, borderColor: theme.colors.primary },
+  buttonText: { color: theme.colors.text, fontSize: 18, fontWeight: 'bold' },
+  companionBox: { marginTop: 40, padding: 15, backgroundColor: '#29292e', borderRadius: 8, borderStyle: 'dashed', borderWidth: 1, borderColor: theme.colors.textMuted },
+  companionText: { color: theme.colors.text, fontStyle: 'italic' }
 });
-
-export default HomeScreen;
