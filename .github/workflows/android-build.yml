@@ -78,6 +78,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
       - name: Install dependencies
         run: npm ci
+        working-directory: mobile
 
       - name: Vérifier les clés API
         run: |
@@ -101,6 +102,7 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
+        working-directory: mobile
 
       - name: Cache Gradle
         if: steps.check_android.outputs.exists == 'true'
@@ -125,6 +127,7 @@ jobs:
           else
             echo "ANDROID_KEYSTORE non défini — build non signé"
           fi
+        working-directory: mobile
 
       - name: Build APK
         if: steps.check_android.outputs.exists == 'true'
@@ -134,12 +137,12 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          cd android
           if [ "${{ github.event.inputs.build_type }}" = "release" ] || [ "${{ github.ref }}" = "refs/heads/main" ]; then
             ./gradlew assembleRelease
           else
             ./gradlew assembleDebug
           fi
+        working-directory: mobile/android
 
       - name: Build AAB
         if: steps.check_android.outputs.exists == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
@@ -149,8 +152,8 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          cd android
           ./gradlew bundleRelease
+        working-directory: mobile/android
 
       - name: Upload APK
         if: steps.check_android.outputs.exists == 'true'
