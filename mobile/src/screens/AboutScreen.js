@@ -78,10 +78,11 @@ const AboutScreen = ({ navigate }) => {
                 Viral <Text style={{ color: theme.primaryLight }}>Stick</Text>
               </Text>
             </View>
-            <Image
-              source={require("../../assets/logo/logo_sans_fond.png")}
-              style={styles.logo}
-              resizeMode="contain"
+            <CompanionAvatar
+              companion="arch"
+              size={68}
+              floating
+              message="Bienvenue dans l'univers KERNEL FORGE. Je suis Archlord, le lead de ce projet."
             />
           </View>
 

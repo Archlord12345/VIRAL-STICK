@@ -19,6 +19,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import axios from 'axios';
 import { useTheme, spacing, radius, typography, createShadow } from '../theme';
 import GlassCard from '../components/GlassCard';
 import AnimatedButton from '../components/AnimatedButton';
@@ -85,16 +86,19 @@ const VoiceToMemeScreen = ({ navigate }) => {
   const [meme, setMeme] = useState(null);
   const [loading, setLoading] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [msgIdx, setMsgIdx] = useState(0);
+  const [companionMsg, setCompanionMsg] = useState(UBU_MESSAGES[0]);
   const timerRef = useRef(null);
   const micScale = useRef(new Animated.Value(1)).current;
-  const micGlow = useRef(new Animated.Value(0)).current;
   const resultAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const t = setInterval(() => setMsgIdx(i => (i + 1) % UBU_MESSAGES.length), 5500);
-    return () => clearInterval(t);
-  }, []);
+    if (!isRecording && !loading && !meme) {
+      const t = setInterval(() => {
+        setCompanionMsg(UBU_MESSAGES[Math.floor(Math.random() * UBU_MESSAGES.length)]);
+      }, 5500);
+      return () => clearInterval(t);
+    }
+  }, [isRecording, loading, meme]);
 
   const startRecording = () => {
     setIsRecording(true);
@@ -102,6 +106,7 @@ const VoiceToMemeScreen = ({ navigate }) => {
     setMeme(null);
     setDuration(0);
     resultAnim.setValue(0);
+    setCompanionMsg('🎙️ Je t\'écoute attentivement !');
 
     // Pulse mic animation
     Animated.loop(
@@ -119,8 +124,9 @@ const VoiceToMemeScreen = ({ navigate }) => {
     micScale.stopAnimation();
     micScale.setValue(1);
     clearInterval(timerRef.current);
+    setCompanionMsg('⌛ Analyse de ta voix en cours...');
 
-    // Simulate transcription
+    // Simulate transcription (in real app, this would be an API call with audio file)
     setTimeout(() => {
       const demo = [
         'Mon prof a confondu Python et le serpent, il a appelé le zoo !',
@@ -128,27 +134,33 @@ const VoiceToMemeScreen = ({ navigate }) => {
         "J'ai codé toute la nuit et mon programme dit 'Hello World' en 3 jours.",
       ];
       setTranscription(demo[Math.floor(Math.random() * demo.length)]);
+      setCompanionMsg('✅ J\'ai tout compris ! On crée le mème ?');
     }, 1200);
   };
 
   const generateMeme = async () => {
     if (!transcription.trim()) {
+      setCompanionMsg('⚠️ Dis-moi quelque chose d\'abord !');
       Alert.alert('Viral Stick', 'Enregistre d\'abord ta voix !');
       return;
     }
     setLoading(true);
     setMeme(null);
+    setCompanionMsg('🤖 Ubu transforme tes paroles en légende épique...');
     try {
-      const axios = require('axios');
-      const res = await axios.default.post('http://10.0.2.2:3000/api/memes/generate-from-text', {
-        text: transcription,
+      const res = await axios.post('http://10.0.2.2:3000/api/memes/voice-to-meme', {
+        transcription: transcription,
       });
       setMeme(res.data);
+      if (res.data.companionComment) {
+        setCompanionMsg(res.data.companionComment);
+      } else {
+        setCompanionMsg('🔥 Boom ! Voilà un mème vocal qui va briser internet !');
+      }
       Animated.spring(resultAnim, { toValue: 1, tension: 70, friction: 7, useNativeDriver: true }).start();
     } catch {
-      Alert.alert('Erreur', 'Connexion au serveur impossible. Mode demo activé.');
-      setMeme({ topText: 'QUAND LE PROF...', bottomText: 'EST PLUS PERDU QUE L\'ÉTUDIANT', descriptionImage: 'Prof confus devant tableau' });
-      Animated.spring(resultAnim, { toValue: 1, tension: 70, friction: 7, useNativeDriver: true }).start();
+      setCompanionMsg('❌ Zut, petit problème technique. On réessaie ?');
+      Alert.alert('Erreur', 'Connexion au serveur impossible.');
     } finally {
       setLoading(false);
     }
@@ -168,7 +180,7 @@ const VoiceToMemeScreen = ({ navigate }) => {
               <Text style={{ color: theme.secondaryLight }}>→ Mème</Text>
             </Text>
           </View>
-          <CompanionAvatar companion="ubu" size={68} floating message={UBU_MESSAGES[msgIdx]} />
+          <CompanionAvatar companion="ubu" size={68} floating message={companionMsg} />
         </View>
 
         {/* Recorder Card */}

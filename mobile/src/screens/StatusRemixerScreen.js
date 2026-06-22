@@ -46,16 +46,21 @@ const StatusRemixerScreen = ({ navigate }) => {
   const [overlayText, setOverlayText] = useState('');
   const [textPosition, setTextPosition] = useState('bottom');
   const [imagePicked, setImagePicked] = useState(false);
-  const [msgIdx, setMsgIdx] = useState(0);
+  const [companionMsg, setCompanionMsg] = useState(BIO_MESSAGES[0]);
   const previewAnim = useRef(new Animated.Value(0)).current;
   const filterScales = useRef(FILTERS.map(() => new Animated.Value(1))).current;
 
   useEffect(() => {
-    const t = setInterval(() => setMsgIdx(i => (i + 1) % BIO_MESSAGES.length), 5500);
-    return () => clearInterval(t);
-  }, []);
+    if (!imagePicked) {
+      const t = setInterval(() => {
+        setCompanionMsg(BIO_MESSAGES[Math.floor(Math.random() * BIO_MESSAGES.length)]);
+      }, 5500);
+      return () => clearInterval(t);
+    }
+  }, [imagePicked]);
 
   const pickImage = () => {
+    setCompanionMsg('🌿 Choisis ta plus belle photo, je m\'occupe du reste !');
     // In production: use react-native-image-picker
     Alert.alert(
       'Sélectionner une image',
@@ -70,6 +75,7 @@ const StatusRemixerScreen = ({ navigate }) => {
 
   const simulatePickImage = () => {
     setImagePicked(true);
+    setCompanionMsg('✨ Magnifique ! Maintenant, ajoutons un peu de style.');
     Animated.spring(previewAnim, {
       toValue: 1,
       tension: 70,
@@ -80,6 +86,15 @@ const StatusRemixerScreen = ({ navigate }) => {
 
   const selectFilter = (filterId, index) => {
     setSelectedFilter(filterId);
+    const msgs = {
+      fire: '🔥 Oh ! Ça va chauffer avec ce filtre !',
+      neon: '💫 Futuriste... j\'adore ce style neon !',
+      dramatic: '🌑 Très intense, parfait pour un message fort.',
+      vintage: '🎞️ Le charme du rétro, indémodable.',
+      none: '📷 La simplicité a aussi du bon !',
+    };
+    setCompanionMsg(msgs[filterId] || '🎨 Très bon choix de filtre !');
+
     Animated.sequence([
       Animated.timing(filterScales[index], { toValue: 0.85, duration: 100, useNativeDriver: true }),
       Animated.spring(filterScales[index], { toValue: 1, tension: 150, friction: 5, useNativeDriver: true }),
@@ -97,6 +112,7 @@ const StatusRemixerScreen = ({ navigate }) => {
   };
 
   const exportSticker = () => {
+    setCompanionMsg('💾 C\'est prêt ! Ton sticker va devenir viral en un rien de temps.');
     Alert.alert('Viral Stick', '✨ Sticker exporté ! (En développement — la génération PNG sera disponible dans v1.1)');
   };
 
@@ -112,7 +128,7 @@ const StatusRemixerScreen = ({ navigate }) => {
               <Text style={{ color: '#F59E0B' }}>Remixer</Text>
             </Text>
           </View>
-          <CompanionAvatar companion="bio" size={68} floating message={BIO_MESSAGES[msgIdx]} />
+          <CompanionAvatar companion="bio" size={68} floating message={companionMsg} />
         </View>
 
         {/* Image picker */}

@@ -39,18 +39,23 @@ const ContextReaderScreen = ({ navigate }) => {
   const [text, setText] = useState('');
   const [meme, setMeme] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [msgIdx, setMsgIdx] = useState(0);
+  const [companionMsg, setCompanionMsg] = useState(ART_MESSAGES[0]);
   const resultAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim  = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const t = setInterval(() => setMsgIdx(i => (i + 1) % ART_MESSAGES.length), 5000);
-    return () => clearInterval(t);
-  }, []);
+    if (!loading && !meme) {
+      const t = setInterval(() => {
+        setCompanionMsg(ART_MESSAGES[Math.floor(Math.random() * ART_MESSAGES.length)]);
+      }, 5000);
+      return () => clearInterval(t);
+    }
+  }, [loading, meme]);
 
   // Pulse loading animation
   useEffect(() => {
     if (loading) {
+      setCompanionMsg('🎨 Je réfléchis... Ta situation est inspirante !');
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 1.08, duration: 600, useNativeDriver: true }),
@@ -65,6 +70,7 @@ const ContextReaderScreen = ({ navigate }) => {
 
   const generateMeme = async () => {
     if (!text.trim()) {
+      setCompanionMsg('⚠️ Oh ! Tu as oublié de m\'écrire quelque chose.');
       Alert.alert('Viral Stick', 'Entre un texte de contexte !');
       return;
     }
@@ -74,6 +80,11 @@ const ContextReaderScreen = ({ navigate }) => {
     try {
       const res = await axios.post(`${API_BASE}/api/memes/generate-from-text`, { text });
       setMeme(res.data);
+      if (res.data.companionComment) {
+        setCompanionMsg(res.data.companionComment);
+      } else {
+        setCompanionMsg('✨ Tadaaa ! Voilà une idée qui va faire un carton !');
+      }
       Animated.spring(resultAnim, {
         toValue: 1,
         tension: 70,
@@ -81,6 +92,7 @@ const ContextReaderScreen = ({ navigate }) => {
         useNativeDriver: true,
       }).start();
     } catch (err) {
+      setCompanionMsg('❌ Oups, j\'ai eu un petit bug créatif. Réessaie ?');
       Alert.alert('Erreur', 'Impossible de générer le mème. Vérifie ta connexion.');
     } finally {
       setLoading(false);
@@ -91,6 +103,7 @@ const ContextReaderScreen = ({ navigate }) => {
     setText('');
     setMeme(null);
     resultAnim.setValue(0);
+    setCompanionMsg('📖 Prêt pour une nouvelle idée ? Je t\'écoute.');
   };
 
   return (
@@ -108,7 +121,7 @@ const ContextReaderScreen = ({ navigate }) => {
               Context <Text style={{ color: theme.primaryLight }}>Reader</Text>
             </Text>
           </View>
-          <CompanionAvatar companion="art" size={68} floating message={ART_MESSAGES[msgIdx]} />
+          <CompanionAvatar companion="art" size={68} floating message={companionMsg} />
         </View>
 
         {/* Input */}

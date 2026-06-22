@@ -19,9 +19,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ActivityIndicator,
 } from 'react-native';
+import axios from 'axios';
 import { useTheme, spacing, radius, typography, createShadow } from '../theme';
 import { COMPANIONS, COMPANION_NAMES } from '../components/CompanionAvatar';
+
+const API_BASE = 'http://10.0.2.2:3000'; // Android emulator → localhost
 
 const COMPANION_LIST = [
   { id: 'arch', role: 'PDG & Admin système' },
@@ -73,6 +77,16 @@ const AUTO_REPLIES = {
   art:  ['Magnifique idée ! 🎨', 'Je visualise déjà le résultat !', 'Art approuve. ✨'],
 };
 
+const COMPANION_COLORS = {
+  arch: '#0081c0', // Bleu
+  para: '#4CAF50', // Vert
+  secu: '#F44336', // Rouge
+  data: '#FF9800', // Jaune/Orange
+  bio:  '#9C27B0', // Violet/Rose
+  ubu:  '#8BC34A', // Jaune/Vert
+  art:  '#FF5722', // Orange/Rouge
+};
+
 const ChatBubble = ({ msg, theme }) => {
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -81,6 +95,7 @@ const ChatBubble = ({ msg, theme }) => {
   }, []);
 
   const isUser = msg.sender === 'user';
+  const companionColor = COMPANION_COLORS[msg.companion] || theme.primary;
 
   return (
     <Animated.View
@@ -93,7 +108,7 @@ const ChatBubble = ({ msg, theme }) => {
       {!isUser && (
         <Image
           source={COMPANIONS[msg.companion]}
-          style={[styles.bubbleAvatar, { borderColor: theme[msg.companion] }]}
+          style={[styles.bubbleAvatar, { borderColor: companionColor }]}
           resizeMode="contain"
         />
       )}
@@ -104,13 +119,14 @@ const ChatBubble = ({ msg, theme }) => {
             backgroundColor: isUser
               ? `${theme.primary}CC`
               : theme.backgroundCard,
-            borderColor: isUser ? 'transparent' : theme.glassBorder,
+            borderColor: isUser ? 'transparent' : companionColor,
             alignSelf: isUser ? 'flex-end' : 'flex-start',
+            borderWidth: isUser ? 0 : 1,
           },
         ]}
       >
         {!isUser && (
-          <Text style={[styles.companionName, { color: theme[msg.companion] }]}>
+          <Text style={[styles.companionName, { color: companionColor }]}>
             {COMPANION_NAMES[msg.companion]}
           </Text>
         )}
@@ -130,24 +146,47 @@ const CompanionChatScreen = ({ navigate }) => {
   const [activeCompanion, setActiveCompanion] = useState('arch');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
   const flatRef = useRef(null);
   const tabAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Load greeting messages for active companion
-    const greets = GREETINGS[activeCompanion];
-    const initMsgs = greets.map((text, i) => ({
-      id: `g${i}`,
-      text,
-      sender: activeCompanion,
-      companion: activeCompanion,
-      time: 'maintenant',
-    }));
-    setMessages(initMsgs);
+    const fetchGreeting = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.post(`${API_BASE}/api/memes/chat/greeting`, {
+          companionId: activeCompanion
+        });
+        const initMsg = {
+          id: 'g0',
+          text: res.data.reply,
+          sender: activeCompanion,
+          companion: activeCompanion,
+          time: 'maintenant',
+        };
+        setMessages([initMsg]);
+      } catch (err) {
+        // Fallback to static if API fails
+        const greets = GREETINGS[activeCompanion] || ['Bonjour !'];
+        const initMsgs = greets.map((text, i) => ({
+          id: `g${i}`,
+          text,
+          sender: activeCompanion,
+          companion: activeCompanion,
+          time: 'maintenant',
+        }));
+        setMessages(initMsgs);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGreeting();
   }, [activeCompanion]);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+
     const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const userMsg = {
       id: Date.now().toString(),
@@ -156,24 +195,50 @@ const CompanionChatScreen = ({ navigate }) => {
       companion: activeCompanion,
       time: now,
     };
+
+    const currentInput = input;
     setInput('');
     setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
 
-    // Auto-reply after delay
-    setTimeout(() => {
-      const replies = AUTO_REPLIES[activeCompanion];
+    try {
+      // Prepare chat history for the AI
+      const history = messages.slice(-6).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      }));
+
+      const res = await axios.post(`${API_BASE}/api/memes/chat`, {
+        companionId: activeCompanion,
+        message: currentInput,
+        history: history
+      });
+
       const reply = {
         id: (Date.now() + 1).toString(),
-        text: replies[Math.floor(Math.random() * replies.length)],
+        text: res.data.reply,
         sender: activeCompanion,
         companion: activeCompanion,
         time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
       };
-      setMessages(prev => [...prev, reply]);
-      setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
-    }, 900 + Math.random() * 800);
 
-    setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
+      setMessages(prev => [...prev, reply]);
+    } catch (err) {
+      console.error('Chat error:', err);
+      // Minimal fallback
+      const replies = AUTO_REPLIES[activeCompanion];
+      const fallbackMsg = {
+        id: (Date.now() + 1).toString(),
+        text: replies[Math.floor(Math.random() * replies.length)],
+        sender: activeCompanion,
+        companion: activeCompanion,
+        time: 'maintenant',
+      };
+      setMessages(prev => [...prev, fallbackMsg]);
+    } finally {
+      setLoading(false);
+      setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
+    }
   };
 
   const switchCompanion = (id) => {
@@ -184,7 +249,7 @@ const CompanionChatScreen = ({ navigate }) => {
     setActiveCompanion(id);
   };
 
-  const accentColor = theme[activeCompanion] || theme.primary;
+  const accentColor = COMPANION_COLORS[activeCompanion] || theme.primary;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -215,19 +280,20 @@ const CompanionChatScreen = ({ navigate }) => {
           contentContainerStyle={styles.selectorContent}
           renderItem={({ item }) => {
             const active = item.id === activeCompanion;
+            const itemColor = COMPANION_COLORS[item.id] || theme.primary;
             return (
               <TouchableOpacity
                 onPress={() => switchCompanion(item.id)}
                 style={[
                   styles.selectorItem,
                   {
-                    borderColor: active ? theme[item.id] : 'transparent',
-                    backgroundColor: active ? `${theme[item.id]}22` : 'transparent',
+                    borderColor: active ? itemColor : 'transparent',
+                    backgroundColor: active ? `${itemColor}22` : 'transparent',
                   },
                 ]}
               >
                 <Image source={COMPANIONS[item.id]} style={styles.selectorAvatar} resizeMode="contain" />
-                <Text style={[styles.selectorName, { color: active ? theme[item.id] : theme.textMuted }]}>
+                <Text style={[styles.selectorName, { color: active ? itemColor : theme.textMuted }]}>
                   {COMPANION_NAMES[item.id]}
                 </Text>
               </TouchableOpacity>
@@ -245,6 +311,14 @@ const CompanionChatScreen = ({ navigate }) => {
         contentContainerStyle={styles.chatContent}
         onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: true })}
         showsVerticalScrollIndicator={false}
+        ListFooterComponent={loading && (
+          <View style={styles.loadingBubble}>
+            <ActivityIndicator size="small" color={accentColor} />
+            <Text style={[styles.loadingText, { color: theme.textMuted }]}>
+              {COMPANION_NAMES[activeCompanion]} réfléchit...
+            </Text>
+          </View>
+        )}
       />
 
       {/* Input */}
@@ -261,13 +335,18 @@ const CompanionChatScreen = ({ navigate }) => {
             placeholderTextColor={theme.textMuted}
             onSubmitEditing={sendMessage}
             returnKeyType="send"
+            editable={!loading}
           />
           <TouchableOpacity
             onPress={sendMessage}
-            style={[styles.sendBtn, { backgroundColor: accentColor, ...createShadow(accentColor, 8) }]}
+            style={[
+              styles.sendBtn,
+              { backgroundColor: loading ? theme.divider : accentColor, ...createShadow(accentColor, 8) }
+            ]}
             activeOpacity={0.8}
+            disabled={loading}
           >
-            <Text style={styles.sendIcon}>▶</Text>
+            {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.sendIcon}>▶</Text>}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -315,6 +394,17 @@ const styles = StyleSheet.create({
   companionName: { fontSize: typography.fontSize.xs, fontWeight: '700', marginBottom: 3, letterSpacing: 0.5 },
   bubbleText: { fontSize: typography.fontSize.sm, lineHeight: 20 },
   bubbleTime: { fontSize: 10, marginTop: 4, textAlign: 'right' },
+  loadingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: spacing.md,
+    marginLeft: 40,
+  },
+  loadingText: {
+    fontSize: typography.fontSize.xs,
+    fontStyle: 'italic',
+  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',

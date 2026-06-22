@@ -1,5 +1,36 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "web/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "build" }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "web/static/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "web/favicon.ico"
+    },
+    {
+      "src": "/asset/(.*)",
+      "dest": "asset/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "web/index.html"
+    }
   ]
 }

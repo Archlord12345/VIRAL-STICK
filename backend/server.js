@@ -15,6 +15,10 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Serveur Viral Stick en écoute sur le port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Serveur Viral Stick en écoute sur le port ${PORT}`);
+  });
+}
+
+module.exports = app;

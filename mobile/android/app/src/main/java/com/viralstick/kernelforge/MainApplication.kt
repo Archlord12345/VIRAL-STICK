@@ -1,4 +1,4 @@
-package com.viralstick
+package com.viralstick.kernelforge
 
 import android.app.Application
 import com.facebook.react.PackageList
