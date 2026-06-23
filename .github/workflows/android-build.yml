@@ -144,17 +144,8 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          WANT_RELEASE="false"
-          if [ "${{ github.event.inputs.build_type }}" = "release" ] || [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            WANT_RELEASE="true"
-          fi
-          if [ "$WANT_RELEASE" = "true" ] && [ "${{ steps.keystore_check.outputs.available }}" = "true" ]; then
-            echo "🔐 assembleRelease (signé)"
-            ./gradlew assembleRelease
-          else
-            echo "🔓 assembleDebug (non signé)"
-            ./gradlew assembleDebug
-          fi
+          echo "🚀 Construction de l'APK Release"
+          ./gradlew assembleRelease
         working-directory: mobile/android
 
       - name: Build AAB
@@ -173,7 +164,7 @@ jobs:
         if: steps.check_android.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: viral-stick-apk-${{ github.event.inputs.build_type || 'debug' }}
+          name: viral-stick-apk-release
           path: mobile/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: warn
 
