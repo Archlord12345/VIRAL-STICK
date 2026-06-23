@@ -7,10 +7,6 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("com.facebook.react.settings")
-}
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {

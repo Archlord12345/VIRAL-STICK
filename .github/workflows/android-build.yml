@@ -23,6 +23,9 @@ concurrency:
 env:
   NODE_VERSION: "20.19.4"
   JAVA_VERSION: "21"
+  ANDROID_API_LEVEL: "35"
+  ANDROID_BUILD_TOOLS: "35.0.0"
+  ANDROID_NDK: "27.1.12297006"
   # ── Environnement GitHub : "I_AM_ELON_MUSK" ──────────────────────
   # Secrets (environment-scoped, tous optionnels) :
   #   GEMINI_API_KEY
@@ -84,6 +87,21 @@ jobs:
         run: npm ci
         working-directory: mobile
 
+      - name: Setup Android SDK
+        if: steps.check_android.outputs.exists == 'true'
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        if: steps.check_android.outputs.exists == 'true'
+        run: |
+          sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-${{ env.ANDROID_API_LEVEL }}" \
+            "build-tools;${{ env.ANDROID_BUILD_TOOLS }}" \
+            "ndk;${{ env.ANDROID_NDK }}"
+          sdkmanager --list_installed
+
       - name: Vérifier les clés API
         run: |
           if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
@@ -130,7 +148,7 @@ jobs:
             echo "✅ Keystore détecté — build release signé activé"
           else
             echo "available=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Keystore absent — build debug (non signé)"
+            echo "⚠️ Keystore absent — build release avec signature debug de secours"
           fi
 
       - name: Decode Keystore
@@ -142,24 +160,36 @@ jobs:
           echo "✅ Keystore décodé"
         working-directory: mobile
 
-      - name: Build APK
+      - name: Build APK release
         if: steps.check_android.outputs.exists == 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ORG_GRADLE_JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
-          echo "🚀 Construction de l'APK Release"
+          if [ "${{ steps.keystore_check.outputs.available }}" = "true" ]; then
+            echo "🚀 Construction de l'APK Release signé"
+          else
+            echo "🚀 Construction de l'APK Release avec signature debug de secours"
+          fi
           java -version
-          ./gradlew --no-daemon assembleRelease
+          ./gradlew --no-daemon clean assembleRelease
         working-directory: mobile/android
 
-      - name: Build AAB
+      - name: Build AAB release
         if: steps.check_android.outputs.exists == 'true' && steps.keystore_check.outputs.available == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -167,15 +197,15 @@ jobs:
         run: |
           echo "📦 bundleRelease (signé)"
           java -version
-          ./gradlew --no-daemon bundleRelease
+          ./gradlew --no-daemon clean bundleRelease
         working-directory: mobile/android
 
       - name: Upload APK
         if: steps.check_android.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: viral-stick-apk-release
-          path: mobile/android/app/build/outputs/apk/**/*.apk
+          name: viral-stick-apk
+          path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: warn
 
       - name: Upload AAB
@@ -187,4 +217,4 @@ jobs:
           if-no-files-found: warn
 
       - name: Notify completion
-        run: echo "✅ Build terminé — APK et AAB disponibles dans les artefacts"
+        run: echo "✅ Build Android terminé — APK release disponible, AAB si keystore présent"

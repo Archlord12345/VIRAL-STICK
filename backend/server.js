@@ -11,13 +11,25 @@ app.use(express.json());
 // Routes
 app.use("/api/memes", require("./routes/memeRoutes"));
 
-app.post("/api/debug/update-keys", (req, res) => {
-  const { GEMINI_API_KEY, MISTRAL_API_KEY, DEEPSEEK_API_KEY } = req.body;
-  if (GEMINI_API_KEY) process.env.GEMINI_API_KEY = GEMINI_API_KEY;
-  if (MISTRAL_API_KEY) process.env.MISTRAL_API_KEY = MISTRAL_API_KEY;
-  if (DEEPSEEK_API_KEY) process.env.DEEPSEEK_API_KEY = DEEPSEEK_API_KEY;
-  res.status(200).json({ message: "Keys updated" });
-});
+if (process.env.NODE_ENV === "development") {
+  app.post("/api/debug/update-keys", (req, res) => {
+    const {
+      GEMINI_API_KEY,
+      MISTRAL_API_KEY,
+      DEEPSEEK_API_KEY,
+      OPENROUTER_API_KEY,
+      HF_TOKEN,
+    } = req.body;
+
+    if (GEMINI_API_KEY) process.env.GEMINI_API_KEY = GEMINI_API_KEY;
+    if (MISTRAL_API_KEY) process.env.MISTRAL_API_KEY = MISTRAL_API_KEY;
+    if (DEEPSEEK_API_KEY) process.env.DEEPSEEK_API_KEY = DEEPSEEK_API_KEY;
+    if (OPENROUTER_API_KEY) process.env.OPENROUTER_API_KEY = OPENROUTER_API_KEY;
+    if (HF_TOKEN) process.env.HF_TOKEN = HF_TOKEN;
+
+    res.status(200).json({ message: "Keys updated (development only)" });
+  });
+}
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK" });
@@ -28,6 +40,8 @@ app.get("/debug", (req, res) => {
     GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
     MISTRAL_API_KEY: !!process.env.MISTRAL_API_KEY,
     DEEPSEEK_API_KEY: !!process.env.DEEPSEEK_API_KEY,
+    OPENROUTER_API_KEY: !!process.env.OPENROUTER_API_KEY,
+    HF_TOKEN: !!process.env.HF_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
   };

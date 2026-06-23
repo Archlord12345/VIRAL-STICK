@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import CompanionAvatarWeb from "../components/CompanionAvatarWeb";
 import WebShell, { pageStyles } from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
@@ -10,20 +10,54 @@ const RemixPage = () => {
   const [remixText, setRemixText] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+
+  const shareText = useMemo(() => {
+    if (!result) return remixText;
+    const caption =
+      result.meme_text ||
+      [result.topText, result.bottomText].filter(Boolean).join("\n");
+    return [caption, result.description].filter(Boolean).join("\n\n");
+  }, [result, remixText]);
 
   const handleRemix = async () => {
     if (!remixText.trim()) return;
     setLoading(true);
+    setError("");
+    setResult(null);
     try {
-      const response = await fetch("/api/memes/generate-from-text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: remixText }),
+      const [captionResponse, imageResponse] = await Promise.all([
+        fetch("/api/memes/generate-from-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: remixText }),
+        }),
+        fetch("/api/memes/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: remixText }),
+        }),
+      ]);
+
+      const captionData = await captionResponse.json();
+      const imageData = await imageResponse.json();
+
+      if (!captionResponse.ok && !imageResponse.ok) {
+        throw new Error("La génération du remix et de l'image a échoué.");
+      }
+
+      setResult({
+        ...captionData,
+        ...imageData,
+        meme_text:
+          captionData?.meme_text ||
+          [captionData?.topText, captionData?.bottomText]
+            .filter(Boolean)
+            .join(" · "),
       });
-      const data = await response.json();
-      setResult(data);
     } catch (error) {
       console.error("Error:", error);
+      setError(error.message || "Impossible de générer le remix.");
     }
     setLoading(false);
   };
@@ -71,9 +105,24 @@ const RemixPage = () => {
               color: colors.textSecondary,
             }}
           >
-            Upload image réel à finaliser, mais le design est déjà aligné sur le
-            logo et l'univers compagnon.
+            Le remix combine maintenant une caption IA et une tentative de
+            génération d'image via le backend.
           </div>
+
+          {error ? (
+            <div
+              style={{
+                marginTop: 16,
+                padding: 14,
+                borderRadius: 14,
+                border: `1px solid rgba(231,76,60,0.45)`,
+                background: "rgba(231,76,60,0.12)",
+                color: colors.danger,
+              }}
+            >
+              {error}
+            </div>
+          ) : null}
 
           <div
             style={{
@@ -101,26 +150,53 @@ const RemixPage = () => {
                 borderRadius: 18,
                 border: `1px solid ${colors.border}`,
                 background:
-                  "linear-gradient(160deg, rgba(124,58,237,0.18), rgba(6,182,212,0.10))",
+                  "linear-gradient(180deg, rgba(22,33,62,0.96), rgba(13,13,13,0.98))",
                 padding: 22,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
                 alignItems: "center",
                 textAlign: "center",
+                overflow: "hidden",
+                position: "relative",
               }}
             >
-              <div style={{ fontSize: 24, fontWeight: 900 }}>
-                {result?.topText || "TON TEXTE D'ACCROCHE"}
+              {result?.imageUrl ? (
+                <img
+                  src={result.imageUrl}
+                  alt="Remix généré"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    opacity: 0.72,
+                  }}
+                />
+              ) : null}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background:
+                    "linear-gradient(180deg, rgba(13,13,13,0.1), rgba(13,13,13,0.7))",
+                }}
+              />
+              <div style={{ fontSize: 24, fontWeight: 900, zIndex: 1 }}>
+                {result?.topText ||
+                  result?.meme_text ||
+                  "TA CAPTION PRINCIPALE"}
               </div>
               <CompanionAvatarWeb companion="bio" size={180} />
-              <div style={{ fontSize: 20, fontWeight: 800 }}>
-                {result?.bottomText || "TA CHUTE VISUELLE ET VIRALE"}
+              <div style={{ fontSize: 20, fontWeight: 800, zIndex: 1 }}>
+                {result?.bottomText || "UN RENDU PLUS VISUEL, PLUS POSTABLE"}
               </div>
             </div>
             <p style={{ color: colors.textMuted, marginTop: 14 }}>
               {result?.descriptionImage ||
-                "Le moteur peut ensuite servir de base à un export sticker ou à une génération d'image plus poussée."}
+                result?.description ||
+                "Le moteur produit une caption et tente une image cohérente avec le remix demandé."}
             </p>
             <div
               style={{
@@ -131,9 +207,7 @@ const RemixPage = () => {
               }}
             >
               <WhatsAppShareButton
-                text={
-                  result ? `${result.topText}\n${result.bottomText}` : remixText
-                }
+                text={shareText}
                 url={window.location.href}
                 label="Partager le remix sur WhatsApp"
               />

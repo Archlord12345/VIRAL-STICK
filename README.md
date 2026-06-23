@@ -42,10 +42,15 @@ Le backend lit dynamiquement les variables suivantes :
 
 | Variable | Usage | Statut |
 | --- | --- | --- |
-| `GEMINI_API_KEY` | Génération texte principale + tentative image Gemini | Recommandée |
+| `OPENROUTER_API_KEY` | Provider texte principal + génération image via OpenRouter | Fortement recommandée |
+| `OPENROUTER_MODEL` | Modèle texte OpenRouter, ex. `openai/gpt-4o-mini` | Optionnelle |
+| `OPENROUTER_IMAGE_MODEL` | Modèle image OpenRouter, ex. `bytedance-seed/seedream-4.5` | Optionnelle |
+| `OPENROUTER_SITE_URL` | Référent d’application envoyé à OpenRouter | Optionnelle |
+| `OPENROUTER_SITE_NAME` | Nom d’application envoyé à OpenRouter | Optionnelle |
+| `GEMINI_API_KEY` | Fallback texte + tentative image Gemini | Optionnelle |
 | `MISTRAL_API_KEY` | Fallback génération texte | Optionnelle |
 | `DEEPSEEK_API_KEY` | Fallback génération texte | Optionnelle |
-| `HF_TOKEN` | Génération image via Hugging Face Inference Router (`FLUX.1-Krea-dev`) | Fortement recommandée |
+| `HF_TOKEN` | Fallback image via Hugging Face Inference Router (`FLUX.1-Krea-dev`) | Recommandée |
 
 ### Remarques importantes
 
@@ -58,15 +63,17 @@ Le backend lit dynamiquement les variables suivantes :
 
 ### Texte
 Ordre de fallback dans `backend/services-ia/aiService.js` :
-1. Gemini
-2. Mistral
-3. DeepSeek
+1. OpenRouter
+2. Gemini
+3. Mistral
+4. DeepSeek
 
 ### Image
 Ordre actuel :
-1. Hugging Face Inference Router sur `black-forest-labs/FLUX.1-Krea-dev`
-2. fallback Gemini image (`gemini-2.5-flash-image`) si disponible
-3. fallback sans image (`fallback-text-only`)
+1. OpenRouter Images API
+2. Hugging Face Inference Router sur `black-forest-labs/FLUX.1-Krea-dev`
+3. fallback Gemini image (`gemini-2.5-flash-image`) si disponible
+4. fallback sans image (`fallback-text-only`)
 
 ## 🖼️ Services IA image gratuits ou avec entrée gratuite
 
@@ -133,10 +140,15 @@ Le workflow Android déclenche notamment :
 - `ANDROID_KEY_PASSWORD`
 
 #### Environnement / build
+- `OPENROUTER_API_KEY`
+- `OPENROUTER_MODEL`
+- `OPENROUTER_IMAGE_MODEL`
+- `OPENROUTER_SITE_URL`
+- `OPENROUTER_SITE_NAME`
 - `GEMINI_API_KEY`
 - `DEEPSEEK_API_KEY`
 - `MISTRAL_API_KEY`
-- `HF_TOKEN` si vous activez réellement la génération image fallback Hugging Face
+- `HF_TOKEN` si vous activez le fallback image Hugging Face
 
 ## 📱 Mobile — écrans principaux
 

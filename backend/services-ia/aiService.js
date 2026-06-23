@@ -4,11 +4,20 @@ const { COMPANION_PERSONAS, MODULE_PROMPTS } = require("./prompts");
 
 const MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions";
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
+const OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions";
+const OPENROUTER_IMAGE_URL = "https://openrouter.ai/api/v1/images/generations";
 
 const getEnv = () => ({
   GEMINI_KEY: process.env.GEMINI_API_KEY,
   MISTRAL_KEY: process.env.MISTRAL_API_KEY,
   DEEPSEEK_KEY: process.env.DEEPSEEK_API_KEY,
+  OPENROUTER_KEY: process.env.OPENROUTER_API_KEY,
+  OPENROUTER_MODEL: process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
+  OPENROUTER_IMAGE_MODEL:
+    process.env.OPENROUTER_IMAGE_MODEL || "bytedance-seed/seedream-4.5",
+  OPENROUTER_SITE_URL:
+    process.env.OPENROUTER_SITE_URL || "https://viral-stick.local",
+  OPENROUTER_SITE_NAME: process.env.OPENROUTER_SITE_NAME || "VIRAL STICK",
   HF_TOKEN: process.env.HF_TOKEN,
 });
 
@@ -34,6 +43,26 @@ function parseJSON(text) {
     if (match) return JSON.parse(match[0]);
     throw new Error("Impossible de parser le JSON");
   }
+}
+
+function getAxiosErrorDetails(error) {
+  const status = error?.response?.status;
+  const statusText = error?.response?.statusText;
+  const providerMessage =
+    error?.response?.data?.error?.message ||
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    error?.message ||
+    "Unknown error";
+
+  return {
+    status,
+    statusText,
+    providerMessage:
+      typeof providerMessage === "string"
+        ? providerMessage
+        : JSON.stringify(providerMessage),
+  };
 }
 
 function sanitizeMemePayload(payload, voice = false) {
@@ -87,6 +116,42 @@ function getLocationContext(location) {
   };
 
   return contexts[location] || contexts.international;
+}
+
+async function callOpenRouter(systemPrompt, userPrompt, schema) {
+  const {
+    OPENROUTER_KEY,
+    OPENROUTER_MODEL,
+    OPENROUTER_SITE_URL,
+    OPENROUTER_SITE_NAME,
+  } = getEnv();
+  if (!OPENROUTER_KEY) throw new Error("OpenRouter: no key");
+
+  const res = await axios.post(
+    OPENROUTER_CHAT_URL,
+    {
+      model: OPENROUTER_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      max_tokens: 500,
+      temperature: schema === "text" ? 0.8 : 0.65,
+      response_format: schema === "json" ? { type: "json_object" } : undefined,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_KEY}`,
+        "HTTP-Referer": OPENROUTER_SITE_URL,
+        "X-Title": OPENROUTER_SITE_NAME,
+        "Content-Type": "application/json",
+      },
+      timeout: 90000,
+    },
+  );
+
+  const text = res.data?.choices?.[0]?.message?.content || "";
+  return schema === "text" ? normalizeText(text) : parseJSON(text);
 }
 
 async function callDeepSeek(systemPrompt, userPrompt, schema) {
@@ -158,6 +223,7 @@ async function callGemini(systemPrompt, userPrompt, schema) {
 
 async function withTextFallback(fn, fallbackData) {
   const providers = [
+    { name: "OpenRouter", call: () => fn(callOpenRouter) },
     { name: "Gemini", call: () => fn(callGemini) },
     { name: "Mistral", call: () => fn(callMistral) },
     { name: "DeepSeek", call: () => fn(callDeepSeek) },
@@ -169,7 +235,10 @@ async function withTextFallback(fn, fallbackData) {
       console.log(`[AI] ${provider.name} OK`);
       return result;
     } catch (e) {
-      console.warn(`[AI] ${provider.name} failed: ${e.message}`);
+      const details = getAxiosErrorDetails(e);
+      console.warn(
+        `[AI] ${provider.name} failed${details.status ? ` (${details.status}${details.statusText ? ` ${details.statusText}` : ""})` : ""}: ${details.providerMessage}`,
+      );
     }
   }
 
@@ -208,6 +277,52 @@ async function generateWithGeminiImage(prompt) {
   }
 
   throw new Error("Gemini image unavailable");
+}
+
+async function generateWithOpenRouterImage(prompt) {
+  const {
+    OPENROUTER_KEY,
+    OPENROUTER_IMAGE_MODEL,
+    OPENROUTER_SITE_URL,
+    OPENROUTER_SITE_NAME,
+  } = getEnv();
+  if (!OPENROUTER_KEY) throw new Error("OpenRouter image: no key");
+
+  const res = await axios.post(
+    OPENROUTER_IMAGE_URL,
+    {
+      model: OPENROUTER_IMAGE_MODEL,
+      prompt,
+      quality: "medium",
+      size: "1024x1024",
+      output_format: "png",
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_KEY}`,
+        "HTTP-Referer": OPENROUTER_SITE_URL,
+        "X-Title": OPENROUTER_SITE_NAME,
+        "Content-Type": "application/json",
+      },
+      timeout: 120000,
+    },
+  );
+
+  const firstImage = res.data?.data?.[0];
+  const imageUrl = firstImage?.b64_json
+    ? `data:image/png;base64,${firstImage.b64_json}`
+    : firstImage?.url || null;
+
+  if (!imageUrl) {
+    throw new Error("OpenRouter image: empty image response");
+  }
+
+  return {
+    imageUrl,
+    description: normalizeText(prompt),
+    provider: `openrouter-${OPENROUTER_IMAGE_MODEL}`,
+    fallback: false,
+  };
 }
 
 async function generateWithHuggingFace(prompt) {
@@ -309,15 +424,30 @@ const AIService = {
     const normalizedPrompt = normalizeText(prompt);
 
     try {
+      return await generateWithOpenRouterImage(normalizedPrompt);
+    } catch (e) {
+      const details = getAxiosErrorDetails(e);
+      console.warn(
+        `[AI] OpenRouter image failed${details.status ? ` (${details.status}${details.statusText ? ` ${details.statusText}` : ""})` : ""}: ${details.providerMessage}`,
+      );
+    }
+
+    try {
       return await generateWithHuggingFace(normalizedPrompt);
     } catch (e) {
-      console.warn(`[AI] Hugging Face image failed: ${e.message}`);
+      const details = getAxiosErrorDetails(e);
+      console.warn(
+        `[AI] Hugging Face image failed${details.status ? ` (${details.status}${details.statusText ? ` ${details.statusText}` : ""})` : ""}: ${details.providerMessage}`,
+      );
     }
 
     try {
       return await generateWithGeminiImage(normalizedPrompt);
     } catch (e) {
-      console.warn(`[AI] Gemini image unavailable: ${e.message}`);
+      const details = getAxiosErrorDetails(e);
+      console.warn(
+        `[AI] Gemini image unavailable${details.status ? ` (${details.status}${details.statusText ? ` ${details.statusText}` : ""})` : ""}: ${details.providerMessage}`,
+      );
     }
 
     return {
