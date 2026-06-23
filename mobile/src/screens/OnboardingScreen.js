@@ -14,37 +14,18 @@ import {
 const { width, height } = Dimensions.get("window");
 
 const PAGES = [
-  {
-    key: "context",
-    title: "Context Reader",
-    subtitle: "Analyse un texte et génère un mème IA",
-    description:
-      "Colle un texte, une conversation ou un statut. Notre IA détecte le ton, le contexte et les personnages, puis génère un mème ou un sticker parfaitement adapté.",
-    icon: "📖",
-    companion: "art",
-    gradient: ["#7C3AED", "#3B82F6"],
-  },
-  {
-    key: "voice",
-    title: "Voice → Mème",
-    subtitle: "Parle, ton mème se génère automatiquement",
-    description:
-      "Enregistre ta voix, notre IA transcrit et analyse ton ton. En quelques secondes, transforme tes paroles en sticker viral ou en mème hilarant.",
-    icon: "🎙️",
-    companion: "ubu",
-    gradient: ["#06B6D4", "#7C3AED"],
-  },
-  {
-    key: "remixer",
-    title: "Status Remixer",
-    subtitle: "Remixe tes images en stickers viraux",
-    description:
-      "Importe une image, applique des filtres, ajoute du texte et des effets. Remixe tes photos en stickers uniques prêts à partager.",
-    icon: "🎨",
-    companion: "bio",
-    gradient: ["#F59E0B", "#EF4444"],
-  },
+  // ... (unchanged)
 ];
+
+const COMPANION_IMAGES = {
+  arch: require("../../assets/companions/arch_sans_fond.png"),
+  art: require("../../assets/companions/art_sans_fond.png"),
+  bio: require("../../assets/companions/bio_sans_fond.png"),
+  data: require("../../assets/companions/data_sans_fond.png"),
+  para: require("../../assets/companions/para_sans_fond.png"),
+  secu: require("../../assets/companions/secu_sans_fond.png"),
+  ubu: require("../../assets/companions/ubu_sans_fond.png"),
+};
 
 const OnboardingScreen = ({ onFinish }) => {
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -125,17 +106,6 @@ const OnboardingScreen = ({ onFinish }) => {
                   { opacity, transform: [{ scale }] },
                 ]}
               >
-const COMPANION_IMAGES = {
-  arch: require("../../assets/companions/arch_sans_fond.png"),
-  art: require("../../assets/companions/art_sans_fond.png"),
-  bio: require("../../assets/companions/bio_sans_fond.png"),
-  data: require("../../assets/companions/data_sans_fond.png"),
-  para: require("../../assets/companions/para_sans_fond.png"),
-  secu: require("../../assets/companions/secu_sans_fond.png"),
-  ubu: require("../../assets/companions/ubu_sans_fond.png"),
-};
-
-// ... inside the component render ...
                 <View style={styles.glowCircle}>
                   <Image
                     source={COMPANION_IMAGES[page.companion]}
