@@ -9,8 +9,7 @@
       "src": "web/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build",
-        "buildCommand": "npm run build"
+        "distDir": "web/build"
       }
     }
   ],
@@ -20,16 +19,7 @@
       "dest": "backend/server.js"
     },
     {
-      "src": "/asset/(.*)",
-      "dest": "/asset/$1"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/favicon.png"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
