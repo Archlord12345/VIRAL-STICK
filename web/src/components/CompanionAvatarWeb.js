@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors } from '../../theme/tokens';
+import { colors } from '../theme/tokens';
 import './CompanionAvatarWeb.css';
 
 // Mapping des assets SVG générés
