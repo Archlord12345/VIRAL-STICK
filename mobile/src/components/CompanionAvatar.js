@@ -12,7 +12,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { colors, borderRadius, spacing } from '../../../theme/tokens';
+import { colors, borderRadius, spacing } from '../theme/tokens';
 
 const COMPANIONS = {
   arch: require('../../assets/companions/arch_sans_fond.png'),

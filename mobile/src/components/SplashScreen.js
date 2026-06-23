@@ -11,7 +11,7 @@ import {
   StatusBar,
   StyleSheet,
 } from "react-native";
-import { colors, spacing, borderRadius } from "../../../theme/tokens";
+import { colors, spacing, borderRadius } from "../theme/tokens";
 
 const SplashScreen = ({ onFinish }) => {
   const logoScale = useRef(new Animated.Value(0.6)).current;

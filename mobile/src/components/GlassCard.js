@@ -5,7 +5,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
-import { colors, borderRadius, shadows, spacing } from '../../../theme/tokens';
+import { colors, borderRadius, shadows, spacing } from '../theme/tokens';
 
 const GlassCard = ({
   children,

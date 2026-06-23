@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
-import { colors } from '../../../theme/tokens';
+import { colors } from '../theme/tokens';
 
 const GradientText = ({ 
   children, 

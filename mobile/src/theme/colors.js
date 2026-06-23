@@ -2,7 +2,7 @@
  * Viral Stick — Design System Colors
  * Unified for Mobile and Web
  */
-import { colors as sharedColors } from '../../../theme/tokens';
+import { colors as sharedColors } from './tokens';
 
 export const colors = {
   primary: sharedColors.arch, // Utilisation de l'accent bleu par défaut
