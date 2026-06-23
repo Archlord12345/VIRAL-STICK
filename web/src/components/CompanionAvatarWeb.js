@@ -1,38 +1,75 @@
 import React from 'react';
 import { colors } from '../theme/tokens';
-import './CompanionAvatarWeb.css';
 
-// Mapping des assets SVG générés
-const COMPANIONS_SVG = {
-  arch: '/asset/compagnons/svg/arch_sans_fond.svg',
-  para: '/asset/compagnons/svg/para_sans_fond.svg',
-  secu: '/asset/compagnons/svg/secu_sans_fond.svg',
-  data: '/asset/compagnons/svg/data_sans_fond.svg',
-  bio:  '/asset/compagnons/svg/bio_sans_fond.svg',
-  ubu:  '/asset/compagnons/svg/ubu_sans_fond.svg',
-  art:  '/asset/compagnons/svg/art_sans_fond.svg',
+// Mapping des assets PNG (sans fond)
+const COMPANIONS_PNG = {
+  arch: '/asset/compagnons/arch_sans_fond.png',
+  para: '/asset/compagnons/para_sans_fond.png',
+  secu: '/asset/compagnons/secu_sans_fond.png',
+  data: '/asset/compagnons/data_sans_fond.png',
+  bio:  '/asset/compagnons/bio_sans_fond.png',
+  ubu:  '/asset/compagnons/ubu_sans_fond.png',
+  art:  '/asset/compagnons/art_sans_fond.png',
 };
 
 const CompanionAvatarWeb = ({ companion = 'arch', size = 80 }) => {
   const accentColor = colors[companion] || colors.arch;
 
   return (
-    <div className="avatar-wrapper" style={{ width: size, height: size }}>
+    <div style={{ 
+      position: 'relative',
+      width: size, 
+      height: size,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
       <div 
-        className="glow-ring" 
         style={{ 
-          width: size + 16, 
-          height: size + 16, 
-          borderColor: accentColor,
-          boxShadow: `0 0 15px ${accentColor}`
+          position: 'absolute',
+          width: size + 20, 
+          height: size + 20,
+          borderRadius: '50%',
+          background: `radial-gradient(circle, ${accentColor}40 0%, transparent 70%)`,
+          filter: 'blur(8px)',
+          zIndex: 0
         }} 
       />
       <img 
-        src={COMPANIONS_SVG[companion]} 
-        alt={companion} 
-        className="avatar-img"
-        style={{ width: size, height: size }}
+        src={COMPANIONS_PNG[companion]} 
+        alt={companion}
+        style={{ 
+          width: size, 
+          height: size,
+          objectFit: 'contain',
+          position: 'relative',
+          zIndex: 1,
+          filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
+        }}
+        onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
       />
+      <div 
+        style={{ 
+          display: 'none',
+          width: size, 
+          height: size,
+          borderRadius: '50%',
+          background: `linear-gradient(135deg, ${accentColor}, ${accentColor}80)`,
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: size / 2.5,
+          textTransform: 'uppercase',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        {companion[0]}
+      </div>
     </div>
   );
 };

@@ -3,18 +3,18 @@ const AIService = require('../services-ia/aiService');
 const MemeController = {
   createFromText: async (req, res) => {
     try {
-      const { text } = req.body;
+      const { text, inputType, location } = req.body;
       if (!text) {
         return res.status(400).json({ error: 'Texte requis' });
       }
       
-      const memeData = await AIService.generateMemeFromText(text);
+      const memeData = await AIService.generateMemeFromText(text, location);
 
       // Ajout d'un commentaire dynamique du compagnon Art
       let companionComment = "";
       try {
         companionComment = await AIService.chatWithCompanion('art',
-          `L'utilisateur veut un mème sur : "${text}". J'ai généré : "${memeData.topText} / ${memeData.bottomText}". Commente brièvement ce résultat en tant qu'Art (expert visuel).`
+          `L'utilisateur (${location || 'international'}) veut un mème sur : "${text}". J'ai généré : "${memeData.topText} / ${memeData.bottomText}". Commente brièvement ce résultat en tant qu'Art (expert visuel).`
         );
       } catch (e) {
         companionComment = "Art adore ce concept ! C'est très visuel.";
@@ -23,7 +23,8 @@ const MemeController = {
       res.status(200).json({
         message: 'Mème généré avec succès',
         ...memeData,
-        companionComment
+        companionComment,
+        location: location || 'international'
       });
     } catch (error) {
       res.status(500).json({ error: 'Erreur lors de la génération' });

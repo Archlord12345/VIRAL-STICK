@@ -10,6 +10,7 @@ import {
   Animated,
   StatusBar,
   StyleSheet,
+  Image,
 } from "react-native";
 import { colors, spacing, borderRadius } from "../theme/tokens";
 
@@ -62,7 +63,11 @@ const SplashScreen = ({ onFinish }) => {
         ]}
       >
         <View style={[styles.glow, { backgroundColor: colors.arch }]} />
-        <View style={styles.logoPlaceholder} />
+        <Image
+          source={require("../../assets/logo/logo_sans_fond.png")}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
       </Animated.View>
 
       <Animated.Text style={[styles.title, { opacity: logoOpacity }]}>
@@ -91,6 +96,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.xl,
+  },
+  logoImage: {
+    width: 120,
+    height: 120,
   },
   logoPlaceholder: {
     width: 120,

@@ -6,7 +6,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "package.json",
+      "src": "web/package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build"
@@ -19,11 +19,13 @@
       "dest": "backend/server.js"
     },
     {
-      "handle": "filesystem"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "web/$1"
     }
-  ]
+  ],
+  "env": {
+    "GEMINI_API_KEY": "@gemini_api_key",
+    "MISTRAL_API_KEY": "@mistral_api_key",
+    "DEEPSEEK_API_KEY": "@deepseek_api_key"
+  }
 }

@@ -14,7 +14,54 @@ import {
 const { width, height } = Dimensions.get("window");
 
 const PAGES = [
-  // ... (unchanged)
+  {
+    key: "welcome",
+    icon: "🎨",
+    companion: "art",
+    title: "Bienvenue sur Viral Stick",
+    subtitle: "Générateur IA Multimodal",
+    description: "Transformez vos textes, voix et images en mèmes et stickers virals avec nos 7 compagnons IA uniques."
+  },
+  {
+    key: "context",
+    icon: "📝",
+    companion: "art",
+    title: "Context Reader",
+    subtitle: "Texte → Mème",
+    description: "Collez un extrait de discussion et laissez l'IA générer le mème parfait adapté à votre culture."
+  },
+  {
+    key: "voice",
+    icon: "🎤",
+    companion: "ubu",
+    title: "Voice to Meme",
+    subtitle: "Voix → Mème",
+    description: "Parlez et notre IA transformera vos mots en mèmes hilarants en temps réel."
+  },
+  {
+    key: "remix",
+    icon: "🖼️",
+    companion: "bio",
+    title: "Status Remixer",
+    subtitle: "Image → Mème",
+    description: "Importez une image et laissez Bio créer un remix visuel unique."
+  },
+  {
+    key: "chat",
+    icon: "💬",
+    companion: "data",
+    title: "Companion Chat",
+    subtitle: "Discutez avec l'IA",
+    description: "Échangez avec nos 7 compagnons IA pour des conversations personnalisées et divertissantes."
+  },
+  {
+    key: "ready",
+    icon: "🚀",
+    companion: "arch",
+    title: "Prêt à commencer ?",
+    subtitle: "L'aventure commence",
+    description: "Explorez toutes les fonctionnalités et créez du contenu viral dès maintenant !"
+  }
 ];
 
 const COMPANION_IMAGES = {
