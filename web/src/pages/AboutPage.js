@@ -160,8 +160,8 @@ const AboutPage = () => {
               "React Native pour le mobile",
               "React Web pour la vitrine et l’interface desktop",
               "Express pour l’orchestration backend",
-              "Gemini comme provider principal texte",
-              "Mistral et DeepSeek comme fallback",
+              "Hugging Face comme colonne vertébrale IA",
+              "Mistral et DeepSeek comme fallback texte",
               "Compagnons IA comme système d’incarnation produit",
             ].map((item) => (
               <div

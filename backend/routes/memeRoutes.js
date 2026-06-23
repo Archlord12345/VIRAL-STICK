@@ -7,5 +7,6 @@ router.post("/voice-to-meme", MemeController.createFromVoice);
 router.post("/chat", MemeController.chat);
 router.post("/chat/greeting", MemeController.getGreeting);
 router.post("/generate-image", MemeController.generateImage);
+router.post("/status-remixer", MemeController.statusRemixer);
 
 module.exports = router;

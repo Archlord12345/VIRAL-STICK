@@ -139,7 +139,7 @@ const LandingPage = () => {
               {[
                 ["3 modules cœur", "texte, voix, image"],
                 ["7 compagnons", "identité et rôles distincts"],
-                ["IA multi-provider", "Gemini · Mistral · DeepSeek"],
+                ["IA orchestrée", "Hugging Face · Mistral · DeepSeek"],
               ].map(([title, desc], index) => (
                 <div
                   key={title}

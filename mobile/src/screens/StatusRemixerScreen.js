@@ -17,8 +17,7 @@ import { useTheme, spacing, radius, typography, createShadow } from "../theme";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
-
-const API_BASE = "https://viral-stick.vercel.app";
+import { apiUrl } from "../config/api";
 
 const FILTERS = [
   { id: "none", label: "Original", emoji: "📷" },
@@ -41,6 +40,7 @@ const StatusRemixerScreen = ({ navigate }) => {
   );
   const [loading, setLoading] = useState(false);
   const [remix, setRemix] = useState(null);
+  const [sourceImageUri, setSourceImageUri] = useState("");
   const previewAnim = useRef(new Animated.Value(0)).current;
 
   const filterOverlay = useMemo(() => {
@@ -60,6 +60,7 @@ const StatusRemixerScreen = ({ navigate }) => {
 
   const simulatePickImage = () => {
     setImagePicked(true);
+    setSourceImageUri("");
     setCompanionMsg(
       "Base visuelle chargée. Maintenant on construit une vraie publication, pas juste un autocollant.",
     );
@@ -95,10 +96,16 @@ const StatusRemixerScreen = ({ navigate }) => {
     );
 
     try {
-      const res = await axios.post(`${API_BASE}/api/memes/status-remixer`, {
-        text:
-          overlayText ||
-          "Image de réaction expressive à transformer en mème premium",
+      const requestText =
+        overlayText ||
+        "Image de réaction expressive à transformer en mème premium";
+
+      const res = await axios.post(apiUrl("/api/memes/status-remixer"), {
+        text: requestText,
+        imageContext: imagePicked
+          ? `Filtre sélectionné: ${selectedFilter}. Position texte: ${textPosition}.`
+          : undefined,
+        inputImageUrl: sourceImageUri || undefined,
       });
       setRemix(res.data);
       if (res.data?.meme_text) {
@@ -178,7 +185,8 @@ const StatusRemixerScreen = ({ navigate }) => {
             </Text>
             <Text style={[styles.pickText, { color: theme.textSecondary }]}>
               Caméra, galerie ou image de démo. L'objectif est de tester le
-              captioning et la direction visuelle.
+              captioning, la prise en compte d'une image source et la direction
+              visuelle.
             </Text>
             <AnimatedButton
               title="Choisir une image"
@@ -232,24 +240,38 @@ const StatusRemixerScreen = ({ navigate }) => {
                     ]}
                     pointerEvents="none"
                   />
-                  <View style={styles.imagePlaceholder}>
-                    <Text style={styles.canvasEmoji}>
-                      {selectedFilter === "fire"
-                        ? "🔥"
-                        : selectedFilter === "neon"
-                          ? "💫"
-                          : selectedFilter === "dramatic"
-                            ? "🌑"
-                            : selectedFilter === "vintage"
-                              ? "🎞️"
-                              : "📸"}
-                    </Text>
-                    <Text
-                      style={[styles.demoLabel, { color: theme.textMuted }]}
-                    >
-                      Visuel de démonstration chargé
-                    </Text>
-                  </View>
+                  {remix?.imageUrl ? (
+                    <Image
+                      source={{ uri: remix.imageUrl }}
+                      style={styles.generatedImage}
+                      resizeMode="cover"
+                    />
+                  ) : remix?.sourceImageUrl ? (
+                    <Image
+                      source={{ uri: remix.sourceImageUrl }}
+                      style={styles.generatedImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.imagePlaceholder}>
+                      <Text style={styles.canvasEmoji}>
+                        {selectedFilter === "fire"
+                          ? "🔥"
+                          : selectedFilter === "neon"
+                            ? "💫"
+                            : selectedFilter === "dramatic"
+                              ? "🌑"
+                              : selectedFilter === "vintage"
+                                ? "🎞️"
+                                : "📸"}
+                      </Text>
+                      <Text
+                        style={[styles.demoLabel, { color: theme.textMuted }]}
+                      >
+                        Visuel de démonstration chargé
+                      </Text>
+                    </View>
+                  )}
 
                   {!!overlayText && (
                     <Text
@@ -408,8 +430,8 @@ const StatusRemixerScreen = ({ navigate }) => {
                   Direction visuelle en cours
                 </Text>
                 <Text style={[styles.loadingText, { color: theme.textMuted }]}>
-                  Recherche d'une caption social-first et d'améliorations de
-                  cadrage, lisibilité et contraste.
+                  Recherche d'une caption social-first, d'améliorations de
+                  cadrage et d'une image Hugging Face cohérente.
                 </Text>
               </GlassCard>
             )}
@@ -511,6 +533,11 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   imagePlaceholder: { alignItems: "center", justifyContent: "center" },
+  generatedImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+  },
   canvasEmoji: { fontSize: 78, marginBottom: 10 },
   demoLabel: { fontSize: typography.fontSize.sm },
   overlayText: {

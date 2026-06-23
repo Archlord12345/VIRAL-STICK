@@ -5,6 +5,7 @@ import { colors, gradients } from "../theme/tokens";
 
 const SettingsPage = () => {
   const [keys, setKeys] = useState({
+    HUGGING_FACE_KEY: "",
     GEMINI_API_KEY: "",
     MISTRAL_API_KEY: "",
     DEEPSEEK_API_KEY: "",
@@ -121,9 +122,10 @@ const SettingsPage = () => {
                 }}
               >
                 {[
-                  ["Gemini", "provider principal"],
+                  ["Hugging Face", "provider principal"],
                   ["Mistral", "fallback texte"],
                   ["DeepSeek", "fallback texte"],
+                  ["Gemini", "fallback secondaire"],
                 ].map(([title, desc]) => (
                   <div
                     key={title}
@@ -143,9 +145,14 @@ const SettingsPage = () => {
         <div style={{ ...pageStyles.panel, padding: 28 }}>
           {[
             [
+              "HUGGING_FACE_KEY",
+              "Hugging Face Key",
+              "Clé principale pour le prompting, le texte, le chat et la génération d’image.",
+            ],
+            [
               "GEMINI_API_KEY",
               "Gemini API Key",
-              "Clé du provider principal pour la génération de texte et, selon le setup, l’image.",
+              "Fallback secondaire si nécessaire côté texte.",
             ],
             [
               "MISTRAL_API_KEY",

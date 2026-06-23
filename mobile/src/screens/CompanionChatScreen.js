@@ -17,8 +17,7 @@ import axios from "axios";
 import { useTheme, spacing, radius, typography, createShadow } from "../theme";
 import GlassCard from "../components/GlassCard";
 import { COMPANIONS, COMPANION_NAMES } from "../components/CompanionAvatar";
-
-const API_BASE = "https://viral-stick.vercel.app";
+import { apiUrl } from "../config/api";
 
 const COMPANION_LIST = [
   { id: "arch", role: "Direction produit" },
@@ -187,7 +186,7 @@ const CompanionChatScreen = ({ navigate }) => {
     const fetchGreeting = async () => {
       setLoading(true);
       try {
-        const res = await axios.post(`${API_BASE}/api/memes/chat/greeting`, {
+        const res = await axios.post(apiUrl("/api/memes/chat/greeting"), {
           companionId: activeCompanion,
         });
         setMessages([
@@ -245,7 +244,7 @@ const CompanionChatScreen = ({ navigate }) => {
         parts: [{ text: m.text }],
       }));
 
-      const res = await axios.post(`${API_BASE}/api/memes/chat`, {
+      const res = await axios.post(apiUrl("/api/memes/chat"), {
         companionId: activeCompanion,
         message: currentInput,
         history,

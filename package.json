@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "npx concurrently -n BE,FE -c cyan,magenta \"npm start --prefix backend\" \"cd web && PORT=3001 npx react-scripts start\"",
-    "build": "cd web && npm install && npm run build && mv build ../build",
+    "build": "cd web && npm install && npm run build && rm -rf ../build && mv build ../build",
     "test": "jest"
   },
   "devDependencies": {

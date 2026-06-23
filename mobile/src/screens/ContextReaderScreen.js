@@ -17,8 +17,7 @@ import { useTheme, spacing, radius, typography, createShadow } from "../theme";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
-
-const API_BASE = "https://viral-stick.vercel.app";
+import { apiUrl } from "../config/api";
 
 const QUICK_IDEAS = [
   "Le prof arrive en retard à son propre cours et nous gronde quand même.",
@@ -65,7 +64,7 @@ const ContextReaderScreen = ({ navigate }) => {
     );
 
     try {
-      const res = await axios.post(`${API_BASE}/api/memes/generate-from-text`, {
+      const res = await axios.post(apiUrl("/api/memes/generate-from-text"), {
         text,
       });
       setMeme(res.data);

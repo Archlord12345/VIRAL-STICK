@@ -11,50 +11,70 @@ const RemixPage = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [inputImageBase64, setInputImageBase64] = useState("");
 
   const shareText = useMemo(() => {
     if (!result) return remixText;
     const caption =
       result.meme_text ||
       [result.topText, result.bottomText].filter(Boolean).join("\n");
-    return [caption, result.description].filter(Boolean).join("\n\n");
+    return [caption, result.descriptionImage, result.companionComment]
+      .filter(Boolean)
+      .join("\n\n");
   }, [result, remixText]);
 
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setInputImageBase64(
+        typeof reader.result === "string" ? reader.result : "",
+      );
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleRemix = async () => {
-    if (!remixText.trim()) return;
+    if (!remixText.trim() && !inputImageBase64) return;
     setLoading(true);
     setError("");
     setResult(null);
     try {
-      const [captionResponse, imageResponse] = await Promise.all([
-        fetch("/api/memes/generate-from-text", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: remixText }),
+      const response = await fetch("/api/memes/status-remixer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: remixText,
+          inputImageBase64: inputImageBase64 || undefined,
+          imageContext: inputImageBase64
+            ? "Image uploadée depuis l'interface web"
+            : undefined,
         }),
-        fetch("/api/memes/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: remixText }),
-        }),
-      ]);
+      });
 
-      const captionData = await captionResponse.json();
-      const imageData = await imageResponse.json();
-
-      if (!captionResponse.ok && !imageResponse.ok) {
-        throw new Error("La génération du remix et de l'image a échoué.");
+      const raw = await response.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error(
+          response.status === 413
+            ? "Image trop lourde pour le serveur. Réduis sa taille puis réessaie."
+            : "Réponse serveur invalide.",
+        );
       }
 
-      setResult({
-        ...captionData,
-        ...imageData,
-        meme_text:
-          captionData?.meme_text ||
-          [captionData?.topText, captionData?.bottomText]
-            .filter(Boolean)
-            .join(" · "),
-      });
+      if (!response.ok) {
+        throw new Error(
+          response.status === 413
+            ? "Image trop lourde pour le serveur. Réduis sa taille puis réessaie."
+            : data?.error || "La génération du remix a échoué.",
+        );
+      }
+
+      setResult(data);
     } catch (error) {
       console.error("Error:", error);
       setError(error.message || "Impossible de générer le remix.");
@@ -97,6 +117,10 @@ const RemixPage = () => {
             style={{ ...pageStyles.textarea, minHeight: 240 }}
           />
 
+          <div style={{ marginTop: 16 }}>
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
+          </div>
+
           <div
             style={{
               ...pageStyles.softPanel,
@@ -105,8 +129,9 @@ const RemixPage = () => {
               color: colors.textSecondary,
             }}
           >
-            Le remix combine maintenant une caption IA et une tentative de
-            génération d'image via le backend.
+            Le remix passe maintenant par le pipeline final `status-remixer` :
+            texte, image d'entrée optionnelle, recommandations visuelles et
+            image Hugging Face si disponible.
           </div>
 
           {error ? (
@@ -133,7 +158,7 @@ const RemixPage = () => {
           >
             <PremiumButton
               onClick={handleRemix}
-              disabled={loading || !remixText.trim()}
+              disabled={loading || (!remixText.trim() && !inputImageBase64)}
               icon={<AppIcon name="remix" size={18} color="#fff" />}
             >
               {loading ? "Remix..." : "Créer le remix"}
@@ -174,6 +199,19 @@ const RemixPage = () => {
                     opacity: 0.72,
                   }}
                 />
+              ) : result?.sourceImageUrl ? (
+                <img
+                  src={result.sourceImageUrl}
+                  alt="Image source"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    opacity: 0.45,
+                  }}
+                />
               ) : null}
               <div
                 style={{
@@ -184,19 +222,17 @@ const RemixPage = () => {
                 }}
               />
               <div style={{ fontSize: 24, fontWeight: 900, zIndex: 1 }}>
-                {result?.topText ||
-                  result?.meme_text ||
-                  "TA CAPTION PRINCIPALE"}
+                {result?.meme_text || "TA CAPTION PRINCIPALE"}
               </div>
               <CompanionAvatarWeb companion="bio" size={180} />
               <div style={{ fontSize: 20, fontWeight: 800, zIndex: 1 }}>
-                {result?.bottomText || "UN RENDU PLUS VISUEL, PLUS POSTABLE"}
+                {result?.companionComment ||
+                  "UN RENDU PLUS VISUEL, PLUS POSTABLE"}
               </div>
             </div>
             <p style={{ color: colors.textMuted, marginTop: 14 }}>
               {result?.descriptionImage ||
-                result?.description ||
-                "Le moteur produit une caption et tente une image cohérente avec le remix demandé."}
+                "Le moteur produit une caption, des recommandations visuelles et une image cohérente avec le remix demandé."}
             </p>
             <div
               style={{

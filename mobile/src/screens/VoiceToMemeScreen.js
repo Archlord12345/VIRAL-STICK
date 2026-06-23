@@ -16,8 +16,7 @@ import { useTheme, spacing, radius, typography, createShadow } from "../theme";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
-
-const API_BASE = "https://viral-stick.vercel.app";
+import { apiUrl } from "../config/api";
 
 const DEMO_LINES = [
   "Je voulais juste faire une petite sieste et je me suis réveillé avec 43 appels manqués.",
@@ -148,7 +147,7 @@ const VoiceToMemeScreen = ({ navigate }) => {
     );
 
     try {
-      const res = await axios.post(`${API_BASE}/api/memes/voice-to-meme`, {
+      const res = await axios.post(apiUrl("/api/memes/voice-to-meme"), {
         transcription,
       });
       setMeme(res.data);

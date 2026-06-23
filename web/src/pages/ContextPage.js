@@ -22,7 +22,19 @@ const ContextPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: context, inputType, location }),
       });
-      const data = await response.json();
+
+      const raw = await response.text();
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error("Réponse serveur invalide.");
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Erreur lors de la génération du mème.");
+      }
+
       setResult(data);
     } catch (error) {
       console.error("Error:", error);

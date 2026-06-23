@@ -1,0 +1,10 @@
+# ninja log v5
+3	13	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/arm64-v8a/CMakeFiles/cmake.verify_globs	8fa8a664ea3100e1
+0	9258	1782223459986969962	CMakeFiles/appmodules.dir/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/generated/autolinking/src/main/jni/autolinking.cpp.o	1ccc2cf504e512b4
+0	10277	1782223461010943052	CMakeFiles/appmodules.dir/OnLoad.cpp.o	bffaf288cecb77d2
+10277	10341	1782223461114940360	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/intermediates/cxx/Debug/4u10601m/obj/arm64-v8a/libappmodules.so	dd7bee8c48fabf5d
+4	14	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/arm64-v8a/CMakeFiles/cmake.verify_globs	8fa8a664ea3100e1
+0	11	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/arm64-v8a/CMakeFiles/cmake.verify_globs	8fa8a664ea3100e1
+1	5	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/arm64-v8a/CMakeFiles/cmake.verify_globs	8fa8a664ea3100e1
+7	13	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/arm64-v8a/CMakeFiles/cmake.verify_globs	8fa8a664ea3100e1
+0	5	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/arm64-v8a/CMakeFiles/cmake.verify_globs	8fa8a664ea3100e1

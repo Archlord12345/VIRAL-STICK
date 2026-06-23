@@ -1,0 +1,1 @@
+/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/intermediates/cxx/RelWithDebInfo/5m2l4w1l/obj/x86_64

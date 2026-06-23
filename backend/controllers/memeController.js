@@ -28,6 +28,7 @@ const MemeController = {
         location: location || "international",
       });
     } catch (error) {
+      console.error("[createFromText]", error);
       res.status(500).json({ error: "Erreur lors de la génération" });
     }
   },
@@ -104,6 +105,46 @@ const MemeController = {
       res.status(200).json(imageResult);
     } catch (error) {
       res.status(500).json({ error: "Erreur lors de la génération d'image" });
+    }
+  },
+
+  statusRemixer: async (req, res) => {
+    try {
+      const { text, location, imageContext, inputImageUrl, inputImageBase64 } =
+        req.body;
+      if (!text && !inputImageUrl && !inputImageBase64) {
+        return res.status(400).json({
+          error: "Texte ou image requis",
+        });
+      }
+
+      const remix = await AIService.generateStatusRemix({
+        text: text || "Image utilisateur à transformer en mème premium",
+        location,
+        imageContext,
+        inputImageUrl,
+        inputImageBase64,
+      });
+
+      let companionComment = "";
+      try {
+        companionComment = await AIService.chatWithCompanion(
+          "bio",
+          `L'utilisateur veut remixer ce contenu: "${text}". Résultat caption: "${remix.meme_text}". Donne un court retour créatif en tant que Bio.`,
+        );
+      } catch (e) {
+        companionComment =
+          "Bio valide le rendu : plus lisible, plus postable, plus viral.";
+      }
+
+      res.status(200).json({
+        ...remix,
+        companionComment,
+        location: location || "international",
+      });
+    } catch (error) {
+      console.error("[statusRemixer]", error);
+      res.status(500).json({ error: "Erreur lors du remix du status" });
     }
   },
 };
