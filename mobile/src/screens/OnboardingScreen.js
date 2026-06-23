@@ -125,13 +125,20 @@ const OnboardingScreen = ({ onFinish }) => {
                   { opacity, transform: [{ scale }] },
                 ]}
               >
+const COMPANION_IMAGES = {
+  arch: require("../../assets/companions/arch_sans_fond.png"),
+  art: require("../../assets/companions/art_sans_fond.png"),
+  bio: require("../../assets/companions/bio_sans_fond.png"),
+  data: require("../../assets/companions/data_sans_fond.png"),
+  para: require("../../assets/companions/para_sans_fond.png"),
+  secu: require("../../assets/companions/secu_sans_fond.png"),
+  ubu: require("../../assets/companions/ubu_sans_fond.png"),
+};
+
+// ... inside the component render ...
                 <View style={styles.glowCircle}>
                   <Image
-                    source={require(
-                      "../../assets/companions/" +
-                        page.companion +
-                        "_sans_fond.png",
-                    )}
+                    source={COMPANION_IMAGES[page.companion]}
                     style={styles.companionImage}
                     resizeMode="contain"
                   />
