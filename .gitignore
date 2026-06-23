@@ -10,6 +10,8 @@ build/
 out/
 android/app/build/
 android/.gradle/
+mobile/android/app/build/
+mobile/android/.gradle/
 ios/build/
 
 # Android local config

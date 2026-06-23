@@ -1,15 +1,6 @@
 /**
  * CompanionAvatar — Animated companion display component
- * Viral Stick | KERNEL FORGE — 2026
- *
- * Companions:
- *  arch  → Archlord: PDG / Admin système
- *  para  → Para: Paramètres & Accueil
- *  secu  → Secu: Sécurité & Erreurs
- *  data  → Data: Données & Support
- *  bio   → Bio: Pages créatives
- *  ubu   → Ubu: Pages créatives
- *  art   → Art: Pages créatives
+ * Viral Stick | Design System — 2026
  */
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -21,7 +12,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { useTheme, radius, typography } from '../theme';
+import { colors, borderRadius, spacing } from '../../../theme/tokens';
 
 const COMPANIONS = {
   arch: require('../../assets/companions/arch_sans_fond.png'),
@@ -50,12 +41,10 @@ const CompanionAvatar = ({
   floating = false,
   onPress,
 }) => {
-  const { theme } = useTheme();
   const floatAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const [showBubble, setShowBubble] = useState(!!message);
 
-  // Floating animation
   useEffect(() => {
     if (floating) {
       Animated.loop(
@@ -74,7 +63,6 @@ const CompanionAvatar = ({
       ).start();
     }
 
-    // Entrance
     Animated.spring(scaleAnim, {
       toValue: 1,
       tension: 80,
@@ -87,7 +75,8 @@ const CompanionAvatar = ({
     setShowBubble(!!message);
   }, [message]);
 
-  const accentColor = theme[companion] || theme.primary;
+  // Utilisation des tokens pour la couleur d'accent
+  const accentColor = colors[companion] || colors.arch;
 
   return (
     <TouchableOpacity
@@ -134,11 +123,11 @@ const CompanionAvatar = ({
 
       {/* Speech bubble */}
       {showBubble && message && (
-        <Animated.View
+        <View
           style={[
             styles.bubble,
             {
-              backgroundColor: theme.backgroundCard,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
               borderColor: accentColor,
             },
           ]}
@@ -146,10 +135,10 @@ const CompanionAvatar = ({
           <Text style={[styles.bubbleName, { color: accentColor }]}>
             {COMPANION_NAMES[companion]}
           </Text>
-          <Text style={[styles.bubbleText, { color: theme.textPrimary }]}>
+          <Text style={[styles.bubbleText, { color: colors.text }]}>
             {message}
           </Text>
-        </Animated.View>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -173,24 +162,28 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   bubble: {
-    marginTop: 8,
-    borderRadius: radius.md,
+    marginTop: spacing.sm,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    padding: 10,
+    padding: spacing.md,
     maxWidth: 220,
+    // Glassmorphism
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   bubbleName: {
     fontWeight: '700',
-    fontSize: typography.fontSize.xs,
+    fontSize: 12,
     marginBottom: 2,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   bubbleText: {
-    fontSize: typography.fontSize.sm,
+    fontSize: 14,
     lineHeight: 18,
   },
 });
 
 export { COMPANIONS, COMPANION_NAMES };
 export default CompanionAvatar;
+

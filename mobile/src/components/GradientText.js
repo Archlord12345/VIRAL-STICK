@@ -1,22 +1,27 @@
 /**
- * GradientText — Text with gradient simulation via overlay
- * Viral Stick | KERNEL FORGE — 2026
+ * GradientText — Text component aligned with Viral Stick Design System
+ * Viral Stick | Design System — 2026
  */
 
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
-import { useTheme, typography } from '../theme';
+import { colors } from '../../../theme/tokens';
 
-const GradientText = ({ children, style, size = 'xl', bold = true }) => {
-  const { theme } = useTheme();
+const GradientText = ({ 
+  children, 
+  style, 
+  size = 'md', // 'sm' | 'md' | 'lg' | 'xl'
+  bold = true,
+  color = 'arch' // token color key
+}) => {
   return (
     <Text
       style={[
         styles.base,
         {
-          fontSize: typography.fontSize[size],
+          fontSize: size === 'sm' ? 12 : size === 'md' ? 14 : size === 'lg' ? 18 : 24,
           fontWeight: bold ? '800' : '400',
-          color: theme.primaryLight,
+          color: colors[color] || colors.arch,
         },
         style,
       ]}

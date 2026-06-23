@@ -1,15 +1,11 @@
 /**
  * GlassCard — Glassmorphism container component
- * General Intelligence Company Style — 2026
+ * Viral Stick Style — 2026
  */
 
 import React, { useRef, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  Animated,
-} from 'react-native';
-import { useTheme, radius, getShadow, glassStyle } from '../theme';
+import { View, StyleSheet, Animated } from 'react-native';
+import { colors, borderRadius, shadows, spacing } from '../../../theme/tokens';
 
 const GlassCard = ({
   children,
@@ -17,7 +13,6 @@ const GlassCard = ({
   animate = false,
   delay = 0,
 }) => {
-  const { theme } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(20)).current;
 
@@ -44,17 +39,27 @@ const GlassCard = ({
     }
   }, [animate, delay]);
 
-  const containerStyle = [
-    styles.card,
-    glassStyle(theme), // Uses theme-aware glassStyle
-    getShadow('sm'),   // Updated shadow token
-    style,
-  ];
+  const cardStyle = {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Glass effect base
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)', // Subtle border
+    padding: spacing.md,
+    overflow: 'hidden',
+    // iOS shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    // Android elevation
+    elevation: 5,
+  };
 
   return (
     <Animated.View
       style={[
-        containerStyle,
+        cardStyle,
+        style,
         { opacity: fadeAnim, transform: [{ translateY }] },
       ]}
     >
@@ -62,13 +67,5 @@ const GlassCard = ({
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    // borderRadius and borderWidth are handled by glassStyle
-    padding: 20, // Adjusted padding to align with GIC
-    overflow: 'hidden',
-  },
-});
 
 export default GlassCard;

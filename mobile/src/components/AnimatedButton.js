@@ -1,6 +1,6 @@
 /**
  * AnimatedButton — Premium tap button with micro-animations
- * Viral Stick | KERNEL FORGE — 2026
+ * Viral Stick | Design System — 2026
  */
 
 import React, { useRef } from 'react';
@@ -12,7 +12,7 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import { useTheme, radius, typography, spacing, createShadow } from '../theme';
+import { colors, borderRadius, spacing } from '../../../theme/tokens';
 
 const AnimatedButton = ({
   title,
@@ -25,72 +25,50 @@ const AnimatedButton = ({
   style,
   textStyle,
 }) => {
-  const { theme } = useTheme();
   const scale = useRef(new Animated.Value(1)).current;
-  const glow = useRef(new Animated.Value(0)).current;
 
   const onPressIn = () => {
-    Animated.parallel([
-      Animated.spring(scale, {
-        toValue: 0.94,
-        useNativeDriver: true,
-        tension: 200,
-        friction: 5,
-      }),
-      Animated.timing(glow, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.spring(scale, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      tension: 200,
+      friction: 5,
+    }).start();
   };
 
   const onPressOut = () => {
-    Animated.parallel([
-      Animated.spring(scale, {
-        toValue: 1,
-        useNativeDriver: true,
-        tension: 200,
-        friction: 5,
-      }),
-      Animated.timing(glow, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: false,
-      }),
-    ]).start();
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 200,
+      friction: 5,
+    }).start();
   };
 
   const getBackground = () => {
-    if (disabled) return theme.textMuted;
+    if (disabled) return colors.textMuted;
     switch (variant) {
-      case 'secondary': return theme.secondary;
+      case 'secondary': return colors.data;
       case 'ghost':     return 'transparent';
-      case 'danger':    return theme.danger;
-      default:          return theme.primary;
+      case 'danger':    return colors.para;
+      default:          return colors.arch; // Primary
     }
   };
 
   const getBorderColor = () => {
-    if (variant === 'ghost') return theme.border;
+    if (variant === 'ghost') return colors.border;
     return 'transparent';
   };
 
   const getTextColor = () => {
-    if (variant === 'ghost') return theme.primary;
-    return theme.textOnAccent;
+    return '#FFFFFF'; // Text always white on colored buttons
   };
 
   const sizeStyles = {
-    sm: { paddingVertical: 8,  paddingHorizontal: 16, fontSize: typography.fontSize.sm },
-    md: { paddingVertical: 14, paddingHorizontal: 24, fontSize: typography.fontSize.md },
-    lg: { paddingVertical: 18, paddingHorizontal: 32, fontSize: typography.fontSize.lg },
+    sm: { paddingVertical: spacing.xs, paddingHorizontal: spacing.sm, fontSize: 12 },
+    md: { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, fontSize: 14 },
+    lg: { paddingVertical: spacing.md, paddingHorizontal: spacing.xl, fontSize: 16 },
   }[size];
-
-  const shadow = disabled ? {} : createShadow(
-    variant === 'danger' ? theme.danger : theme.primary,
-    8,
-  );
 
   return (
     <TouchableWithoutFeedback
@@ -104,18 +82,17 @@ const AnimatedButton = ({
           {
             backgroundColor: getBackground(),
             borderColor: getBorderColor(),
-            borderRadius: radius.md,
+            borderRadius: borderRadius.md,
             paddingVertical: sizeStyles.paddingVertical,
             paddingHorizontal: sizeStyles.paddingHorizontal,
             transform: [{ scale }],
-            opacity: disabled ? 0.5 : 1,
-            ...shadow,
+            opacity: disabled ? 0.6 : 1,
           },
           style,
         ]}
       >
         {loading ? (
-          <ActivityIndicator color="#fff" size="small" />
+          <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
           <View style={styles.row}>
             {icon && <View style={styles.icon}>{icon}</View>}
@@ -142,7 +119,7 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
   },
   label: {
     fontWeight: '700',
@@ -151,10 +128,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   icon: {
-    marginRight: 4,
+    marginRight: spacing.sm,
   },
 });
 

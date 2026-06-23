@@ -1,23 +1,22 @@
 /**
- * SplashScreen — Loading screen with logo, animation, and auto-dismiss
- * Viral Stick | KERNEL FORGE — 2026
+ * SplashScreen — Modern loading screen
+ * Viral Stick | Design System — 2026
  */
 
 import React, { useRef, useEffect } from "react";
 import {
   View,
   Text,
-  Image,
-  StyleSheet,
   Animated,
   StatusBar,
+  StyleSheet,
 } from "react-native";
+import { colors, spacing, borderRadius } from "../../../theme/tokens";
 
 const SplashScreen = ({ onFinish }) => {
   const logoScale = useRef(new Animated.Value(0.6)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -41,21 +40,6 @@ const SplashScreen = ({ onFinish }) => {
       useNativeDriver: true,
     }).start();
 
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.08,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: true,
-        }),
-      ]),
-    ).start();
-
     const timer = setTimeout(() => {
       if (onFinish) onFinish();
     }, 2500);
@@ -65,36 +49,33 @@ const SplashScreen = ({ onFinish }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0A0A1A" />
-      <Animated.Image
-        source={require("../../assets/logo/logo_sans_fond.png")}
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      
+      {/* Logo Container */}
+      <Animated.View
         style={[
-          styles.logo,
+          styles.logoContainer,
           {
             opacity: logoOpacity,
             transform: [{ scale: logoScale }],
           },
         ]}
-        resizeMode="contain"
-      />
+      >
+        <View style={[styles.glow, { backgroundColor: colors.arch }]} />
+        <View style={styles.logoPlaceholder} />
+      </Animated.View>
+
       <Animated.Text style={[styles.title, { opacity: logoOpacity }]}>
         Viral Stick
       </Animated.Text>
+      
       <Animated.View style={{ opacity: textOpacity }}>
-        <View style={styles.taglineRow}>
-          <View style={styles.dot} />
-          <Text style={styles.tagline}>Générateur IA Multimodal</Text>
-          <View style={styles.dot} />
-        </View>
+        <Text style={styles.tagline}>Générateur IA Multimodal</Text>
       </Animated.View>
-      <Animated.View
-        style={[styles.loader, { transform: [{ scale: pulseAnim }] }]}
-      >
-        <View style={styles.loaderInner} />
+
+      <Animated.View style={[styles.footer, { opacity: textOpacity }]}>
+        <Text style={styles.footerText}>KERNEL FORGE — 2026</Text>
       </Animated.View>
-      <Animated.Text style={[styles.footer, { opacity: textOpacity }]}>
-        KERNEL FORGE — 2026
-      </Animated.Text>
     </View>
   );
 };
@@ -102,60 +83,48 @@ const SplashScreen = ({ onFinish }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0A0A1A",
+    backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
   },
-  logo: {
-    width: 140,
-    height: 140,
-    marginBottom: 16,
+  logoContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.xl,
+  },
+  logoPlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: borderRadius.lg,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  glow: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: borderRadius.lg,
+    opacity: 0.3,
   },
   title: {
-    color: "#F3F4F6",
+    color: colors.text,
     fontSize: 32,
     fontWeight: "900",
     letterSpacing: 1,
-    marginBottom: 8,
-  },
-  taglineRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#7C3AED",
+    marginBottom: spacing.sm,
   },
   tagline: {
-    color: "#A78BFA",
+    color: colors.arch,
     fontSize: 12,
     fontWeight: "600",
     letterSpacing: 2,
     textTransform: "uppercase",
   },
-  loader: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 3,
-    borderColor: "rgba(124, 58, 237, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 40,
-  },
-  loaderInner: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#7C3AED",
-  },
   footer: {
     position: "absolute",
-    bottom: 60,
-    color: "#6B7280",
+    bottom: spacing.xxl,
+  },
+  footerText: {
+    color: colors.textMuted,
     fontSize: 10,
     letterSpacing: 3,
     textTransform: "uppercase",

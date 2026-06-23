@@ -1,23 +1,20 @@
 package com.viralstick.kernelforge
 
 import android.app.Application
-import com.facebook.react.BuildConfig
-import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultReactNativeHost
+import com.facebook.react.shell.MainReactPackage
 import com.facebook.soloader.SoLoader
+import com.viralstick.kernelforge.BuildConfig
 
 class MainApplication : Application(), ReactApplication {
 
   override val reactNativeHost: ReactNativeHost =
       object : DefaultReactNativeHost(this) {
         override fun getPackages(): List<ReactPackage> =
-            PackageList(this).packages.apply {
-              // Packages that cannot be autolinked yet can be added manually here, for example:
-              // add(MyReactNativePackage())
-            }
+            listOf(MainReactPackage())
 
         override fun getJSMainModuleName(): String = "index"
 
