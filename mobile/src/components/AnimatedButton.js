@@ -1,206 +1,58 @@
 import React, { useRef } from "react";
-import {
-  Animated,
-  TouchableWithoutFeedback,
-  Text,
-  StyleSheet,
-  View,
-  ActivityIndicator,
-} from "react-native";
-import { colors, borderRadius, spacing } from "../theme/tokens";
+import { Animated, TouchableWithoutFeedback, Text, StyleSheet, View, ActivityIndicator } from "react-native";
+import { colors, borderRadius } from "../theme/tokens";
 
-const AnimatedButton = ({
-  title,
-  onPress,
-  variant = "primary",
-  size = "md",
-  loading = false,
-  disabled = false,
-  icon = null,
-  style,
-  textStyle,
-}) => {
-  const scale = useRef(new Animated.Value(1)).current;
-  const glow = useRef(new Animated.Value(0.92)).current;
+const VARIANTS = {
+  primary: { bg: colors.duoGreen,  shadow: colors.duoGreenDark, text: "#ffffff", border: colors.duoGreen },
+  blue:    { bg: colors.skyBlue,   shadow: colors.skyBlueDark,  text: "#ffffff", border: colors.skyBlue },
+  ghost:   { bg: "#ffffff",        shadow: "#b5b5b5",           text: colors.skyBlue, border: colors.cloudGray },
+  danger:  { bg: colors.danger,    shadow: "#aa1d1d",           text: "#ffffff", border: colors.danger },
+};
 
-  const onPressIn = () => {
-    Animated.parallel([
-      Animated.spring(scale, {
-        toValue: 0.97,
-        useNativeDriver: true,
-        tension: 220,
-        friction: 7,
-      }),
-      Animated.timing(glow, {
-        toValue: 1,
-        duration: 140,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
+const AnimatedButton = ({ title, onPress, variant = "primary", size = "md", loading = false, disabled = false, style }) => {
+  const pressed = useRef(new Animated.Value(0)).current;
+  const v = VARIANTS[variant] || VARIANTS.primary;
+  const pad = { sm: { v: 10, h: 16, fs: 13 }, md: { v: 14, h: 20, fs: 15 }, lg: { v: 16, h: 24, fs: 16 } }[size];
 
-  const onPressOut = () => {
-    Animated.parallel([
-      Animated.spring(scale, {
-        toValue: 1,
-        useNativeDriver: true,
-        tension: 220,
-        friction: 7,
-      }),
-      Animated.timing(glow, {
-        toValue: 0.92,
-        duration: 160,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
+  const onIn  = () => Animated.spring(pressed, { toValue: 1, useNativeDriver: false, tension: 300, friction: 10 }).start();
+  const onOut = () => Animated.spring(pressed, { toValue: 0, useNativeDriver: false, tension: 300, friction: 10 }).start();
 
-  const variantStyle = {
-    primary: {
-      backgroundColor: colors.brandPrimary,
-      borderColor: "rgba(255,255,255,0.12)",
-      textColor: colors.white,
-      shadowColor: colors.brandPrimary,
-      innerHighlight: "rgba(255,255,255,0.16)",
-    },
-    secondary: {
-      backgroundColor: colors.brandSecondary,
-      borderColor: "rgba(255,255,255,0.12)",
-      textColor: colors.white,
-      shadowColor: colors.brandSecondary,
-      innerHighlight: "rgba(255,255,255,0.12)",
-    },
-    ghost: {
-      backgroundColor: "rgba(255,255,255,0.06)",
-      borderColor: colors.border,
-      textColor: colors.text,
-      shadowColor: "#140A2C",
-      innerHighlight: "rgba(255,255,255,0.08)",
-    },
-    danger: {
-      backgroundColor: colors.danger,
-      borderColor: "rgba(255,255,255,0.12)",
-      textColor: colors.white,
-      shadowColor: colors.danger,
-      innerHighlight: "rgba(255,255,255,0.14)",
-    },
-  }[variant];
-
-  const sizeStyles = {
-    sm: {
-      paddingVertical: 10,
-      paddingHorizontal: 14,
-      fontSize: 13,
-      minHeight: 42,
-    },
-    md: {
-      paddingVertical: 14,
-      paddingHorizontal: 20,
-      fontSize: 15,
-      minHeight: 50,
-    },
-    lg: {
-      paddingVertical: 18,
-      paddingHorizontal: 24,
-      fontSize: 16,
-      minHeight: 58,
-    },
-  }[size];
+  const translateY = pressed.interpolate({ inputRange: [0, 1], outputRange: [0, 4] });
+  const shadowH    = pressed.interpolate({ inputRange: [0, 1], outputRange: [4, 0] });
 
   return (
     <TouchableWithoutFeedback
       onPress={!disabled && !loading ? onPress : undefined}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
+      onPressIn={onIn} onPressOut={onOut}
     >
-      <Animated.View
-        style={[
-          styles.button,
-          {
-            backgroundColor: disabled
-              ? "rgba(255,255,255,0.10)"
-              : variantStyle.backgroundColor,
-            borderColor: variantStyle.borderColor,
-            borderRadius: borderRadius.md,
-            paddingVertical: sizeStyles.paddingVertical,
-            paddingHorizontal: sizeStyles.paddingHorizontal,
-            minHeight: sizeStyles.minHeight,
-            transform: [{ scale }],
-            opacity: disabled ? 0.58 : 1,
-            shadowColor: disabled ? "#000" : variantStyle.shadowColor,
-          },
-          style,
-        ]}
-      >
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.highlight,
-            {
-              backgroundColor: variantStyle.innerHighlight,
-              opacity: glow,
-              transform: [{ scaleX: glow }],
-            },
-          ]}
-        />
-
-        {loading ? (
-          <ActivityIndicator color={variantStyle.textColor} size="small" />
-        ) : (
-          <View style={styles.row}>
-            {icon && <View style={styles.icon}>{icon}</View>}
-            <Text
-              style={[
-                styles.label,
-                {
-                  color: variantStyle.textColor,
-                  fontSize: sizeStyles.fontSize,
-                },
-                textStyle,
-              ]}
-            >
-              {title}
-            </Text>
-          </View>
-        )}
+      <Animated.View style={[
+        styles.btn,
+        {
+          backgroundColor: disabled ? colors.cloudGray : v.bg,
+          borderColor: disabled ? colors.cloudGray : v.border,
+          paddingVertical: pad.v, paddingHorizontal: pad.h,
+          borderRadius: borderRadius.md,
+          shadowColor: disabled ? "#aaa" : v.shadow,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.9,
+          shadowRadius: 0,
+          elevation: 4,
+          transform: [{ translateY }],
+        },
+        style,
+      ]}>
+        {loading
+          ? <ActivityIndicator color={v.text} size="small" />
+          : <Text style={[styles.label, { color: disabled ? colors.silver : v.text, fontSize: pad.fs }]}>{title}</Text>
+        }
       </Animated.View>
     </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    overflow: "hidden",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.28,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  highlight: {
-    position: "absolute",
-    top: -22,
-    left: 12,
-    right: 12,
-    height: 30,
-    borderRadius: 999,
-  },
-  label: {
-    fontWeight: "900",
-    letterSpacing: 0.35,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  icon: {
-    marginRight: spacing.sm,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  btn:   { alignItems: "center", justifyContent: "center", borderWidth: 2, overflow: "hidden" },
+  label: { fontWeight: "800", letterSpacing: 0.4 },
 });
 
 export default AnimatedButton;

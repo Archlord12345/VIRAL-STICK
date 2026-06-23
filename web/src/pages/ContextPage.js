@@ -1,246 +1,239 @@
 import React, { useState } from "react";
 import CompanionAvatarWeb from "../components/CompanionAvatarWeb";
-import WebShell, { pageStyles } from "../components/WebShell";
+import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
-import AppIcon from "../components/AppIcon";
 import WhatsAppShareButton from "../components/WhatsAppShareButton";
-import { colors } from "../theme/tokens";
+import AppIcon from "../components/AppIcon";
+import { colors, radius, spacing } from "../theme/tokens";
+
+const LOCATIONS = [
+  { value: "france",       label: "🇫🇷 France" },
+  { value: "cameroun",     label: "🇨🇲 Cameroun" },
+  { value: "senegal",      label: "🇸🇳 Sénégal" },
+  { value: "coteivoire",   label: "🇨🇮 Côte d'Ivoire" },
+  { value: "international",label: "🌍 International" },
+];
 
 const ContextPage = () => {
-  const [inputType, setInputType] = useState("text");
-  const [context, setContext] = useState("");
+  const [context, setContext]   = useState("");
   const [location, setLocation] = useState("france");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [loading, setLoading]   = useState(false);
+  const [result, setResult]     = useState(null);
+  const [error, setError]       = useState("");
 
-  const generateMeme = async () => {
+  const generate = async () => {
     if (!context.trim()) return;
-    setLoading(true);
+    setLoading(true); setError(""); setResult(null);
     try {
-      const response = await fetch("/api/memes/generate-from-text", {
+      const res  = await fetch("/api/memes/generate-from-text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: context, inputType, location }),
+        body: JSON.stringify({ text: context, location }),
       });
-
-      const raw = await response.text();
-      let data = {};
-      try {
-        data = raw ? JSON.parse(raw) : {};
-      } catch {
-        throw new Error("Réponse serveur invalide.");
-      }
-
-      if (!response.ok) {
-        throw new Error(data?.error || "Erreur lors de la génération du mème.");
-      }
-
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Erreur serveur");
       setResult(data);
-    } catch (error) {
-      console.error("Error:", error);
-    }
+    } catch (e) { setError(e.message); }
     setLoading(false);
   };
 
   return (
-    <WebShell title="Context Reader" companion="art">
-      <section
-        style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 24 }}
-      >
-        <div style={{ ...pageStyles.panel, padding: 28 }}>
-          <div
-            style={{
-              display: "flex",
-              gap: 18,
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <CompanionAvatarWeb companion="art" size={110} />
+    <WebShell companion="art" title="Context Reader">
+      {/* En-tête */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          background: colors.duoGreenLight, color: colors.duoGreenDark,
+          padding: "5px 14px", borderRadius: radius.pill,
+          fontSize: 13, fontWeight: 800, marginBottom: 12,
+        }}>
+          MODULE 01 · CONTEXT READER
+        </div>
+        <h1 style={{
+          fontFamily: "'Fredoka One', cursive", fontSize: 40,
+          color: colors.almostBlack, margin: "0 0 8px",
+        }}>
+          Transforme ton texte en <span style={{ color: colors.duoGreen }}>mème</span>
+        </h1>
+        <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: 16, color: colors.graphite, margin: 0 }}>
+          Décris une situation et l'IA génère le mème parfait, adapté à ta culture.
+        </p>
+      </div>
+
+      {/* Layout 2 colonnes */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "start" }}>
+
+        {/* ── Formulaire ── */}
+        <div className="duo-card" style={{ padding: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+            <CompanionAvatarWeb companion="art" size={56} />
             <div>
-              <h1 style={{ margin: 0, fontSize: 34 }}>Context Reader</h1>
-              <p style={{ color: colors.textSecondary }}>
-                Art lit le contexte, détecte l'angle drôle et construit une
-                structure de mème plus premium.
-              </p>
+              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 18, color: colors.almostBlack }}>Art</div>
+              <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: colors.silver, fontWeight: 600 }}>
+                Direction artistique
+              </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-            {[
-              ["text", "Texte", "context"],
-              ["image", "Image décrite", "gallery"],
-            ].map(([value, label, icon]) => (
-              <PremiumButton
-                key={value}
-                onClick={() => setInputType(value)}
-                variant={inputType === value ? "secondary" : "ghost"}
-                icon={
-                  <AppIcon
-                    name={icon}
-                    size={16}
-                    color={
-                      inputType === value ? colors.text : colors.textSecondary
-                    }
-                  />
-                }
-                style={{
-                  background:
-                    inputType === value
-                      ? "linear-gradient(135deg, rgba(139,92,246,0.28), rgba(34,211,238,0.18))"
-                      : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${inputType === value ? colors.brandPrimary : colors.border}`,
-                  minHeight: 46,
-                  padding: "12px 18px",
-                }}
-              >
-                {label}
-              </PremiumButton>
-            ))}
-          </div>
-
+          {/* Localisation */}
+          <label style={{ display: "block", fontFamily: "'Nunito', sans-serif", fontWeight: 800,
+            fontSize: 14, color: colors.charcoal, marginBottom: 8 }}>
+            Contexte culturel
+          </label>
           <select
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            style={{ ...pageStyles.input, marginBottom: 14 }}
+            className="duo-input"
+            style={{ marginBottom: 24 }}
           >
-            <option value="france">🇫🇷 France</option>
-            <option value="cameroun">🇨🇲 Cameroun</option>
-            <option value="senegal">🇸🇳 Sénégal</option>
-            <option value="coteivoire">🇨🇮 Côte d'Ivoire</option>
-            <option value="mali">🇲🇱 Mali</option>
-            <option value="benin">🇧🇯 Bénin</option>
-            <option value="congo">🇨🇬 Congo</option>
-            <option value="rdc">🇨🇩 RDC</option>
-            <option value="maroc">🇲🇦 Maroc</option>
-            <option value="algerie">🇩🇿 Algérie</option>
-            <option value="tunisie">🇹🇳 Tunisie</option>
-            <option value="belgique">🇧🇪 Belgique</option>
-            <option value="suisse">🇨🇭 Suisse</option>
-            <option value="canada">🇨🇦 Québec</option>
-            <option value="international">🌍 International</option>
+            {LOCATIONS.map((l) => (
+              <option key={l.value} value={l.value}>{l.label}</option>
+            ))}
           </select>
 
+          {/* Texte */}
+          <label style={{ display: "block", fontFamily: "'Nunito', sans-serif", fontWeight: 800,
+            fontSize: 14, color: colors.charcoal, marginBottom: 8 }}>
+            Décris la situation
+          </label>
           <textarea
             value={context}
             onChange={(e) => setContext(e.target.value)}
-            placeholder="Décris la situation, la discussion ou la scène à transformer en mème..."
-            style={{ ...pageStyles.textarea, minHeight: 220 }}
+            placeholder="Ex: Mon pote a dit qu'il arrive dans 5 minutes... il y a 2 heures."
+            className="duo-input"
+            rows={6}
+            style={{ resize: "vertical", marginBottom: 8 }}
           />
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 16,
-              gap: 16,
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ color: colors.textMuted }}>
-              {context.length} caractères
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+            <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 12, color: colors.silver, fontWeight: 600 }}>
+              {context.length}/500 caractères
+            </span>
+            {/* Progress */}
+            <div style={{
+              width: 120, height: 6, background: colors.cloudGray, borderRadius: radius.pill, overflow: "hidden",
+            }}>
+              <div style={{
+                height: "100%", borderRadius: radius.pill, background: colors.duoGreen,
+                width: `${Math.min((context.length / 500) * 100, 100)}%`,
+                transition: "width 0.3s ease",
+              }} />
             </div>
-            <PremiumButton
-              onClick={generateMeme}
-              disabled={loading || !context.trim()}
-              icon={<AppIcon name="studio" size={18} color="#fff" />}
-            >
-              {loading ? "Génération..." : "Générer un mème plus fort"}
-            </PremiumButton>
           </div>
 
-          {result ? (
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                flexWrap: "wrap",
-                marginTop: 14,
-              }}
-            >
-              <WhatsAppShareButton
-                text={`${result.topText}\n${result.bottomText}`}
-                url={window.location.href}
-                label="Partager ce mème sur WhatsApp"
-              />
-              <PremiumButton
-                variant="ghost"
-                icon={
-                  <AppIcon
-                    name="global"
-                    size={18}
-                    color={colors.textSecondary}
-                  />
-                }
-              >
-                Bientôt : partage statut WhatsApp
-              </PremiumButton>
+          {error && (
+            <div style={{
+              background: "#fff0f0", border: `2px solid ${colors.danger}33`,
+              borderRadius: radius.md, padding: 12, marginBottom: 16,
+              fontFamily: "'Nunito', sans-serif", fontSize: 14, color: colors.danger, fontWeight: 700,
+            }}>
+              ⚠️ {error}
             </div>
-          ) : null}
+          )}
+
+          <PremiumButton
+            variant="primary"
+            onClick={generate}
+            disabled={loading || !context.trim()}
+            style={{ width: "100%", justifyContent: "center" }}
+            icon={<AppIcon name="context" size={18} color="#fff" />}
+          >
+            {loading ? "Génération en cours..." : "Générer le mème"}
+          </PremiumButton>
         </div>
 
-        <div style={{ ...pageStyles.panel, padding: 28 }}>
-          <h2 style={{ marginTop: 0 }}>Prévisualisation</h2>
+        {/* ── Résultat ── */}
+        <div className="duo-card" style={{ padding: 32, minHeight: 480 }}>
           {!result ? (
-            <div
-              style={{
-                ...pageStyles.softPanel,
-                minHeight: 420,
-                padding: 24,
-                display: "grid",
-                placeItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <CompanionAvatarWeb companion="art" size={140} />
-              <p style={{ color: colors.textSecondary, maxWidth: 320 }}>
-                Art attend un contexte suffisamment visuel pour produire un top
-                text, un bottom text et une scène mémorable.
+            <div style={{
+              height: "100%", display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 20, opacity: 0.6,
+              minHeight: 360,
+            }}>
+              <div style={{ animation: "floatSoft 3s ease-in-out infinite" }}>
+                <CompanionAvatarWeb companion="art" size={120} />
+              </div>
+              <p style={{
+                fontFamily: "'Nunito', sans-serif", fontSize: 16, color: colors.silver,
+                fontWeight: 600, textAlign: "center", margin: 0,
+              }}>
+                Ton mème apparaîtra ici après génération.
               </p>
             </div>
           ) : (
-            <div style={{ ...pageStyles.softPanel, padding: 20 }}>
-              <div
-                style={{
-                  minHeight: 360,
-                  borderRadius: radius.md,
-                  border: `1px solid ${colors.border}`,
-                  background:
-                    "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-                  padding: 20,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  textAlign: "center",
-                }}
-              >
-                <div style={{ fontSize: 28, fontWeight: 900 }}>
-                  {result.topText}
-                </div>
-                <div>
-                  <CompanionAvatarWeb companion="art" size={160} />
-                  <p style={{ color: colors.textMuted }}>
-                    {result.descriptionImage}
-                  </p>
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 800 }}>
-                  {result.bottomText}
-                </div>
+            <div style={{ animation: "fadeUp 0.4s ease" }}>
+              {/* Tag */}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: colors.duoGreenLight, color: colors.duoGreenDark,
+                padding: "4px 12px", borderRadius: radius.pill,
+                fontSize: 12, fontWeight: 800, marginBottom: 24,
+              }}>
+                ✅ MÈME GÉNÉRÉ
               </div>
-              {result.companionComment ? (
-                <p style={{ color: colors.textSecondary, marginTop: 14 }}>
-                  {result.companionComment}
+
+              {/* Aperçu mème */}
+              <div style={{
+                background: colors.almostBlack, borderRadius: radius.lg,
+                padding: 24, textAlign: "center", marginBottom: 24,
+              }}>
+                <p style={{
+                  fontFamily: "'Fredoka One', cursive", fontSize: 22,
+                  color: "#ffffff", margin: "0 0 16px",
+                  textTransform: "uppercase", letterSpacing: 1,
+                }}>
+                  {result.topText}
                 </p>
-              ) : null}
+                <div style={{
+                  width: "100%", aspectRatio: "16/9",
+                  background: "rgba(255,255,255,0.05)", borderRadius: radius.md,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  marginBottom: 16, border: "1px solid rgba(255,255,255,0.1)",
+                }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 48, marginBottom: 8 }}>🎬</div>
+                    <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", margin: 0, padding: "0 16px" }}>
+                      {result.descriptionImage}
+                    </p>
+                  </div>
+                </div>
+                <p style={{
+                  fontFamily: "'Fredoka One', cursive", fontSize: 22,
+                  color: "#ffffff", margin: 0,
+                  textTransform: "uppercase", letterSpacing: 1,
+                }}>
+                  {result.bottomText}
+                </p>
+              </div>
+
+              {/* Détails */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+                {[["TOP TEXT", result.topText], ["BOTTOM TEXT", result.bottomText]].map(([label, val]) => (
+                  <div key={label} style={{
+                    background: colors.bgSecondary, borderRadius: radius.md,
+                    border: `2px solid ${colors.cloudGray}`, padding: 16,
+                  }}>
+                    <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 11, fontWeight: 800,
+                      color: colors.silver, letterSpacing: 1, marginBottom: 6 }}>
+                      {label}
+                    </div>
+                    <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: colors.almostBlack, fontWeight: 700 }}>
+                      {val}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <WhatsAppShareButton
+                text={`${result.topText}\n${result.bottomText}`}
+                label="Partager ce mème"
+                style={{ width: "100%", justifyContent: "center" }}
+              />
             </div>
           )}
         </div>
-      </section>
+      </div>
     </WebShell>
   );
 };
-
-const radius = { md: 18 };
 
 export default ContextPage;

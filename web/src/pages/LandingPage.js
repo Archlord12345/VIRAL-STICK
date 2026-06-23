@@ -1,298 +1,262 @@
+/**
+ * LandingPage — Style Duolingo
+ * Hero asymétrique : grand compagnon arch à gauche, titre + CTA à droite
+ * Section features 3 colonnes, section compagnons grid
+ */
 import React from "react";
 import { Link } from "react-router-dom";
 import CompanionAvatarWeb from "../components/CompanionAvatarWeb";
-import WebShell, { pageStyles } from "../components/WebShell";
-import { colors, gradients, radius } from "../theme/tokens";
+import WebShell from "../components/WebShell";
+import PremiumButton from "../components/PremiumButton";
+import AppIcon from "../components/AppIcon";
+import { colors, radius, spacing } from "../theme/tokens";
 
 const FEATURES = [
   {
     title: "Context Reader",
-    desc: "Analyse une situation, une conversation ou une anecdote et construit un mème plus net, plus drôle et plus partageable.",
+    desc: "Analyse le contexte culturel et génère un mème adapté à ton audience en un clic.",
     companion: "art",
-    accent: colors.art,
     to: "/context",
-  },
-  {
-    title: "Voice → Mème",
-    desc: "Convertit une idée parlée ou une transcription en punchline propre, absurde, énergique ou ultra-relatable.",
-    companion: "ubu",
-    accent: colors.ubu,
-    to: "/chat",
+    accent: colors.art,
+    icon: "context",
   },
   {
     title: "Status Remixer",
-    desc: "Ajoute une vraie direction artistique à un visuel ou à une idée de sticker pour un rendu plus premium et viral.",
+    desc: "Transforme n'importe quel texte ou image en contenu viral prêt à partager.",
     companion: "bio",
-    accent: colors.bio,
     to: "/remix",
+    accent: colors.bio,
+    icon: "remix",
+  },
+  {
+    title: "Chat Compagnons",
+    desc: "Discute avec tes compagnons IA spécialisés pour booster ta créativité.",
+    companion: "ubu",
+    to: "/chat",
+    accent: colors.ubu,
+    icon: "chat",
   },
 ];
 
-const COMPANIONS = ["arch", "data", "para", "secu", "bio", "ubu", "art"];
+const COMPANIONS_INFO = [
+  { id: "arch", name: "Archlord", role: "Direction produit" },
+  { id: "art",  name: "Art",      role: "Direction artistique" },
+  { id: "bio",  name: "Bio",      role: "Énergie visuelle" },
+  { id: "data", name: "Data",     role: "Analyse & structure" },
+  { id: "para", name: "Para",     role: "Clarté & onboarding" },
+  { id: "secu", name: "Secu",     role: "Sécurité & vigilance" },
+  { id: "ubu",  name: "Ubu",      role: "Humour & imprévu" },
+];
 
 const LandingPage = () => {
   return (
-    <WebShell title="Accueil" companion="arch">
-      <section
-        style={{
-          ...pageStyles.panel,
-          padding: 38,
-          overflow: "hidden",
-          position: "relative",
-          backdropFilter: "blur(24px)",
-          animation: "orbitalTilt 14s ease-in-out infinite",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: -120,
-            right: -80,
-            width: 360,
-            height: 360,
-            borderRadius: 999,
-            background: gradients.brandSoft,
-            filter: "blur(30px)",
-            opacity: 0.95,
-          }}
-        />
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.05fr 0.95fr",
-            gap: 36,
+    <WebShell companion="arch">
+      {/* ── HERO ASYMÉTRIQUE ─────────────────────────── */}
+      <section style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 48,
+        alignItems: "center",
+        padding: "60px 0 80px",
+        marginBottom: 8,
+      }}>
+        {/* Colonne gauche — Grand compagnon */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <div style={{
+            width: 340,
+            height: 340,
+            borderRadius: "50%",
+            background: `${colors.duoGreen}18`,
+            border: `3px solid ${colors.duoGreen}33`,
+            display: "flex",
             alignItems: "center",
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
-          <div>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "8px 14px",
-                borderRadius: 999,
-                background: gradients.brandSoft,
-                border: `1px solid ${colors.border}`,
-                color: colors.textSecondary,
-                fontWeight: 700,
-                marginBottom: 18,
-              }}
-            >
-              <span>⚡</span>
-              <span>
-                Refonte orientée produit, branding, génération texte + image
-              </span>
-            </div>
+            justifyContent: "center",
+            animation: "floatSoft 4s ease-in-out infinite",
+          }}>
+            <img
+              src="/asset/compagnons/arch_sans_fond.png"
+              alt="Archlord"
+              style={{ width: "80%", height: "80%", objectFit: "contain" }}
+            />
+          </div>
+        </div>
 
-            <h1 style={{ ...pageStyles.heroTitle, maxWidth: 760 }}>
-              Le studio de mèmes où{" "}
-              <span style={pageStyles.gradientText}>
-                le logo devient le noyau de l’expérience
-              </span>
-            </h1>
-
-            <p
-              style={{
-                fontSize: 18,
-                lineHeight: 1.8,
-                color: colors.textSecondary,
-                maxWidth: 760,
-                marginTop: 20,
-                marginBottom: 28,
-              }}
-            >
-              Viral Stick n’est pas juste un générateur. C’est une interface de
-              création et d’édition de mèmes texte + image, pensée comme un
-              produit créatif complet : identité forte, compagnons incarnés,
-              moteur IA multi-provider et surfaces premium pour transformer une
-              idée brute en contenu viral.
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 14,
-                flexWrap: "wrap",
-                marginBottom: 24,
-              }}
-            >
-              <Link to="/context" style={pageStyles.buttonPrimary}>
-                Lancer une génération texte
-              </Link>
-              <Link to="/remix" style={pageStyles.buttonGhost}>
-                Explorer le remix image
-              </Link>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: 12,
-                maxWidth: 760,
-              }}
-            >
-              {[
-                ["3 modules cœur", "texte, voix, image"],
-                ["7 compagnons", "identité et rôles distincts"],
-                ["IA orchestrée", "Hugging Face · Mistral · DeepSeek"],
-              ].map(([title, desc], index) => (
-                <div
-                  key={title}
-                  style={{
-                    ...pageStyles.softPanel,
-                    padding: 16,
-                    animation: `levitateCard ${8 + index}s ease-in-out infinite`,
-                  }}
-                >
-                  <div style={{ fontWeight: 800, marginBottom: 6 }}>
-                    {title}
-                  </div>
-                  <div style={{ color: colors.textMuted, fontSize: 14 }}>
-                    {desc}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Colonne droite — Titre + CTA */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            background: colors.duoGreenLight,
+            color: colors.duoGreenDark,
+            padding: "6px 14px",
+            borderRadius: radius.pill,
+            fontSize: 13,
+            fontWeight: 800,
+            width: "fit-content",
+          }}>
+            <span>✨</span> Créez du contenu viral avec l'IA
           </div>
 
-          <div
-            style={{
-              ...pageStyles.softPanel,
-              minHeight: 540,
-              padding: 28,
-              display: "grid",
-              placeItems: "center",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                width: 420,
-                height: 420,
-                borderRadius: 999,
-                background: gradients.brand,
-                opacity: 0.18,
-                filter: "blur(40px)",
-              }}
-            />
+          <h1 style={{
+            fontFamily: "'Fredoka One', cursive",
+            fontSize: "clamp(36px, 5vw, 56px)",
+            lineHeight: 1.15,
+            color: colors.almostBlack,
+            margin: 0,
+          }}>
+            Générez des mèmes{" "}
+            <span style={{ color: colors.duoGreen }}>viraux</span>{" "}
+            en quelques secondes
+          </h1>
 
-            <div
-              style={{
-                position: "relative",
-                zIndex: 1,
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 18,
-              }}
-            >
-              <div
-                style={{
-                  width: 360,
-                  height: 360,
-                  display: "grid",
-                  placeItems: "center",
-                  boxShadow: `0 34px 90px rgba(139,92,246,0.34)`,
-                  animation: "orbitalTilt 12s ease-in-out infinite",
-                }}
-              >
-                <img
-                  src="/asset/logo/logo_sans_fond.png"
-                  alt="Viral Stick Logo"
-                  style={{
-                    width: 316,
-                    height: 316,
-                    objectFit: "contain",
-                    filter: "drop-shadow(0 22px 34px rgba(139,92,246,0.32))",
-                  }}
-                />
-              </div>
+          <p style={{
+            fontFamily: "'Nunito', sans-serif",
+            fontSize: 18,
+            color: colors.graphite,
+            lineHeight: 1.6,
+            margin: 0,
+            maxWidth: 480,
+          }}>
+            Viral Stick combine des compagnons IA spécialisés et des outils de création
+            pour transformer n'importe quelle idée en contenu prêt à l'emploi.
+          </p>
 
-              <div style={{ textAlign: "center", maxWidth: 480 }}>
-                <div style={{ fontSize: 30, fontWeight: 900, marginBottom: 8 }}>
-                  Le noyau créatif de Viral Stick
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
+            <Link to="/context">
+              <PremiumButton variant="primary" icon={<AppIcon name="context" size={18} color="#fff" />}>
+                Commencer gratuitement
+              </PremiumButton>
+            </Link>
+            <Link to="/about">
+              <PremiumButton variant="ghost">
+                En savoir plus
+              </PremiumButton>
+            </Link>
+          </div>
+
+          {/* Stats rapides */}
+          <div style={{ display: "flex", gap: 32, marginTop: 16 }}>
+            {[
+              ["7", "compagnons IA"],
+              ["3", "outils créatifs"],
+              ["∞", "idées virales"],
+            ].map(([val, label]) => (
+              <div key={label}>
+                <div style={{
+                  fontFamily: "'Fredoka One', cursive",
+                  fontSize: 28,
+                  color: colors.duoGreen,
+                  lineHeight: 1,
+                }}>
+                  {val}
                 </div>
-                <div style={{ color: colors.textSecondary, lineHeight: 1.7 }}>
-                  Le logo devient ici une pièce centrale du produit : plus
-                  grand, plus assumé, plus justifié visuellement, avec une
-                  présence de marque qui structure toute l’interface.
+                <div style={{
+                  fontFamily: "'Nunito', sans-serif",
+                  fontSize: 13,
+                  color: colors.silver,
+                  fontWeight: 600,
+                  marginTop: 2,
+                }}>
+                  {label}
                 </div>
               </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  flexWrap: "wrap",
-                  justifyContent: "center",
-                }}
-              >
-                <CompanionAvatarWeb companion="bio" size={96} />
-                <CompanionAvatarWeb companion="ubu" size={96} />
-                <CompanionAvatarWeb companion="art" size={96} />
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section style={{ marginTop: 30 }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 18,
-          }}
-        >
-          {FEATURES.map((feature) => (
-            <Link
-              key={feature.title}
-              to={feature.to}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
+      {/* ── FEATURES 3 COLONNES ──────────────────────── */}
+      <section style={{ marginBottom: 80 }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <h2 style={{
+            fontFamily: "'Fredoka One', cursive",
+            fontSize: 36,
+            color: colors.almostBlack,
+            margin: "0 0 12px",
+          }}>
+            Tout ce dont tu as besoin
+          </h2>
+          <p style={{
+            fontFamily: "'Nunito', sans-serif",
+            fontSize: 16,
+            color: colors.graphite,
+            margin: 0,
+          }}>
+            Trois outils puissants, un seul objectif : créer du contenu viral.
+          </p>
+        </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 24,
+        }}>
+          {FEATURES.map((f) => (
+            <Link key={f.to} to={f.to} style={{ textDecoration: "none" }}>
               <div
+                className="duo-card"
                 style={{
-                  ...pageStyles.panel,
-                  padding: 26,
-                  minHeight: 290,
-                  backdropFilter: "blur(20px)",
-                  animation: "levitateCard 9s ease-in-out infinite",
+                  padding: 32,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 20,
+                  height: "100%",
+                  cursor: "pointer",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.boxShadow = "0 6px 0 0 #d0d0d0";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 0 0 #e5e5e5";
                 }}
               >
-                <div
-                  style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: radius.md,
-                    background: `${feature.accent}22`,
-                    border: `1px solid ${feature.accent}55`,
-                    marginBottom: 18,
-                    boxShadow: `0 12px 34px ${feature.accent}22`,
-                  }}
-                />
-                <h3 style={{ margin: 0, fontSize: 24 }}>{feature.title}</h3>
-                <p style={{ color: colors.textSecondary, lineHeight: 1.75 }}>
-                  {feature.desc}
-                </p>
-                <div
-                  style={{
-                    marginTop: 18,
+                {/* Icône compagnon */}
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <CompanionAvatarWeb companion={f.companion} size={96} floating />
+                </div>
+
+                {/* Contenu */}
+                <div style={{ textAlign: "center" }}>
+                  <h3 style={{
+                    fontFamily: "'Fredoka One', cursive",
+                    fontSize: 22,
+                    color: colors.almostBlack,
+                    margin: "0 0 10px",
+                  }}>
+                    {f.title}
+                  </h3>
+                  <p style={{
+                    fontFamily: "'Nunito', sans-serif",
+                    fontSize: 15,
+                    color: colors.graphite,
+                    lineHeight: 1.5,
+                    margin: 0,
+                  }}>
+                    {f.desc}
+                  </p>
+                </div>
+
+                {/* CTA */}
+                <div style={{
+                  marginTop: "auto",
+                  display: "flex",
+                  justifyContent: "center",
+                }}>
+                  <span style={{
+                    fontFamily: "'Nunito', sans-serif",
+                    fontWeight: 800,
+                    fontSize: 14,
+                    color: f.accent,
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
-                  }}
-                >
-                  <CompanionAvatarWeb companion={feature.companion} size={88} />
-                  <span style={{ color: feature.accent, fontWeight: 800 }}>
-                    Ouvrir →
+                    gap: 6,
+                  }}>
+                    <AppIcon name={f.icon} size={16} color={f.accent} />
+                    Utiliser cet outil →
                   </span>
                 </div>
               </div>
@@ -301,68 +265,127 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section style={{ marginTop: 30 }}>
-        <div style={{ ...pageStyles.panel, padding: 30 }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto",
-              gap: 24,
-              alignItems: "center",
-              marginBottom: 24,
-            }}
-          >
-            <div>
-              <h2 style={{ margin: 0, fontSize: 36 }}>Écosystème compagnon</h2>
-              <p
-                style={{
-                  color: colors.textSecondary,
-                  marginTop: 10,
-                  lineHeight: 1.7,
-                  maxWidth: 820,
-                }}
-              >
-                Chaque compagnon porte une fonction produit, une couleur
-                d’accent et une manière de parler. Ils ne décorent pas seulement
-                l’interface : ils structurent la génération, l’édition et le
-                feedback créatif.
-              </p>
-            </div>
-            <Link to="/multi-chat" style={pageStyles.buttonGhost}>
-              Lancer le noyau social
-            </Link>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-              gap: 18,
-            }}
-          >
-            {COMPANIONS.map((id) => (
-              <div
-                key={id}
-                style={{
-                  ...pageStyles.softPanel,
-                  padding: 18,
-                  textAlign: "center",
-                }}
-              >
-                <CompanionAvatarWeb companion={id} size={102} />
-                <div
-                  style={{
-                    marginTop: 12,
-                    fontWeight: 800,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {id}
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* ── SECTION COMPAGNONS GRID ───────────────────── */}
+      <section style={{
+        background: colors.bgSecondary,
+        borderRadius: radius.xl,
+        border: `2px solid ${colors.cloudGray}`,
+        padding: "60px 48px",
+        marginBottom: 80,
+      }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <h2 style={{
+            fontFamily: "'Fredoka One', cursive",
+            fontSize: 36,
+            color: colors.almostBlack,
+            margin: "0 0 12px",
+          }}>
+            Rencontre l'équipe
+          </h2>
+          <p style={{
+            fontFamily: "'Nunito', sans-serif",
+            fontSize: 16,
+            color: colors.graphite,
+            margin: 0,
+          }}>
+            7 compagnons IA, chacun avec sa personnalité et sa spécialité.
+          </p>
         </div>
+
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          gap: 16,
+        }}>
+          {COMPANIONS_INFO.map((c) => (
+            <div
+              key={c.id}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 10,
+                padding: 16,
+                background: "#ffffff",
+                borderRadius: radius.lg,
+                border: `2px solid ${colors.cloudGray}`,
+                boxShadow: "0 2px 0 #e5e5e5",
+                transition: "transform 0.15s ease",
+                cursor: "default",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+            >
+              <CompanionAvatarWeb companion={c.id} size={64} />
+              <div style={{
+                fontFamily: "'Fredoka One', cursive",
+                fontSize: 14,
+                color: colors.almostBlack,
+                textAlign: "center",
+                lineHeight: 1.2,
+              }}>
+                {c.name}
+              </div>
+              <div style={{
+                fontFamily: "'Nunito', sans-serif",
+                fontSize: 11,
+                color: colors.silver,
+                fontWeight: 700,
+                textAlign: "center",
+                lineHeight: 1.3,
+              }}>
+                {c.role}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: 40 }}>
+          <Link to="/chat">
+            <PremiumButton variant="primary" icon={<AppIcon name="chat" size={18} color="#fff" />}>
+              Parler aux compagnons
+            </PremiumButton>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── SECTION CTA FINAL ────────────────────────── */}
+      <section style={{
+        textAlign: "center",
+        padding: "60px 32px 80px",
+        background: colors.duoGreenLight,
+        borderRadius: radius.xl,
+        border: `2px solid ${colors.duoGreen}44`,
+        marginBottom: 40,
+      }}>
+        <div style={{ animation: "floatSoft 3s ease-in-out infinite", display: "inline-block", marginBottom: 24 }}>
+          <CompanionAvatarWeb companion="arch" size={100} />
+        </div>
+        <h2 style={{
+          fontFamily: "'Fredoka One', cursive",
+          fontSize: 40,
+          color: colors.almostBlack,
+          margin: "0 0 16px",
+        }}>
+          Prêt à créer ?
+        </h2>
+        <p style={{
+          fontFamily: "'Nunito', sans-serif",
+          fontSize: 18,
+          color: colors.charcoal,
+          margin: "0 0 32px",
+          maxWidth: 480,
+          marginLeft: "auto",
+          marginRight: "auto",
+          lineHeight: 1.6,
+        }}>
+          Lance le Context Reader et génère ton premier mème viral en moins de 30 secondes.
+        </p>
+        <Link to="/context">
+          <PremiumButton variant="primary" style={{ fontSize: 17, padding: "14px 36px" }}>
+            C'est parti ! 🚀
+          </PremiumButton>
+        </Link>
       </section>
     </WebShell>
   );

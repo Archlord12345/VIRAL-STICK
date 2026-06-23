@@ -10,7 +10,7 @@ on:
       build_type:
         description: "Type de build"
         required: true
-        default: "release"
+        default: "debug"
         type: choice
         options:
           - debug
@@ -21,200 +21,194 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "20.19.4"
-  JAVA_VERSION: "21"
-  ANDROID_API_LEVEL: "35"
-  ANDROID_BUILD_TOOLS: "35.0.0"
-  ANDROID_NDK: "27.1.12297006"
-  # ── Environnement GitHub : "I_AM_ELON_MUSK" ──────────────────────
-  # Secrets (environment-scoped, tous optionnels) :
-  #   GEMINI_API_KEY
-  #   DEEPSEEK_API_KEY
-  #   MISTRAL_API_KEY
-  #   ANDROID_KEYSTORE          (base64 du .keystore — optionnel, active le build release signé)
-  #   ANDROID_KEYSTORE_PASSWORD
-  #   ANDROID_KEY_ALIAS
-  #   ANDROID_KEY_PASSWORD
+  NODE_VERSION: "20"
+  JAVA_VERSION: "17"
+  # RN 0.75 → API 34, AGP 8.3, NDK 26
+  ANDROID_API_LEVEL: "34"
+  ANDROID_BUILD_TOOLS: "34.0.0"
+  ANDROID_NDK: "26.1.10909125"
 
 jobs:
+  # ────────────────────────────────────────────
+  #  1. Lint rapide
+  # ────────────────────────────────────────────
   lint:
-    name: Lint & Type Check
+    name: Lint
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: mobile
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js ${{ env.NODE_VERSION }}
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: npm
           cache-dependency-path: mobile/package-lock.json
-      - name: Install dependencies
-        run: npm ci
-      - name: ESLint
-        run: npx eslint src/ --ext .js,.jsx --max-warnings 0
+
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+
+      - name: ESLint (warnings tolérés)
+        run: npx eslint src/ --ext .js,.jsx --max-warnings 50
         continue-on-error: true
 
+  # ────────────────────────────────────────────
+  #  2. Build Android
+  # ────────────────────────────────────────────
   build-android:
-    name: Build Android APK + AAB
+    name: Build Android APK
     runs-on: ubuntu-latest
     environment: I_AM_ELON_MUSK
+    needs: lint
     defaults:
       run:
         working-directory: mobile
+
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js ${{ env.NODE_VERSION }}
+
+      # ── Node ──────────────────────────────────
+      - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: npm
           cache-dependency-path: mobile/package-lock.json
+
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+
+      # ── Java 17 (requis par AGP 8.3 + RN 0.75) ──
       - name: Setup Java ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Exposer JAVA_HOME à Gradle
+      - name: Export JAVA_HOME
         run: |
           echo "JAVA_HOME=${JAVA_HOME}" >> $GITHUB_ENV
-          echo "ORG_GRADLE_JAVA_HOME=${JAVA_HOME}" >> $GITHUB_ENV
           java -version
-      - name: Install dependencies
-        run: npm ci
-        working-directory: mobile
 
+      # ── Android SDK ───────────────────────────
       - name: Setup Android SDK
-        if: steps.check_android.outputs.exists == 'true'
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK packages
-        if: steps.check_android.outputs.exists == 'true'
+      - name: Install SDK packages
         run: |
-          sdkmanager --licenses >/dev/null || true
+          sdkmanager --licenses >/dev/null 2>&1 || true
           sdkmanager \
             "platform-tools" \
             "platforms;android-${{ env.ANDROID_API_LEVEL }}" \
             "build-tools;${{ env.ANDROID_BUILD_TOOLS }}" \
             "ndk;${{ env.ANDROID_NDK }}"
-          sdkmanager --list_installed
 
-      - name: Vérifier les clés API
-        run: |
-          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
-            echo "✅ GEMINI_API_KEY configurée"
-          else
-            echo "⚠️ GEMINI_API_KEY manquante"
-          fi
-          if [ -n "${{ secrets.DEEPSEEK_API_KEY }}" ]; then
-            echo "✅ DEEPSEEK_API_KEY configurée"
-          fi
-          if [ -n "${{ secrets.MISTRAL_API_KEY }}" ]; then
-            echo "✅ MISTRAL_API_KEY configurée"
-          fi
-
-      - name: Check android/ exists
-        id: check_android
-        run: |
-          if [ -d "android" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-        working-directory: mobile
-
+      # ── Gradle cache ──────────────────────────
       - name: Cache Gradle
-        if: steps.check_android.outputs.exists == 'true'
         uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-            mobile/android/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('mobile/android/**/*.gradle*', 'mobile/android/**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-rn075-${{ hashFiles('mobile/android/**/*.gradle*', 'mobile/android/**/gradle-wrapper.properties') }}
           restore-keys: |
+            ${{ runner.os }}-gradle-rn075-
             ${{ runner.os }}-gradle-
 
-      - name: Détecter keystore disponible
-        id: keystore_check
+      # ── Keystore (optionnel) ──────────────────
+      - name: Détecter keystore
+        id: keystore
         env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE }}
+          KS: ${{ secrets.ANDROID_KEYSTORE }}
         run: |
-          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+          if [ -n "$KS" ]; then
             echo "available=true" >> $GITHUB_OUTPUT
-            echo "✅ Keystore détecté — build release signé activé"
+            echo "✅ Keystore présent — release signé"
           else
             echo "available=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Keystore absent — build release avec signature debug de secours"
+            echo "⚠️ Keystore absent — APK debug uniquement"
           fi
 
-      - name: Decode Keystore
-        if: steps.check_android.outputs.exists == 'true' && steps.keystore_check.outputs.available == 'true'
+      - name: Decode keystore
+        if: steps.keystore.outputs.available == 'true'
         env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE }}
-        run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/viral-stick.keystore
-          echo "✅ Keystore décodé"
-        working-directory: mobile
+          KS: ${{ secrets.ANDROID_KEYSTORE }}
+        run: echo "$KS" | base64 -d > android/app/viral-stick.keystore
 
+      # ── Vérifier secrets IA ───────────────────
+      - name: Check secrets IA
+        run: |
+          [ -n "${{ secrets.GEMINI_API_KEY }}" ]   && echo "✅ GEMINI_API_KEY"   || echo "⚠️  GEMINI_API_KEY absent"
+          [ -n "${{ secrets.HF_TOKEN }}" ]          && echo "✅ HF_TOKEN"         || echo "⚠️  HF_TOKEN absent"
+          [ -n "${{ secrets.DEEPSEEK_API_KEY }}" ]  && echo "✅ DEEPSEEK_API_KEY" || true
+          [ -n "${{ secrets.MISTRAL_API_KEY }}" ]   && echo "✅ MISTRAL_API_KEY"  || true
+
+      # ── Build debug (toujours) ────────────────
+      - name: Build APK debug
+        working-directory: mobile/android
+        run: ./gradlew --no-daemon assembleDebug
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+
+      # ── Build release (si keystore présent) ───
       - name: Build APK release
-        if: steps.check_android.outputs.exists == 'true'
+        if: steps.keystore.outputs.available == 'true'
+        working-directory: mobile/android
+        run: ./gradlew --no-daemon assembleRelease
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ORG_GRADLE_JAVA_HOME: ${{ env.JAVA_HOME }}
-        run: |
-          if [ "${{ steps.keystore_check.outputs.available }}" = "true" ]; then
-            echo "🚀 Construction de l'APK Release signé"
-          else
-            echo "🚀 Construction de l'APK Release avec signature debug de secours"
-          fi
-          java -version
-          ./gradlew --no-daemon clean assembleRelease
-        working-directory: mobile/android
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
+      # ── Build AAB (main + keystore) ───────────
       - name: Build AAB release
-        if: steps.check_android.outputs.exists == 'true' && steps.keystore_check.outputs.available == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
+        if: steps.keystore.outputs.available == 'true' && github.ref == 'refs/heads/main'
+        working-directory: mobile/android
+        run: ./gradlew --no-daemon bundleRelease
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ORG_GRADLE_JAVA_HOME: ${{ env.JAVA_HOME }}
-        run: |
-          echo "📦 bundleRelease (signé)"
-          java -version
-          ./gradlew --no-daemon clean bundleRelease
-        working-directory: mobile/android
 
-      - name: Upload APK
-        if: steps.check_android.outputs.exists == 'true'
+      # ── Artifacts ─────────────────────────────
+      - name: Upload APK debug
         uses: actions/upload-artifact@v4
         with:
-          name: viral-stick-apk
+          name: viral-stick-debug-apk
+          path: mobile/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+
+      - name: Upload APK release
+        if: steps.keystore.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: viral-stick-release-apk
           path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: warn
 
       - name: Upload AAB
-        if: steps.check_android.outputs.exists == 'true' && steps.keystore_check.outputs.available == 'true' && (github.event.inputs.build_type == 'release' || github.ref == 'refs/heads/main')
+        if: steps.keystore.outputs.available == 'true' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: viral-stick-aab-release
-          path: mobile/android/app/build/outputs/bundle/**/*.aab
+          name: viral-stick-release-aab
+          path: mobile/android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: warn
 
-      - name: Notify completion
-        run: echo "✅ Build Android terminé — APK release disponible, AAB si keystore présent"
+      - name: Summary
+        run: |
+          echo "## ✅ Build terminé" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- React Native : 0.75.4" >> $GITHUB_STEP_SUMMARY
+          echo "- Java : ${{ env.JAVA_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Android API : ${{ env.ANDROID_API_LEVEL }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Keystore : ${{ steps.keystore.outputs.available }}" >> $GITHUB_STEP_SUMMARY

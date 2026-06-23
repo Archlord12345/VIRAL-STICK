@@ -1,158 +1,164 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
 import { colors } from "../../theme/tokens";
 
 export const MacbookScroll = ({
-  src,
-  showGradient,
+  children,
   title,
   badge
 }) => {
   const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  const [isMobile, setIsMobile] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const progress = Math.max(0, Math.min(1, (windowHeight - rect.top) / (rect.height)));
+      setScrollProgress(progress);
     };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scaleX = useTransform(scrollYProgress, [0, 0.3], [1.2, isMobile ? 1 : 1.5]);
-  const scaleY = useTransform(scrollYProgress, [0, 0.3], [0.6, isMobile ? 1 : 1.5]);
-  const translate = useTransform(scrollYProgress, [0, 1], [0, 1500]);
-  const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
-  const containerScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.9]);
+  const rotateX = -90 + (scrollProgress * 90); // Part d'un Mac fermé (-90deg)
+  const clampedRotateX = Math.min(0, rotateX);
+  const lidOpacity = scrollProgress > 0.1 ? 1 : 0.5;
 
   return (
     <div
       ref={containerRef}
       style={{
-        height: "200vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
+        height: "300vh", // Grande zone de scroll pour l'effet d'ouverture
         position: "relative",
-        background: "transparent",
+        background: colors.deepSpace,
       }}
     >
       <div
         style={{
           position: "sticky",
-          top: "10%",
-          width: "100%",
+          top: 0,
+          height: "100vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          transformStyle: "preserve-3d",
-          perspective: "1000px",
+          justifyContent: "center",
+          perspective: "1500px",
+          overflow: "hidden"
         }}
       >
-        <motion.div
-          style={{
-            opacity: textOpacity,
-            textAlign: "center",
-            marginBottom: 60,
-          }}
-        >
+        {/* Title above Mac */}
+        <div style={{
+          position: "absolute",
+          top: "10%",
+          opacity: 1 - scrollProgress * 2,
+          textAlign: "center",
+          zIndex: 50,
+          pointerEvents: scrollProgress > 0.5 ? "none" : "all"
+        }}>
           {title}
-        </motion.div>
+        </div>
 
-        {/* MacBook Container */}
-        <motion.div
-          style={{
-            position: "relative",
+        {/* The MacBook Chassis */}
+        <div style={{
+          position: "relative",
+          width: "90vw",
+          maxWidth: "1200px",
+          height: "60vh",
+          maxHeight: "800px",
+          transform: `scale(${0.6 + scrollProgress * 0.4})`,
+          transition: "transform 0.1s ease-out",
+          marginTop: scrollProgress > 0.5 ? "-10vh" : "0"
+        }}>
+
+          {/* Lid (L'écran qui s'ouvre) */}
+          <div style={{
             width: "100%",
-            maxWidth: "1000px",
-            height: "auto",
-            aspectRatio: "16/10",
-            transform: "translateZ(0)",
-            scale: containerScale,
-          }}
-        >
-          {/* Lid (Ecran) */}
-          <motion.div
-            style={{
+            height: "100%",
+            background: "#1d1d1f",
+            borderRadius: "12px 12px 0 0",
+            border: "6px solid #1d1d1f",
+            position: "relative",
+            zIndex: 10,
+            transformOrigin: "bottom",
+            transform: `rotateX(${clampedRotateX}deg)`,
+            transition: "transform 0.1s ease-out",
+            overflow: "hidden",
+            boxShadow: "0 -20px 50px rgba(0,0,0,0.5)",
+          }}>
+            {/* Screen Content - Here goes the actual site content */}
+            <div style={{
               width: "100%",
               height: "100%",
-              background: "#272729",
-              borderRadius: "20px 20px 0 0",
-              border: "4px solid #1d1d1f",
-              position: "relative",
-              zIndex: 2,
-              transformOrigin: "bottom",
-              rotateX: rotate,
-              overflow: "hidden",
-              boxShadow: "0 0 50px rgba(0,0,0,0.5)",
-            }}
-          >
-             {/* Screen Content */}
-             <div style={{ width: "100%", height: "100%", background: "#000" }}>
-                <img
-                  src={src || "/asset/demo_studio.png"}
-                  alt="Studio Interface"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-                {showGradient && (
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)" }} />
-                )}
-             </div>
+              background: colors.deepSpace,
+              overflowY: scrollProgress > 0.9 ? "auto" : "hidden",
+              position: "relative"
+            }}>
+              {children}
 
-             {/* Camera hole */}
-             <div style={{
+              {/* Reflection effect when closed */}
+              <div style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%)",
+                pointerEvents: "none",
+                opacity: 1 - scrollProgress
+              }} />
+            </div>
+
+            {/* Webcam */}
+            <div style={{
                position: "absolute",
-               top: 10,
+               top: 8,
                left: "50%",
                transform: "translateX(-50%)",
-               width: 6,
-               height: 6,
-               background: "#111",
+               width: 4,
+               height: 4,
+               background: "#333",
                borderRadius: "50%"
              }} />
-          </motion.div>
+          </div>
 
-          {/* Base (Clavier) */}
-          <div
-            style={{
-              width: "105%",
-              height: "20px",
-              background: "#1d1d1f",
-              position: "absolute",
-              bottom: "-20px",
-              left: "-2.5%",
-              borderRadius: "0 0 12px 12px",
-              zIndex: 1,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
-            }}
-          >
-            {/* Notch */}
+          {/* Base (Le clavier) */}
+          <div style={{
+            width: "104%",
+            height: "20px",
+            background: "#1d1d1f",
+            position: "absolute",
+            bottom: "-18px",
+            left: "-2%",
+            borderRadius: "0 0 12px 12px",
+            zIndex: 5,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.8)",
+          }}>
+            {/* Trackpad area */}
             <div style={{
               position: "absolute",
               top: 0,
               left: "50%",
               transform: "translateX(-50%)",
-              width: "20%",
-              height: "8px",
+              width: "25%",
+              height: "6px",
               background: "#2d2d2f",
-              borderRadius: "0 0 8px 8px"
+              borderRadius: "0 0 6px 6px"
             }} />
           </div>
 
           {badge && (
-            <div style={{ position: "absolute", top: -40, right: -40, zIndex: 10 }}>
+            <div style={{
+              position: "absolute",
+              bottom: 40,
+              right: -20,
+              zIndex: 20,
+              opacity: scrollProgress,
+              transform: `scale(${scrollProgress})`
+            }}>
               {badge}
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

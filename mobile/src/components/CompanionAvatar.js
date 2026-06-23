@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { colors, borderRadius, spacing } from "../theme/tokens";
+import { wp, rs } from "../theme/responsive";
 
 const COMPANIONS = {
   arch: require("../../assets/companions/arch_sans_fond.png"),
@@ -31,7 +32,7 @@ const COMPANION_NAMES = {
 
 const CompanionAvatar = ({
   companion = "arch",
-  size = 160,
+  size = wp(40),
   message = null,
   floating = false,
   onPress,
@@ -150,23 +151,23 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.04)",
   },
   bubble: {
-    marginTop: spacing.sm,
-    borderRadius: borderRadius.md,
+    marginTop: wp(2),
+    borderRadius: rs(14),
     borderWidth: 1,
-    padding: spacing.md,
-    maxWidth: 240,
+    padding: wp(3.5),
+    maxWidth: wp(75),
     backgroundColor: "rgba(12,18,35,0.92)",
   },
   bubbleName: {
     fontWeight: "800",
-    fontSize: 12,
+    fontSize: rs(12),
     marginBottom: 4,
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   bubbleText: {
-    fontSize: 14,
-    lineHeight: 19,
+    fontSize: rs(14),
+    lineHeight: rs(14) * 1.4,
     color: colors.text,
   },
 });

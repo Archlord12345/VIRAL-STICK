@@ -1,181 +1,87 @@
 import React, { useRef, useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Animated,
-  SafeAreaView,
-  StatusBar,
-  Image,
-} from "react-native";
-import { useTheme, spacing, radius, typography, createShadow } from "../theme";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, SafeAreaView, StatusBar, Image, Dimensions } from "react-native";
+import { useTheme, spacing, radius, typography } from "../theme";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
+import { colors } from "../theme/tokens";
+
+const { width } = Dimensions.get("window");
 
 const MODULES = [
-  {
-    key: "ContextReader",
-    title: "Context Reader",
-    subtitle: "Transforme une situation écrite en mème plus net et plus drôle",
-    icon: "📖",
-    accent: "#FB923C",
-  },
-  {
-    key: "VoiceToMeme",
-    title: "Voice → Mème",
-    subtitle: "Convertit une idée parlée en punchline mémorable",
-    icon: "🎙️",
-    accent: "#84CC16",
-  },
-  {
-    key: "StatusRemixer",
-    title: "Status Remixer",
-    subtitle: "Remixe un visuel, un status ou une idée de sticker",
-    icon: "🎨",
-    accent: "#A855F7",
-  },
+  { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel adapté", icon: "📖", color: colors.art },
+  { key: "VoiceToMeme",  title: "Voice → Mème",   subtitle: "Parole spontanée → punchline", icon: "🎙️", color: colors.duoGreen },
+  { key: "StatusRemixer",title: "Status Remixer",  subtitle: "Visuel ou status → remix viral",icon: "🎨", color: colors.bio },
 ];
 
-const COMPANION_MESSAGES = [
-  "Le noyau créatif est prêt. On fabrique quelque chose de viral ?",
-  "Une bonne idée, un bon angle, un bon visuel : voilà la méthode.",
-  "Tes mèmes méritent une identité plus forte que du texte posé au hasard.",
+const COMPANIONS = ["bio", "ubu", "art"];
+const MESSAGES   = [
+  "Le studio est prêt. On crée quelque chose de viral ?",
+  "Un bon angle, une bonne image : voilà la méthode.",
+  "Tes mèmes méritent une identité forte.",
 ];
 
 const HomeScreen = ({ navigate }) => {
-  const { theme } = useTheme();
-  const headerAnim = useRef(new Animated.Value(-40)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const [currentCompanion, setCurrentCompanion] = useState(0);
+  const [companionIdx, setCompanionIdx] = useState(0);
+  const headerY  = useRef(new Animated.Value(-30)).current;
+  const headerOp = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.spring(headerAnim, {
-        toValue: 0,
-        tension: 60,
-        friction: 8,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 650,
-        useNativeDriver: true,
-      }),
+      Animated.spring(headerY, { toValue: 0, tension: 60, friction: 8, useNativeDriver: true }),
+      Animated.timing(headerOp, { toValue: 1, duration: 600, useNativeDriver: true }),
     ]).start();
-
-    const interval = setInterval(() => {
-      setCurrentCompanion((c) => (c + 1) % 3);
-    }, 4500);
-    return () => clearInterval(interval);
-  }, [headerAnim, opacityAnim]);
-
-  const companions = ["bio", "ubu", "art"];
-  const companion = companions[currentCompanion];
+    const t = setInterval(() => setCompanionIdx((i) => (i + 1) % 3), 4500);
+    return () => clearInterval(t);
+  }, []);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
-      <StatusBar barStyle="light-content" translucent />
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
-        <Animated.View
-          style={{
-            opacity: opacityAnim,
-            transform: [{ translateY: headerAnim }],
-          }}
-        >
-          <GlassCard animate style={styles.heroCard}>
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+
+        {/* Hero */}
+        <Animated.View style={{ opacity: headerOp, transform: [{ translateY: headerY }] }}>
+          <GlassCard animate style={styles.hero}>
             <View style={styles.heroTop}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.tag, { color: theme.textMuted }]}>
-                  STUDIO DE GÉNÉRATION & ÉDITION
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>STUDIO IA MULTIMODAL</Text>
+                </View>
+                <Text style={styles.heroTitle}>
+                  Viral {"\n"}<Text style={{ color: colors.duoGreen }}>Stick</Text>
                 </Text>
-                <Text style={[styles.title, { color: theme.textPrimary }]}>
-                  Viral <Text style={{ color: theme.primaryLight }}>Stick</Text>
-                </Text>
-                <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-                  Le logo devient le noyau du produit mobile, et les compagnons
-                  structurent toute l’expérience créative.
-                </Text>
+                <Text style={styles.heroSub}>Crée du contenu viral avec tes compagnons IA.</Text>
               </View>
-              <View style={styles.logoShell}>
-                <Image
-                  source={require("../../assets/logo/logo_sans_fond.png")}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-              </View>
+              <Image source={require("../../assets/logo/logo_sans_fond.png")} style={styles.logo} resizeMode="contain" />
             </View>
-
             <View style={styles.heroBottom}>
-              <CompanionAvatar
-                companion={companion}
-                size={104}
-                floating
-                message={COMPANION_MESSAGES[currentCompanion]}
-              />
+              <CompanionAvatar companion={COMPANIONS[companionIdx]} size={96} floating message={MESSAGES[companionIdx]} />
             </View>
           </GlassCard>
         </Animated.View>
 
-        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-          MODULES PRINCIPAUX
-        </Text>
-        {MODULES.map((mod, i) => (
-          <GlassCard
-            key={mod.key}
-            animate
-            delay={120 + i * 90}
-            style={styles.moduleCard}
-          >
-            <TouchableOpacity
-              onPress={() => navigate && navigate(mod.key)}
-              activeOpacity={0.85}
-              style={styles.moduleInner}
-            >
-              <View
-                style={[
-                  styles.iconBadge,
-                  {
-                    backgroundColor: `${mod.accent}22`,
-                    borderColor: `${mod.accent}88`,
-                  },
-                ]}
-              >
-                <Text style={styles.moduleIcon}>{mod.icon}</Text>
+        {/* Modules */}
+        <Text style={styles.section}>MODULES</Text>
+        {MODULES.map((m, i) => (
+          <GlassCard key={m.key} animate delay={100 + i * 80} style={styles.moduleCard}>
+            <TouchableOpacity onPress={() => navigate?.(m.key)} activeOpacity={0.8} style={styles.moduleInner}>
+              <View style={[styles.iconBadge, { backgroundColor: `${m.color}18`, borderColor: `${m.color}44` }]}>
+                <Text style={styles.moduleIcon}>{m.icon}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.moduleName, { color: theme.textPrimary }]}>
-                  {mod.title}
-                </Text>
-                <Text
-                  style={[
-                    styles.moduleSubtitle,
-                    { color: theme.textSecondary },
-                  ]}
-                >
-                  {mod.subtitle}
-                </Text>
+                <Text style={styles.moduleName}>{m.title}</Text>
+                <Text style={styles.moduleSub}>{m.subtitle}</Text>
               </View>
-              <Text style={[styles.arrow, { color: mod.accent }]}>›</Text>
+              <Text style={[styles.arrow, { color: m.color }]}>›</Text>
             </TouchableOpacity>
           </GlassCard>
         ))}
 
-        <GlassCard animate delay={420} style={styles.ctaCard}>
-          <Text style={[styles.ctaTitle, { color: theme.textPrimary }]}>
-            Prêt à transformer une idée brute en contenu viral ?
-          </Text>
-          <AnimatedButton
-            title="Commencer avec Context Reader"
-            onPress={() => navigate && navigate("ContextReader")}
-            size="lg"
-            style={{ marginTop: spacing.md }}
-          />
+        {/* CTA */}
+        <GlassCard animate delay={400} style={[styles.cta, { backgroundColor: colors.duoGreenLight, borderColor: `${colors.duoGreen}44` }]}>
+          <Text style={styles.ctaTitle}>Prêt à créer du contenu viral ? 🚀</Text>
+          <AnimatedButton title="Commencer avec Context Reader" onPress={() => navigate?.("ContextReader")} size="lg" style={{ marginTop: spacing.md }} />
         </GlassCard>
 
         <View style={{ height: 100 }} />
@@ -185,65 +91,26 @@ const HomeScreen = ({ navigate }) => {
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  scroll: { paddingHorizontal: spacing.md, paddingTop: 82 },
-  heroCard: { padding: spacing.lg, marginBottom: spacing.lg },
-  heroTop: { flexDirection: "row", gap: spacing.md, alignItems: "center" },
+  safe:       { flex: 1, backgroundColor: "#ffffff" },
+  scroll:     { paddingHorizontal: spacing.md, paddingTop: 80 },
+  hero:       { padding: spacing.lg, marginBottom: spacing.lg },
+  heroTop:    { flexDirection: "row", gap: spacing.md, alignItems: "center" },
   heroBottom: { marginTop: spacing.md, alignItems: "center" },
-  logoShell: {
-    width: 170,
-    height: 170,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logo: { width: 164, height: 164 },
-  tag: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: "800",
-    letterSpacing: 2,
-  },
-  title: {
-    fontSize: typography.fontSize.xxxl,
-    fontWeight: "900",
-    letterSpacing: -1,
-  },
-  subtitle: { fontSize: typography.fontSize.sm, lineHeight: 22, marginTop: 8 },
-  sectionTitle: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: "800",
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    marginBottom: spacing.sm,
-  },
-  moduleCard: { marginBottom: spacing.sm, padding: 0, overflow: "hidden" },
-  moduleInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  iconBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  moduleIcon: { fontSize: 28 },
-  moduleName: { fontSize: typography.fontSize.md, fontWeight: "800" },
-  moduleSubtitle: {
-    fontSize: typography.fontSize.xs,
-    marginTop: 4,
-    lineHeight: 18,
-  },
-  arrow: { fontSize: 30, fontWeight: "300" },
-  ctaCard: { marginTop: spacing.md },
-  ctaTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: "800",
-    textAlign: "center",
-  },
+  badge:      { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 8 },
+  badgeText:  { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
+  heroTitle:  { fontSize: 36, fontWeight: "900", color: colors.almostBlack, letterSpacing: -1, lineHeight: 40 },
+  heroSub:    { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
+  logo:       { width: 90, height: 90 },
+  section:    { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 2, marginBottom: spacing.sm },
+  moduleCard: { marginBottom: spacing.sm, padding: 0 },
+  moduleInner:{ flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
+  iconBadge:  { width: 52, height: 52, borderRadius: radius.md, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  moduleIcon: { fontSize: 24 },
+  moduleName: { fontSize: 16, fontWeight: "800", color: colors.almostBlack },
+  moduleSub:  { fontSize: 13, color: colors.graphite, marginTop: 3 },
+  arrow:      { fontSize: 28, fontWeight: "300" },
+  cta:        { padding: spacing.lg, marginTop: spacing.md },
+  ctaTitle:   { fontSize: 18, fontWeight: "800", color: colors.almostBlack, textAlign: "center" },
 });
 
 export default HomeScreen;

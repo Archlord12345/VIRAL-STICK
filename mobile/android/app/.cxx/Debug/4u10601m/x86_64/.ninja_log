@@ -1,10 +1,11 @@
 # ninja log v5
-1	7	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/cmake.verify_globs	8d478365dcbd3bbc
-1	6502	1782223487434384674	CMakeFiles/appmodules.dir/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/generated/autolinking/src/main/jni/autolinking.cpp.o	43c6f5d981ed1b37
-2	7150	1782223488054374566	CMakeFiles/appmodules.dir/OnLoad.cpp.o	1c31ed24cf6a4d7b
-7150	7231	1782223488174372648	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/intermediates/cxx/Debug/4u10601m/obj/x86_64/libappmodules.so	597685a978ccd75c
-1	10	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/cmake.verify_globs	8d478365dcbd3bbc
-1	9	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/cmake.verify_globs	8d478365dcbd3bbc
-1	6	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/cmake.verify_globs	8d478365dcbd3bbc
 0	3	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/cmake.verify_globs	8d478365dcbd3bbc
-0	5	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/cmake.verify_globs	8d478365dcbd3bbc
+4	3790	1782236192344785881	CMakeFiles/appmodules.dir/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/generated/autolinking/src/main/jni/autolinking.cpp.o	43c6f5d981ed1b37
+4	79	1782236334557952420	build.ninja	dfcb3895d4ae46c2
+4	4159	1782236192712788899	CMakeFiles/appmodules.dir/OnLoad.cpp.o	1c31ed24cf6a4d7b
+0	4	0	clean	77438f1956bfd97
+4160	4204	1782236192768789358	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/intermediates/cxx/Debug/4u10601m/obj/x86_64/libappmodules.so	597685a978ccd75c
+0	4	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/cmake.verify_globs	8d478365dcbd3bbc
+5	3744	1782236338313983236	CMakeFiles/appmodules.dir/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/generated/autolinking/src/main/jni/autolinking.cpp.o	43c6f5d981ed1b37
+6	4132	1782236338697986387	CMakeFiles/appmodules.dir/OnLoad.cpp.o	1c31ed24cf6a4d7b
+4132	4187	1782236338765986945	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/intermediates/cxx/Debug/4u10601m/obj/x86_64/libappmodules.so	597685a978ccd75c

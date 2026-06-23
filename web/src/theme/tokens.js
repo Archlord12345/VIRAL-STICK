@@ -1,58 +1,86 @@
+/**
+ * Viral Stick — Design Tokens
+ * Inspiré Duolingo : fond blanc, vert vif, formes arrondies, énergie ludique
+ */
+
 export const colors = {
-  bg: "#0D0D0D",
-  bgSecondary: "#1A1A2E",
-  panel: "rgba(22, 33, 62, 0.86)",
-  panelStrong: "rgba(22, 33, 62, 0.96)",
-  panelSoft: "rgba(255, 255, 255, 0.06)",
-  border: "rgba(232, 73, 15, 0.22)",
-  borderStrong: "rgba(232, 73, 15, 0.42)",
-  text: "#FFFFFF",
-  textSecondary: "#D7D7E0",
-  textMuted: "#A0A0B0",
-  white: "#FFFFFF",
-  brandPrimary: "#E8490F",
-  brandSecondary: "#F39C12",
-  brandTertiary: "#FF7A1A",
-  success: "#2ECC71",
-  warning: "#F39C12",
-  danger: "#E74C3C",
-  arch: "#3498DB",
-  art: "#E8490F",
-  bio: "#9B59B6",
-  data: "#F39C12",
-  para: "#2ECC71",
-  secu: "#E74C3C",
-  ubu: "#B7D63E",
+  // ── Brand ──────────────────────────────────
+  duoGreen:       "#58cc02",
+  duoGreenDark:   "#3f8f01",
+  duoGreenLight:  "#d7ffb8",
+  skyBlue:        "#1cb0f6",
+  skyBlueDark:    "#1899d6",
+  sunshineYellow: "#ffc700",
+  grapeSoda:      "#a570ff",
+  bubblegumPink:  "#cc348d",
+
+  // ── Neutrals ───────────────────────────────
+  snowWhite:   "#ffffff",
+  cloudGray:   "#e5e5e5",
+  silver:      "#afafaf",
+  graphite:    "#777777",
+  charcoal:    "#4b4b4b",
+  almostBlack: "#3c3c3c",
+
+  // ── Semantic ───────────────────────────────
+  bg:            "#ffffff",
+  bgSecondary:   "#f7f7f7",
+  panel:         "#ffffff",
+  border:        "#e5e5e5",
+  text:          "#3c3c3c",
+  textSecondary: "#4b4b4b",
+  textMuted:     "#afafaf",
+  success:       "#58cc02",
+  warning:       "#ffc700",
+  danger:        "#ee2a2a",
+
+  // ── Compagnons ─────────────────────────────
+  arch: "#58cc02",
+  art:  "#ffc700",
+  bio:  "#a570ff",
+  data: "#1cb0f6",
+  para: "#ff9600",
+  secu: "#cc348d",
+  ubu:  "#ce82ff",
 };
 
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 40,
-  xxl: 56,
+  unit: 4,
+  xs:   8,
+  sm:   12,
+  md:   16,
+  lg:   24,
+  xl:   32,
+  xxl:  48,
+  xxxl: 64,
+  section: 80,
 };
 
 export const radius = {
-  sm: 12,
-  md: 12,
-  lg: 20,
-  pill: 50,
+  sm:   8,
+  md:   12,
+  lg:   16,
+  xl:   20,
+  xxl:  24,
+  pill: 9999,
 };
 
 export const shadows = {
-  glow: "0 20px 60px rgba(232, 73, 15, 0.24)",
-  amberGlow: "0 18px 48px rgba(243, 156, 18, 0.18)",
-  card: "0 18px 46px rgba(0, 0, 0, 0.34)",
-  lift: "0 12px 28px rgba(0, 0, 0, 0.24)",
+  // Signature Duolingo : ombre solide en bas = effet bouton pressable
+  btnPrimary:   "0 4px 0 #3f8f01",
+  btnBlue:      "0 4px 0 #1899d6",
+  btnGray:      "0 4px 0 #b5b5b5",
+  card:         "0 2px 0 0 #e5e5e5",
+  cardHover:    "0 4px 0 0 #d0d0d0",
 };
 
-export const gradients = {
-  page: "linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 100%)",
-  brand: "linear-gradient(135deg, #E8490F 0%, #F39C12 100%)",
-  brandSoft:
-    "linear-gradient(135deg, rgba(232,73,15,0.24) 0%, rgba(243,156,18,0.16) 100%)",
-  cardSheen:
-    "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02))",
+export const typography = {
+  // Titres : Fredoka One (substitut "feather")
+  // Corps  : Nunito (substitut "din-round")
+  display: { fontSize: 48, lineHeight: 1.2, letterSpacing: -0.96, weight: "700" },
+  headingLg: { fontSize: 36, lineHeight: 1.2, weight: "700" },
+  heading: { fontSize: 28, lineHeight: 1.2, weight: "700" },
+  headingSm: { fontSize: 20, lineHeight: 1.2, weight: "700" },
+  body: { fontSize: 16, lineHeight: 1.47, letterSpacing: 0.8, weight: "500" },
+  caption: { fontSize: 13, lineHeight: 1.4, letterSpacing: 0.69, weight: "500" },
 };

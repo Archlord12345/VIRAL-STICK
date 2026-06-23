@@ -1,43 +1,37 @@
 import React, { createContext, useContext } from "react";
-import { theme } from "./colors";
+import { colors } from "./tokens";
 
-export const spacing = {
-  xs: 6,
-  sm: 10,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  xxl: 40,
-  xxxl: 56,
-  huge: 72,
-};
-
-export const radius = {
-  button: 16,
-  md: 18,
-  lg: 28,
-  xl: 36,
-};
-
+export const spacing  = { xs: 6, sm: 10, md: 16, lg: 24, xl: 32, xxl: 48 };
+export const radius   = { sm: 8, md: 12, lg: 16, xl: 20, pill: 999 };
 export const typography = {
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 18,
-    xl: 22,
-    xxl: 28,
-    xxxl: 36,
-  },
+  fontSize: { xs: 12, sm: 14, md: 16, lg: 18, xl: 22, xxl: 28, xxxl: 36 },
 };
 
-export const createShadow = (color = "#7C3AED", elevation = 16) => ({
+export const createShadow = (color = "#3f8f01", elevation = 4) => ({
   shadowColor: color,
-  shadowOffset: { width: 0, height: Math.max(6, elevation / 2) },
-  shadowOpacity: 0.24,
-  shadowRadius: elevation,
-  elevation: Math.max(6, Math.round(elevation / 2)),
+  shadowOffset: { width: 0, height: elevation },
+  shadowOpacity: 0.22,
+  shadowRadius: 2,
+  elevation: Math.max(2, elevation),
 });
+
+export const theme = {
+  background:          colors.snowWhite,
+  backgroundCard:      colors.snowWhite,
+  backgroundSecondary: colors.bgSecondary,
+  textPrimary:         colors.almostBlack,
+  textSecondary:       colors.charcoal,
+  textMuted:           colors.silver,
+  primary:             colors.duoGreen,
+  primaryLight:        colors.duoGreenLight,
+  primaryDark:         colors.duoGreenDark,
+  secondary:           colors.skyBlue,
+  secondaryLight:      colors.skyBlue,
+  warning:             colors.sunshineYellow,
+  danger:              colors.danger,
+  border:              colors.cloudGray,
+  divider:             colors.cloudGray,
+};
 
 const ThemeContext = createContext({ theme });
 

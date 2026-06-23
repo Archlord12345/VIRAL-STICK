@@ -1,36 +1,73 @@
-# .gitignore
+# ══════════════════════════════════════════════
+#  VIRAL STICK — .gitignore
+#  React Native 0.75 · Node/Express backend
+# ══════════════════════════════════════════════
 
-# Dependencies
+# ── Dependencies ──────────────────────────────
 node_modules/
+**/node_modules/
 
-# Build artifacts
-dist/
-build/
-.next/
-out/
-android/app/build/
-android/.gradle/
-mobile/android/app/build/
-mobile/android/.gradle/
-ios/build/
-
-# Android local config
-local.properties
-
-# Environment files
+# ── Environment / secrets ─────────────────────
 .env
 .env.*
 !.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
 
-# IDE / Editor files
+# ── Build outputs ─────────────────────────────
+dist/
+build/
+out/
+.next/
+
+# Android
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/app/*.keystore
+!mobile/android/app/debug.keystore
+mobile/android/app/viral-stick.keystore
+
+# iOS
+mobile/ios/build/
+mobile/ios/Pods/
+mobile/ios/*.xcworkspace/xcuserdata/
+mobile/ios/DerivedData/
+
+# Metro bundler cache
+mobile/.metro-health-check*
+.metro/
+
+# ── Gradle wrapper (garder, nécessaire au CI) ─
+!mobile/android/gradlew
+!mobile/android/gradlew.bat
+!mobile/android/gradle/wrapper/gradle-wrapper.jar
+!mobile/android/gradle/wrapper/gradle-wrapper.properties
+
+# ── IDE / Editor ──────────────────────────────
 .vscode/
 .idea/
+*.iml
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
 
-# Logs
+# ── Logs ──────────────────────────────────────
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+
+# ── Vercel ────────────────────────────────────
 .vercel
+.vercel/
+
+# ── Misc ──────────────────────────────────────
+.expo/
+__pycache__/
+*.pyc
+coverage/
+.nyc_output/

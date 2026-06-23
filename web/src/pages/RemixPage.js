@@ -1,268 +1,252 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useMemo } from "react";
 import CompanionAvatarWeb from "../components/CompanionAvatarWeb";
-import WebShell, { pageStyles } from "../components/WebShell";
+import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
 import WhatsAppShareButton from "../components/WhatsAppShareButton";
-import AppIcon from "../components/AppIcon";
-import { colors } from "../theme/tokens";
+import { colors, radius } from "../theme/tokens";
+
+const FILTERS = [
+  { id: "none",     label: "Original", emoji: "📷" },
+  { id: "dramatic", label: "Dramatic",  emoji: "🌑" },
+  { id: "neon",     label: "Neon",      emoji: "💫" },
+  { id: "vintage",  label: "Vintage",   emoji: "🎞️" },
+  { id: "fire",     label: "Fire",      emoji: "🔥" },
+];
 
 const RemixPage = () => {
-  const [remixText, setRemixText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [remixText, setRemixText]               = useState("");
   const [inputImageBase64, setInputImageBase64] = useState("");
+  const [filter, setFilter]                     = useState("none");
+  const [loading, setLoading]                   = useState(false);
+  const [result, setResult]                     = useState(null);
+  const [error, setError]                       = useState("");
 
   const shareText = useMemo(() => {
     if (!result) return remixText;
-    const caption =
-      result.meme_text ||
-      [result.topText, result.bottomText].filter(Boolean).join("\n");
-    return [caption, result.descriptionImage, result.companionComment]
-      .filter(Boolean)
-      .join("\n\n");
+    return [result.meme_text, result.companionComment].filter(Boolean).join("\n\n");
   }, [result, remixText]);
 
-  const handleImageUpload = async (event) => {
-    const file = event.target.files?.[0];
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
-
     const reader = new FileReader();
-    reader.onload = () => {
-      setInputImageBase64(
-        typeof reader.result === "string" ? reader.result : "",
-      );
-    };
+    reader.onload = () => setInputImageBase64(String(reader.result));
     reader.readAsDataURL(file);
   };
 
   const handleRemix = async () => {
     if (!remixText.trim() && !inputImageBase64) return;
-    setLoading(true);
-    setError("");
-    setResult(null);
+    setLoading(true); setError(""); setResult(null);
     try {
-      const response = await fetch("/api/memes/status-remixer", {
+      const res  = await fetch("/api/memes/status-remixer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: remixText,
-          inputImageBase64: inputImageBase64 || undefined,
-          imageContext: inputImageBase64
-            ? "Image uploadée depuis l'interface web"
-            : undefined,
-        }),
+        body: JSON.stringify({ text: remixText, inputImageBase64: inputImageBase64 || undefined }),
       });
-
-      const raw = await response.text();
-      let data = {};
-      try {
-        data = raw ? JSON.parse(raw) : {};
-      } catch {
-        throw new Error(
-          response.status === 413
-            ? "Image trop lourde pour le serveur. Réduis sa taille puis réessaie."
-            : "Réponse serveur invalide.",
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          response.status === 413
-            ? "Image trop lourde pour le serveur. Réduis sa taille puis réessaie."
-            : data?.error || "La génération du remix a échoué.",
-        );
-      }
-
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Erreur remix");
       setResult(data);
-    } catch (error) {
-      console.error("Error:", error);
-      setError(error.message || "Impossible de générer le remix.");
-    }
+    } catch (e) { setError(e.message); }
     setLoading(false);
   };
 
+  const overlayColor = {
+    dramatic: "rgba(0,0,0,0.55)",
+    neon:     "rgba(34,211,238,0.22)",
+    vintage:  "rgba(193,132,79,0.24)",
+    fire:     "rgba(239,68,68,0.28)",
+  }[filter] || "transparent";
+
   return (
-    <WebShell title="Status Remixer" companion="bio">
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1.05fr 0.95fr",
-          gap: 24,
-        }}
-      >
-        <div style={{ ...pageStyles.panel, padding: 28 }}>
-          <div
-            style={{
-              display: "flex",
-              gap: 18,
-              alignItems: "center",
-              marginBottom: 18,
-            }}
-          >
-            <CompanionAvatarWeb companion="bio" size={110} />
+    <WebShell companion="bio" title="Status Remixer">
+      {/* En-tête */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          background: `${colors.bio}22`, color: colors.bio,
+          padding: "5px 14px", borderRadius: radius.pill,
+          fontSize: 13, fontWeight: 800, marginBottom: 12,
+        }}>
+          MODULE 03 · STATUS REMIXER
+        </div>
+        <h1 style={{
+          fontFamily: "'Fredoka One', cursive", fontSize: 40,
+          color: colors.almostBlack, margin: "0 0 8px",
+        }}>
+          Remixe ton <span style={{ color: colors.bio }}>visuel</span>
+        </h1>
+        <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: 16, color: colors.graphite, margin: 0 }}>
+          Charge une image ou décris une intention — l'IA génère la caption parfaite.
+        </p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "start" }}>
+
+        {/* ── Formulaire ── */}
+        <div className="duo-card" style={{ padding: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+            <CompanionAvatarWeb companion="bio" size={56} />
             <div>
-              <h1 style={{ margin: 0, fontSize: 34 }}>Status Remixer</h1>
-              <p style={{ color: colors.textSecondary }}>
-                Bio transforme une scène, un status ou un visuel décrit en
-                caption plus vivant, plus stylé et plus viral.
-              </p>
+              <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 18, color: colors.almostBlack }}>Bio</div>
+              <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: colors.silver, fontWeight: 600 }}>
+                Énergie visuelle
+              </div>
             </div>
           </div>
 
+          {/* Caption */}
+          <label style={{ display: "block", fontFamily: "'Nunito', sans-serif",
+            fontWeight: 800, fontSize: 14, color: colors.charcoal, marginBottom: 8 }}>
+            Caption / Intention créative
+          </label>
           <textarea
             value={remixText}
             onChange={(e) => setRemixText(e.target.value)}
-            placeholder="Décris l'image, le mood, le texte voulu ou l'énergie du sticker..."
-            style={{ ...pageStyles.textarea, minHeight: 240 }}
+            placeholder="Ex: Mème sur la procrastination avec une énergie feu…"
+            className="duo-input"
+            rows={4}
+            style={{ resize: "vertical", marginBottom: 24 }}
           />
 
-          <div style={{ marginTop: 16 }}>
-            <input type="file" accept="image/*" onChange={handleImageUpload} />
-          </div>
-
-          <div
-            style={{
-              ...pageStyles.softPanel,
-              marginTop: 16,
-              padding: 18,
-              color: colors.textSecondary,
-            }}
+          {/* Upload image */}
+          <label style={{ display: "block", fontFamily: "'Nunito', sans-serif",
+            fontWeight: 800, fontSize: 14, color: colors.charcoal, marginBottom: 8 }}>
+            Image source (optionnel)
+          </label>
+          <label style={{
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 10,
+            border: `2px dashed ${colors.cloudGray}`, borderRadius: radius.md,
+            padding: "28px 20px", cursor: "pointer", background: colors.bgSecondary,
+            marginBottom: 24, transition: "border-color 0.2s ease",
+          }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = colors.duoGreen}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = colors.cloudGray}
           >
-            Le remix passe maintenant par le pipeline final `status-remixer` :
-            texte, image d'entrée optionnelle, recommandations visuelles et
-            image Hugging Face si disponible.
+            <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: "none" }} />
+            <span style={{ fontSize: 32 }}>{inputImageBase64 ? "✅" : "🖼️"}</span>
+            <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: colors.silver, fontWeight: 700 }}>
+              {inputImageBase64 ? "Image chargée !" : "Clique pour choisir une image"}
+            </span>
+          </label>
+
+          {/* Filtres */}
+          <label style={{ display: "block", fontFamily: "'Nunito', sans-serif",
+            fontWeight: 800, fontSize: 14, color: colors.charcoal, marginBottom: 8 }}>
+            Filtre visuel
+          </label>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+            {FILTERS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "8px 14px", borderRadius: radius.md, cursor: "pointer",
+                  fontFamily: "'Nunito', sans-serif", fontWeight: 700, fontSize: 13,
+                  background: filter === f.id ? colors.duoGreenLight : colors.bgSecondary,
+                  color: filter === f.id ? colors.duoGreenDark : colors.graphite,
+                  border: `2px solid ${filter === f.id ? colors.duoGreen : colors.cloudGray}`,
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {f.emoji} {f.label}
+              </button>
+            ))}
           </div>
 
-          {error ? (
-            <div
-              style={{
-                marginTop: 16,
-                padding: 14,
-                borderRadius: 14,
-                border: `1px solid rgba(231,76,60,0.45)`,
-                background: "rgba(231,76,60,0.12)",
-                color: colors.danger,
-              }}
-            >
-              {error}
+          {error && (
+            <div style={{
+              background: "#fff0f0", border: `2px solid ${colors.danger}33`,
+              borderRadius: radius.md, padding: 12, marginBottom: 16,
+              fontFamily: "'Nunito', sans-serif", fontSize: 14, color: colors.danger, fontWeight: 700,
+            }}>
+              ⚠️ {error}
             </div>
-          ) : null}
+          )}
 
-          <div
-            style={{
-              marginTop: 18,
-              display: "flex",
-              justifyContent: "flex-end",
-            }}
+          <PremiumButton
+            variant="primary"
+            onClick={handleRemix}
+            disabled={loading || (!remixText.trim() && !inputImageBase64)}
+            style={{ width: "100%", justifyContent: "center" }}
           >
-            <PremiumButton
-              onClick={handleRemix}
-              disabled={loading || (!remixText.trim() && !inputImageBase64)}
-              icon={<AppIcon name="remix" size={18} color="#fff" />}
-            >
-              {loading ? "Remix..." : "Créer le remix"}
-            </PremiumButton>
-          </div>
+            {loading ? "Remix en cours..." : "✨ Lancer le Remix IA"}
+          </PremiumButton>
         </div>
 
-        <div style={{ ...pageStyles.panel, padding: 28 }}>
-          <h2 style={{ marginTop: 0 }}>Aperçu du rendu</h2>
-          <div style={{ ...pageStyles.softPanel, padding: 20 }}>
-            <div
-              style={{
-                minHeight: 420,
-                borderRadius: 18,
-                border: `1px solid ${colors.border}`,
-                background:
-                  "linear-gradient(180deg, rgba(22,33,62,0.96), rgba(13,13,13,0.98))",
-                padding: 22,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                alignItems: "center",
-                textAlign: "center",
-                overflow: "hidden",
-                position: "relative",
-              }}
-            >
-              {result?.imageUrl ? (
-                <img
-                  src={result.imageUrl}
-                  alt="Remix généré"
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    opacity: 0.72,
-                  }}
-                />
-              ) : result?.sourceImageUrl ? (
-                <img
-                  src={result.sourceImageUrl}
-                  alt="Image source"
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    opacity: 0.45,
-                  }}
-                />
-              ) : null}
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background:
-                    "linear-gradient(180deg, rgba(13,13,13,0.1), rgba(13,13,13,0.7))",
-                }}
-              />
-              <div style={{ fontSize: 24, fontWeight: 900, zIndex: 1 }}>
-                {result?.meme_text || "TA CAPTION PRINCIPALE"}
+        {/* ── Canvas résultat ── */}
+        <div className="duo-card" style={{ padding: 32, minHeight: 480 }}>
+          {/* Canvas visuel */}
+          <div style={{
+            position: "relative", borderRadius: radius.lg,
+            overflow: "hidden", minHeight: 280,
+            background: colors.almostBlack,
+            border: `2px solid ${result ? colors.duoGreen : colors.cloudGray}`,
+            marginBottom: 24,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            {result?.imageUrl ? (
+              <img src={result.imageUrl} alt="Remix" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+            ) : inputImageBase64 ? (
+              <img src={inputImageBase64} alt="Source" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0, opacity: 0.4 }} />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: 32, opacity: 0.5 }}>
+                <CompanionAvatarWeb companion="bio" size={96} floating />
+                <span style={{ fontFamily: "'Nunito', sans-serif", color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 600 }}>
+                  Aperçu du remix
+                </span>
               </div>
-              <CompanionAvatarWeb companion="bio" size={180} />
-              <div style={{ fontSize: 20, fontWeight: 800, zIndex: 1 }}>
-                {result?.companionComment ||
-                  "UN RENDU PLUS VISUEL, PLUS POSTABLE"}
+            )}
+            {/* Overlay filtre */}
+            <div style={{ position: "absolute", inset: 0, background: overlayColor, pointerEvents: "none" }} />
+          </div>
+
+          {result ? (
+            <div style={{ animation: "fadeUp 0.4s ease" }}>
+              <div style={{
+                background: colors.duoGreenLight, borderRadius: radius.md,
+                border: `2px solid ${colors.duoGreen}44`, padding: 16, marginBottom: 16,
+              }}>
+                <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 20, color: colors.almostBlack, marginBottom: 6 }}>
+                  {result.meme_text || "Caption générée"}
+                </div>
+                <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: colors.charcoal }}>
+                  {result.companionComment || "Remix prêt à poster."}
+                </div>
               </div>
-            </div>
-            <p style={{ color: colors.textMuted, marginTop: 14 }}>
-              {result?.descriptionImage ||
-                "Le moteur produit une caption, des recommandations visuelles et une image cohérente avec le remix demandé."}
-            </p>
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                flexWrap: "wrap",
-                marginTop: 16,
-              }}
-            >
+
+              {Array.isArray(result.visual_enhancements) && result.visual_enhancements.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 13, color: colors.charcoal, marginBottom: 8 }}>
+                    Recommandations visuelles :
+                  </div>
+                  {result.visual_enhancements.map((item, i) => (
+                    <div key={i} style={{
+                      display: "flex", gap: 10, alignItems: "flex-start",
+                      padding: "8px 0", borderBottom: i < result.visual_enhancements.length - 1 ? `1px solid ${colors.cloudGray}` : "none",
+                    }}>
+                      <span style={{ color: colors.duoGreen, fontWeight: 800, fontSize: 14 }}>{i + 1}.</span>
+                      <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: colors.graphite }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <WhatsAppShareButton
                 text={shareText}
-                url={window.location.href}
-                label="Partager le remix sur WhatsApp"
+                label="Partager le remix"
+                style={{ width: "100%", justifyContent: "center" }}
               />
-              <PremiumButton
-                variant="ghost"
-                icon={
-                  <AppIcon
-                    name="global"
-                    size={18}
-                    color={colors.textSecondary}
-                  />
-                }
-              >
-                Bientôt : partager au statut WhatsApp
-              </PremiumButton>
             </div>
-          </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: 16 }}>
+              <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: colors.silver, fontWeight: 600 }}>
+                Le résultat IA s'affichera ici après le remix.
+              </p>
+            </div>
+          )}
         </div>
-      </section>
+      </div>
     </WebShell>
   );
 };

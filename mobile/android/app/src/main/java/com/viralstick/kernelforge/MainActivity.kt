@@ -7,21 +7,13 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 class MainActivity : ReactActivity() {
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(R.style.Theme_Splash)
-    super.onCreate(savedInstanceState)
-  }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_Splash)
+        super.onCreate(savedInstanceState)
+    }
 
-  /**
-   * Returns the name of the main component registered from JavaScript. This is used to schedule
-   * rendering of the component.
-   */
-  override fun getMainComponentName(): String = "ViralStick"
+    override fun getMainComponentName(): String = "ViralStick"
 
-  /**
-   * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
-   * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
-   */
-  override fun createReactActivityDelegate(): ReactActivityDelegate =
-      DefaultReactActivityDelegate(this, mainComponentName, false)
+    override fun createReactActivityDelegate(): ReactActivityDelegate =
+        DefaultReactActivityDelegate(this, mainComponentName, false)
 }

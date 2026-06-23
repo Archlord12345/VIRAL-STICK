@@ -1,434 +1,197 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import CompanionAvatarWeb from "../components/CompanionAvatarWeb";
-import WebShell, { pageStyles } from "../components/WebShell";
+import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
-import AppIcon from "../components/AppIcon";
-import WhatsAppShareButton from "../components/WhatsAppShareButton";
-import { colors, shadows } from "../theme/tokens";
+import { colors, radius } from "../theme/tokens";
 
 const COMPANIONS = [
-  {
-    id: "arch",
-    name: "Archlord",
-    role: "Direction produit",
-    color: colors.arch,
-  },
-  { id: "data", name: "Data", role: "Support & structure", color: colors.data },
-  {
-    id: "para",
-    name: "Para",
-    role: "Réglages & onboarding",
-    color: colors.para,
-  },
-  {
-    id: "secu",
-    name: "Secu",
-    role: "Sécurité & vigilance",
-    color: colors.secu,
-  },
-  { id: "bio", name: "Bio", role: "Énergie visuelle", color: colors.bio },
-  { id: "ubu", name: "Ubu", role: "Humour & imprévu", color: colors.ubu },
-  { id: "art", name: "Art", role: "Direction artistique", color: colors.art },
+  { id: "arch", name: "Archlord", role: "Direction produit" },
+  { id: "data", name: "Data",     role: "Support & structure" },
+  { id: "para", name: "Para",     role: "Réglages & onboarding" },
+  { id: "secu", name: "Secu",     role: "Sécurité & vigilance" },
+  { id: "bio",  name: "Bio",      role: "Énergie visuelle" },
+  { id: "ubu",  name: "Ubu",      role: "Humour & imprévu" },
+  { id: "art",  name: "Art",      role: "Direction artistique" },
 ];
 
-const formatTime = () =>
-  new Date().toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const fmt = () => new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
 const ChatPage = () => {
-  const [activeCompanion, setActiveCompanion] = useState("data");
+  const [active, setActive] = useState("arch");
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  const [input, setInput]     = useState("");
   const [loading, setLoading] = useState(false);
+  const scrollRef             = useRef(null);
 
   useEffect(() => {
-    setMessages([]);
-    setLoading(true);
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, loading]);
+
+  useEffect(() => {
+    setMessages([]); setLoading(true);
     fetch("/api/memes/chat/greeting", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ companionId: activeCompanion }),
+      body: JSON.stringify({ companionId: active }),
     })
-      .then((res) => res.json())
-      .then((data) => {
-        setMessages([
-          {
-            id: Date.now(),
-            text: data.reply,
-            sender: "companion",
-            companion: activeCompanion,
-            time: "maintenant",
-          },
-        ]);
-      })
-      .catch(() => {
-        setMessages([
-          {
-            id: Date.now(),
-            text: "Salut. Le noyau social est prêt.",
-            sender: "companion",
-            companion: activeCompanion,
-            time: "maintenant",
-          },
-        ]);
-      })
+      .then((r) => r.json())
+      .then((d) => setMessages([{ id: 1, text: d.reply, sender: "companion", time: fmt() }]))
+      .catch(()  => setMessages([{ id: 1, text: "Bonjour ! Je suis prêt.", sender: "companion", time: fmt() }]))
       .finally(() => setLoading(false));
-  }, [activeCompanion]);
+  }, [active]);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userText = input.trim();
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        text: userText,
-        sender: "user",
-        companion: activeCompanion,
-        time: formatTime(),
-      },
-    ]);
-    setInput("");
-    setLoading(true);
-
+    if (!input.trim() || loading) return;
+    const txt = input.trim();
+    setMessages((p) => [...p, { id: Date.now(), text: txt, sender: "user", time: fmt() }]);
+    setInput(""); setLoading(true);
     try {
-      const res = await fetch("/api/memes/chat", {
+      const res  = await fetch("/api/memes/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companionId: activeCompanion,
-          message: userText,
-        }),
+        body: JSON.stringify({ companionId: active, message: txt }),
       });
-      const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          text: data.reply,
-          sender: "companion",
-          companion: activeCompanion,
-          time: formatTime(),
-        },
-      ]);
+      const d = await res.json();
+      setMessages((p) => [...p, { id: Date.now() + 1, text: d.reply, sender: "companion", time: fmt() }]);
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          text: "Erreur de connexion au noyau conversationnel.",
-          sender: "companion",
-          companion: activeCompanion,
-          time: "maintenant",
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+      setMessages((p) => [...p, { id: Date.now() + 1, text: "Je n'ai pas pu répondre pour l'instant.", sender: "companion", time: fmt() }]);
+    } finally { setLoading(false); }
   };
 
-  const active = useMemo(
-    () => COMPANIONS.find((c) => c.id === activeCompanion) || COMPANIONS[0],
-    [activeCompanion],
-  );
+  const activeInfo = useMemo(() => COMPANIONS.find((c) => c.id === active) || COMPANIONS[0], [active]);
+  const accent     = colors[active] || colors.duoGreen;
 
   return (
-    <WebShell title="Compagnons" companion={activeCompanion}>
-      <section
-        style={{
-          ...pageStyles.panel,
-          minHeight: 760,
-          display: "grid",
-          gridTemplateColumns: "340px 1fr",
-          overflow: "hidden",
-        }}
-      >
-        <aside
-          style={{
-            borderRight: `1px solid ${colors.border}`,
-            background: "rgba(255,255,255,0.03)",
-            display: "flex",
-            flexDirection: "column",
-            minHeight: 760,
-          }}
-        >
-          <div
-            style={{
-              padding: 18,
-              borderBottom: `1px solid ${colors.border}`,
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-            }}
-          >
-            <CompanionAvatarWeb companion="arch" size={64} />
-            <div>
-              <div style={{ fontWeight: 900, fontSize: 18 }}>
-                Boîte de réception
-              </div>
-              <div style={{ color: colors.textMuted, fontSize: 13 }}>
-                Style inspiré de WhatsApp, version Viral Stick
-              </div>
-            </div>
-          </div>
+    <WebShell companion={active} title="Companion Chat">
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontFamily: "'Fredoka One', cursive", fontSize: 36, color: colors.almostBlack, margin: "0 0 8px" }}>
+          Chat <span style={{ color: accent }}>compagnons</span>
+        </h1>
+        <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: 15, color: colors.graphite, margin: 0 }}>
+          Choisis un compagnon et commence à discuter.
+        </p>
+      </div>
 
-          <div
-            style={{ padding: 14, borderBottom: `1px solid ${colors.border}` }}
-          >
-            <div
+      {/* Sélecteur compagnons */}
+      <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8, marginBottom: 24 }}>
+        {COMPANIONS.map((c) => {
+          const isActive = c.id === active;
+          const col = colors[c.id] || colors.duoGreen;
+          return (
+            <button
+              key={c.id}
+              onClick={() => setActive(c.id)}
               style={{
-                ...pageStyles.input,
-                minHeight: 48,
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                color: colors.textMuted,
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                padding: "12px 16px", borderRadius: radius.lg, cursor: "pointer",
+                border: `2px solid ${isActive ? col : colors.cloudGray}`,
+                background: isActive ? `${col}18` : colors.snowWhite,
+                boxShadow: isActive ? `0 4px 0 ${col}44` : "0 2px 0 #e5e5e5",
+                transition: "all 0.15s ease", flexShrink: 0,
+                fontFamily: "'Nunito', sans-serif", fontWeight: 700,
               }}
             >
-              <AppIcon name="chat" size={16} color={colors.textMuted} />
-              <span>Rechercher un compagnon</span>
-            </div>
-          </div>
+              <CompanionAvatarWeb companion={c.id} size={44} />
+              <span style={{ fontSize: 13, color: isActive ? col : colors.charcoal }}>{c.name}</span>
+            </button>
+          );
+        })}
+      </div>
 
-          <div style={{ display: "grid", gap: 2, padding: 8 }}>
-            {COMPANIONS.map((c) => {
-              const isActive = c.id === activeCompanion;
-              const preview =
-                messages.findLast?.((m) => m.companion === c.id)?.text ||
-                c.role;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setActiveCompanion(c.id)}
-                  style={{
-                    border: "none",
-                    textAlign: "left",
-                    padding: 14,
-                    borderRadius: 18,
-                    background: isActive ? `${c.color}18` : "transparent",
-                    display: "grid",
-                    gridTemplateColumns: "auto 1fr auto",
-                    gap: 12,
-                    alignItems: "center",
-                    cursor: "pointer",
-                  }}
-                >
-                  <CompanionAvatarWeb companion={c.id} size={58} />
-                  <div style={{ minWidth: 0 }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: 8,
-                      }}
-                    >
-                      <span style={{ fontWeight: 800, color: colors.text }}>
-                        {c.name}
-                      </span>
-                      <span style={{ fontSize: 12, color: colors.textMuted }}>
-                        actif
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        color: isActive
-                          ? colors.textSecondary
-                          : colors.textMuted,
-                        fontSize: 13,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        marginTop: 4,
-                      }}
-                    >
-                      {preview}
-                    </div>
+      {/* Zone chat */}
+      <div className="duo-card" style={{ display: "flex", flexDirection: "column", height: "62vh", minHeight: 480, padding: 0, overflow: "hidden" }}>
+        {/* Header compagnon actif */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 14,
+          padding: "16px 24px", borderBottom: `2px solid ${colors.cloudGray}`,
+          background: `${accent}10`,
+        }}>
+          <CompanionAvatarWeb companion={active} size={48} />
+          <div>
+            <div style={{ fontFamily: "'Fredoka One', cursive", fontSize: 20, color: accent }}>{activeInfo.name}</div>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: colors.silver, fontWeight: 600 }}>{activeInfo.role}</div>
+          </div>
+          <div style={{
+            marginLeft: "auto", display: "flex", alignItems: "center", gap: 6,
+            padding: "4px 12px", borderRadius: radius.pill,
+            background: colors.duoGreenLight, fontSize: 12, fontWeight: 800, color: colors.duoGreenDark,
+          }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: colors.duoGreen, display: "inline-block" }} />
+            En ligne
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+          {messages.map((m) => {
+            const isUser = m.sender === "user";
+            return (
+              <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: isUser ? "flex-end" : "flex-start" }}>
+                {!isUser && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <CompanionAvatarWeb companion={active} size={28} />
+                    <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 12, fontWeight: 800, color: accent }}>
+                      {activeInfo.name}
+                    </span>
                   </div>
-                  <div
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 999,
-                      background: isActive ? c.color : "transparent",
-                      boxShadow: isActive ? `0 0 18px ${c.color}` : "none",
-                    }}
-                  />
-                </button>
-              );
-            })}
-          </div>
-        </aside>
-
-        <main
-          style={{ display: "flex", flexDirection: "column", minHeight: 760 }}
-        >
-          <div
-            style={{
-              padding: "16px 20px",
-              borderBottom: `1px solid ${colors.border}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 18,
-              background: "rgba(255,255,255,0.04)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <CompanionAvatarWeb companion={active.id} size={72} />
-              <div>
-                <div style={{ fontSize: 20, fontWeight: 900 }}>
-                  {active.name}
+                )}
+                <div style={{
+                  maxWidth: "78%", padding: "12px 16px", borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                  background: isUser ? accent : colors.bgSecondary,
+                  border: `2px solid ${isUser ? accent : colors.cloudGray}`,
+                  boxShadow: isUser ? `0 3px 0 ${accent}66` : "0 2px 0 #e5e5e5",
+                }}>
+                  <p style={{
+                    fontFamily: "'Nunito', sans-serif", fontSize: 15, lineHeight: 1.5, margin: 0,
+                    color: isUser ? "#ffffff" : colors.almostBlack, fontWeight: 600,
+                  }}>
+                    {m.text}
+                  </p>
                 </div>
-                <div
-                  style={{ color: active.color, fontWeight: 700, fontSize: 14 }}
-                >
-                  {active.role}
+                <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 11, color: colors.silver, fontWeight: 600, marginTop: 4 }}>
+                  {m.time}
+                </span>
+              </div>
+            );
+          })}
+          {loading && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, animation: "pulse 1.5s infinite" }}>
+              <CompanionAvatarWeb companion={active} size={28} />
+              <div style={{
+                background: colors.bgSecondary, border: `2px solid ${colors.cloudGray}`,
+                borderRadius: "16px 16px 16px 4px", padding: "12px 20px",
+              }}>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} style={{
+                      width: 8, height: 8, borderRadius: "50%",
+                      background: accent, opacity: 0.5 + i * 0.2,
+                    }} />
+                  ))}
                 </div>
               </div>
             </div>
+          )}
+        </div>
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <WhatsAppShareButton
-                text={`Je discute avec ${active.name} sur Viral Stick.`}
-                url={window.location.href}
-                label="Partager ce chat"
-                style={{ minHeight: 46, padding: "12px 18px" }}
-              />
-            </div>
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              padding: 22,
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-              background:
-                "radial-gradient(circle at top, rgba(255,255,255,0.03), transparent 24%), rgba(11,10,27,0.38)",
-              overflowY: "auto",
-            }}
-          >
-            <div
-              style={{
-                alignSelf: "center",
-                padding: "8px 14px",
-                borderRadius: 999,
-                background: "rgba(255,255,255,0.06)",
-                color: colors.textMuted,
-                fontSize: 12,
-                boxShadow: shadows.lift,
-              }}
-            >
-              Conversation sécurisée · style WhatsApp revisité
-            </div>
-
-            {messages.map((m) => {
-              const isUser = m.sender === "user";
-              return (
-                <div
-                  key={m.id}
-                  style={{
-                    display: "flex",
-                    justifyContent: isUser ? "flex-end" : "flex-start",
-                  }}
-                >
-                  <div
-                    style={{
-                      maxWidth: "72%",
-                      padding: "12px 14px 10px",
-                      borderRadius: isUser
-                        ? "18px 18px 4px 18px"
-                        : "18px 18px 18px 4px",
-                      background: isUser
-                        ? "linear-gradient(135deg, rgba(139,92,246,0.92), rgba(34,211,238,0.82))"
-                        : "rgba(255,255,255,0.07)",
-                      border: isUser ? "none" : `1px solid ${colors.border}`,
-                      boxShadow: isUser ? shadows.glow : shadows.lift,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {!isUser ? (
-                      <div
-                        style={{
-                          color: active.color,
-                          fontSize: 12,
-                          fontWeight: 900,
-                          marginBottom: 4,
-                        }}
-                      >
-                        {active.name}
-                      </div>
-                    ) : null}
-                    <div style={{ color: colors.text }}>{m.text}</div>
-                    <div
-                      style={{
-                        marginTop: 8,
-                        textAlign: "right",
-                        fontSize: 11,
-                        color: isUser
-                          ? "rgba(255,255,255,0.74)"
-                          : colors.textMuted,
-                      }}
-                    >
-                      {m.time}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {loading ? (
-              <div style={{ color: colors.textMuted, fontSize: 13 }}>
-                Le compagnon écrit…
-              </div>
-            ) : null}
-          </div>
-
-          <div
-            style={{
-              padding: 16,
-              borderTop: `1px solid ${colors.border}`,
-              display: "flex",
-              gap: 12,
-              alignItems: "center",
-              background: "rgba(255,255,255,0.04)",
-            }}
-          >
-            <div
-              style={{
-                width: 46,
-                height: 46,
-                borderRadius: 999,
-                display: "grid",
-                placeItems: "center",
-                background: "rgba(255,255,255,0.06)",
-                border: `1px solid ${colors.border}`,
-              }}
-            >
-              <AppIcon name="gallery" size={18} color={colors.textMuted} />
-            </div>
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") sendMessage();
-              }}
-              placeholder={`Écris à ${active.name}...`}
-              style={{ ...pageStyles.input, minHeight: 54 }}
-            />
-            <PremiumButton
-              onClick={sendMessage}
-              icon={<AppIcon name="chat" size={18} color="#fff" />}
-              style={{ minHeight: 54 }}
-            >
-              Envoyer
-            </PremiumButton>
-          </div>
-        </main>
-      </section>
+        {/* Input */}
+        <div style={{
+          padding: "14px 20px", borderTop: `2px solid ${colors.cloudGray}`,
+          display: "flex", gap: 10, alignItems: "center", background: colors.snowWhite,
+        }}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder={`Écrire à ${activeInfo.name}…`}
+            className="duo-input"
+            style={{ flex: 1, borderRadius: radius.pill, padding: "10px 20px" }}
+          />
+          <PremiumButton onClick={sendMessage} disabled={loading || !input.trim()} variant="primary">
+            Envoyer
+          </PremiumButton>
+        </div>
+      </div>
     </WebShell>
   );
 };

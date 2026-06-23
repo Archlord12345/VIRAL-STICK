@@ -1,5 +1,36 @@
-import React from "react";
-import { colors, gradients, radius, shadows } from "../theme/tokens";
+/**
+ * DuoButton — Bouton signature style Duolingo
+ * Ombre solide en bas = effet physique pressable
+ */
+import React, { useState } from "react";
+import { colors } from "../theme/tokens";
+
+const VARIANTS = {
+  primary: {
+    bg:     colors.duoGreen,
+    shadow: colors.duoGreenDark,
+    color:  "#ffffff",
+    border: "transparent",
+  },
+  blue: {
+    bg:     colors.skyBlue,
+    shadow: colors.skyBlueDark,
+    color:  "#ffffff",
+    border: "transparent",
+  },
+  ghost: {
+    bg:     "#ffffff",
+    shadow: "#b5b5b5",
+    color:  colors.skyBlue,
+    border: colors.cloudGray,
+  },
+  danger: {
+    bg:     colors.danger,
+    shadow: "#aa1d1d",
+    color:  "#ffffff",
+    border: "transparent",
+  },
+};
 
 const PremiumButton = ({
   children,
@@ -8,64 +39,52 @@ const PremiumButton = ({
   type = "button",
   style,
   disabled = false,
+  onClick,
   ...props
 }) => {
-  const variants = {
-    primary: {
-      background: gradients.brand,
-      color: colors.white,
-      border: "1px solid rgba(255,255,255,0.12)",
-      boxShadow: shadows.glow,
-    },
-    secondary: {
-      background:
-        "linear-gradient(135deg, rgba(243,156,18,0.22), rgba(232,73,15,0.18))",
-      color: colors.text,
-      border: `1px solid ${colors.borderStrong}`,
-      boxShadow: shadows.amberGlow,
-    },
-    ghost: {
-      background: "rgba(255,255,255,0.06)",
-      color: colors.text,
-      border: `1px solid ${colors.border}`,
-      boxShadow: shadows.lift,
-    },
-  };
+  const [pressed, setPressed] = useState(false);
+  const v = VARIANTS[variant] || VARIANTS.primary;
 
-  const current = variants[variant] || variants.primary;
+  const shadowY   = pressed ? "0px" : "4px";
+  const translateY = pressed ? "4px" : "0px";
 
   return (
     <button
       type={type}
       disabled={disabled}
+      onClick={onClick}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
       style={{
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: 10,
-        minHeight: 52,
-        padding: "14px 22px",
-        borderRadius: radius.pill,
-        fontWeight: 800,
-        fontSize: 14,
-        letterSpacing: "0.02em",
+        gap: 8,
+        minHeight: 48,
+        padding: "12px 24px",
+        borderRadius: 12,
+        fontFamily: "'Nunito', sans-serif",
+        fontWeight: 700,
+        fontSize: 15,
+        letterSpacing: "0.05em",
         cursor: disabled ? "not-allowed" : "pointer",
-        backdropFilter: "blur(18px)",
-        transition:
-          "transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease",
-        transform: "translateZ(0)",
-        opacity: disabled ? 0.55 : 1,
-        ...current,
+        opacity: disabled ? 0.5 : 1,
+        background: v.bg,
+        color: v.color,
+        border: `2px solid ${v.border === "transparent" ? v.bg : v.border}`,
+        boxShadow: disabled ? "none" : `0 ${shadowY} 0 ${v.shadow}`,
+        transform: `translateY(${translateY})`,
+        transition: "box-shadow 0.05s ease, transform 0.05s ease, opacity 0.2s ease",
+        userSelect: "none",
         ...style,
       }}
       {...props}
     >
-      {icon ? (
-        <span style={{ display: "inline-flex", alignItems: "center" }}>
-          {icon}
-        </span>
-      ) : null}
-      <span>{children}</span>
+      {icon && <span style={{ display: "flex", alignItems: "center" }}>{icon}</span>}
+      {children}
     </button>
   );
 };

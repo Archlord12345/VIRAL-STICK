@@ -34,9 +34,12 @@ const DEFAULT_HF_MODELS = {
     "zai-org/GLM-4.5V",
     "moonshotai/Kimi-K2-Instruct-0905",
   ],
+  // Modèles image gratuits et stables sur l'API Inference HuggingFace.
+  // Ordre : du plus rapide au plus lent en fallback.
   image: [
-    "black-forest-labs/FLUX.1-schnell",
-    "stabilityai/stable-diffusion-3-medium-diffusers",
+    "stabilityai/stable-diffusion-xl-base-1.0",   // SDXL — gratuit, fiable
+    "runwayml/stable-diffusion-v1-5",              // SD 1.5 — très stable
+    "CompVis/stable-diffusion-v1-4",               // SD 1.4 — dernier recours
   ],
 };
 
@@ -476,9 +479,25 @@ async function withTextFallback(fn, fallbackData) {
   return fallbackData;
 }
 
+/**
+ * Retourne les paramètres optimaux selon le modèle.
+ * SDXL supporte 1024×1024 ; SD 1.x préfère 512×512.
+ */
+function getHFImageParameters(model) {
+  if (/xl/i.test(model)) {
+    return { width: 1024, height: 1024, guidance_scale: 7.5, num_inference_steps: 25 };
+  }
+  // SD 1.x — résolution native 512, plus de mémoire = crash serveur
+  return { width: 512, height: 512, guidance_scale: 7.5, num_inference_steps: 25 };
+}
+
 async function generateWithHuggingFace(prompt) {
   const { HUGGING_FACE_KEY, HUGGING_FACE_MODEL } = getEnv();
   if (!HUGGING_FACE_KEY) throw new Error("Hugging Face image: no token");
+
+  // On utilise l'API Inference standard (gratuite avec token HF)
+  // https://api-inference.huggingface.co/models/<model>
+  const HF_INFERENCE_BASE = "https://api-inference.huggingface.co/models";
 
   const candidates = [HUGGING_FACE_MODEL, ...DEFAULT_HF_MODELS.image].filter(
     (value, index, array) => value && array.indexOf(value) === index,
@@ -488,47 +507,38 @@ async function generateWithHuggingFace(prompt) {
 
   for (const model of candidates) {
     try {
-      const parameters = /flux\.1-schnell/i.test(model)
-        ? {
-            width: 1024,
-            height: 1024,
-            guidance_scale: 3.5,
-            num_inference_steps: 12,
-          }
-        : {
-            width: 1024,
-            height: 1024,
-            guidance_scale: 4.5,
-            num_inference_steps: 28,
-          };
+      const parameters = getHFImageParameters(model);
 
       const res = await axios.post(
-        `https://router.huggingface.co/hf-inference/models/${model}`,
+        `${HF_INFERENCE_BASE}/${model}`,
         {
           inputs: extractImagePrompt(prompt),
           parameters,
           options: {
-            wait_for_model: true,
+            wait_for_model: true, // Attend que le modèle soit chargé (cold-start)
             use_cache: false,
           },
         },
         {
           headers: {
             Authorization: `Bearer ${HUGGING_FACE_KEY}`,
-            Accept: "image/png",
+            // Accept générique : certains modèles renvoient image/jpeg
+            Accept: "image/*",
             "Content-Type": "application/json",
           },
           responseType: "arraybuffer",
-          timeout: 120000,
+          timeout: 180000, // 3 min — cold-start peut être long
           validateStatus: () => true,
         },
       );
 
-      const mimeType = res.headers["content-type"] || "image/png";
+      // Vérifie que la réponse est bien une image
+      const mimeType = res.headers["content-type"] || "image/jpeg";
       const isImage = String(mimeType).startsWith("image/");
 
       if (res.status >= 200 && res.status < 300 && isImage) {
         const base64 = Buffer.from(res.data, "binary").toString("base64");
+        console.log(`[AI] Hugging Face image OK — model: ${model}, mime: ${mimeType}`);
         return {
           imageUrl: `data:${mimeType};base64,${base64}`,
           description: normalizeText(prompt),
@@ -537,32 +547,40 @@ async function generateWithHuggingFace(prompt) {
         };
       }
 
-      const error = new Error(
-        `HF image request failed with status ${res.status}`,
-      );
-      error.response = {
+      // Réponse non-image : on parse l'erreur pour le log
+      let errorBody = "";
+      try {
+        errorBody = Buffer.from(res.data, "binary").toString("utf8");
+      } catch {
+        errorBody = String(res.status);
+      }
+
+      const err = new Error(`HF image ${res.status}: ${errorBody.slice(0, 200)}`);
+      err.response = {
         status: res.status,
         statusText: res.statusText,
         data: res.data,
         headers: res.headers,
       };
-      throw error;
+      throw err;
     } catch (error) {
       lastError = error;
       const details = getAxiosErrorDetails(error);
-      const providerMessage = String(
-        details.providerMessage || "",
-      ).toLowerCase();
+      const providerMessage = String(details.providerMessage || "").toLowerCase();
+
+      // Erreurs récupérables → on tente le modèle suivant
       const recoverable =
         details.status === 400 ||
         details.status === 404 ||
         details.status === 410 ||
         details.status === 429 ||
+        details.status === 503 ||  // modèle en cours de chargement
         providerMessage.includes("not supported by provider") ||
         providerMessage.includes("not supported by any provider") ||
         providerMessage.includes("deprecated") ||
         providerMessage.includes("loading") ||
-        providerMessage.includes("temporarily unavailable");
+        providerMessage.includes("temporarily unavailable") ||
+        providerMessage.includes("is currently loading");
 
       console.warn(
         `[AI] Hugging Face image model ${model} failed${details.status ? ` (${details.status}${details.statusText ? ` ${details.statusText}` : ""})` : ""}: ${details.providerMessage}`,
