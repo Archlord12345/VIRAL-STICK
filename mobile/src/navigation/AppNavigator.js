@@ -10,9 +10,11 @@ import { theme } from '../theme/theme';
 
 const Drawer = createDrawerNavigator();
 
-export default function AppNavigator() {
+// ◄ MODIFICATION : On intercepte la référence ici ({ navigationRef })
+export default function AppNavigator({ navigationRef }) {
   return (
-    <NavigationContainer>
+    // ◄ CRITIQUE : On attache le composant ref au conteneur de navigation
+    <NavigationContainer ref={navigationRef}>
       <Drawer.Navigator
         screenOptions={{
           headerStyle: { backgroundColor: theme.colors.background },
@@ -30,3 +32,4 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
+
