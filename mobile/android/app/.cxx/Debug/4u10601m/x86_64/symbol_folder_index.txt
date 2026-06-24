@@ -1,0 +1,1 @@
+/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/intermediates/cxx/Debug/4u10601m/obj/x86_64
