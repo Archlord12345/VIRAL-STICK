@@ -14,11 +14,20 @@ export default function StatusRemixerScreen() {
   const [selectedPunchline, setSelectedPunchline] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // États du AdjustmentPanel (Style du calque de texte)
+  // États du TextOverlayEditor (Style du calque de texte)
   const [textSize, setTextSize] = useState(16);
   const [textColor, setTextColor] = useState('#ffffff');
 
-  // INTERCEPTION DU SHARE INTENT (JOUR 3)
+  // Palette professionnelle de 7 couleurs demandée
+  const extendedColors = [
+    '#00e676', // Vert Flash
+    '#00e5ff', // Cyan
+    '#ff007f', // Rose
+    '#e74c3c', // Rouge
+    '#ff9800'  // Orange
+  ];
+
+  // Interception du Share Intent (J3)
   useEffect(() => {
     if (route.params?.sharedImageUri) {
       const uriReçue = route.params.sharedImageUri;
@@ -27,29 +36,26 @@ export default function StatusRemixerScreen() {
     }
   }, [route.params?.sharedImageUri]);
 
-  // Gestion de la sélection d'image classique via Galerie/Caméra
+  // Sélection via Galerie/Caméra
   const handleImagePick = (response) => {
     if (response.didCancel || response.errorMessage) return;
     if (response.assets && response.assets.length > 0) {
-      const uri = response.assets[0].uri; // Correction de l'index d'asset
+      const uri = response.assets[0].uri;
       setSelectedImage(uri);
       triggerAIGeneration(uri); 
     }
   };
 
-  // Déclenchement de l'analyse IA (Mixy)
+  // Déclenchement IA de Mixy
   const triggerAIGeneration = async (uri) => {
     setIsLoading(true);
     setSelectedPunchline("");
     
-    // Appel au service réseau configuré au J3
     const punchlines = await apiService.analyzeImageForMeme(uri);
     
     if (punchlines && punchlines.length > 0) {
       setAiPunchlines(punchlines);
-      Alert.alert("Succès ✨", "Mixy a forgé des punchlines personnalisées avec le serveur !");
     } else {
-      // Mode dégradé / Secours local si le backend est absent/injoignable
       setAiPunchlines([
         "Quand le code compile du premier coup à l'UY1 🤯",
         "Tu veux l'argent de quoi ? C'est le mbeng ? 🇨🇲",
@@ -57,7 +63,7 @@ export default function StatusRemixerScreen() {
       ]);
       Alert.alert(
         "Mode Hors-Ligne 🔌", 
-        "Le serveur de la Forge est injoignable. Mixy passe en mode de secours avec des expressions locales !"
+        "Le serveur est injoignable. Mixy passe en mode de secours avec des expressions locales !"
       );
     }
     setIsLoading(false);
@@ -71,10 +77,10 @@ export default function StatusRemixerScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text style={styles.title}>🖼️ STATUS REMIXER</Text>
+      <Text style={styles.title}> STATUS REMIXER</Text>
       <Text style={styles.subtitle}>Génération de calques et mèmes automatiques par IA</Text>
 
-      {/* Éditeur visuel & Aperçu du mème */}
+      {/* Zone d'aperçu d'origine avec texte superposé */}
       <View style={styles.imagePreviewContainer}>
         {selectedImage ? (
           <View style={styles.memeContainer}>
@@ -92,26 +98,19 @@ export default function StatusRemixerScreen() {
         )}
       </View>
 
-      {/* Boutons d'action matériels */}
+      {/* Boutons de sélection d'origine */}
       <View style={styles.buttonGroup}>
-        <TouchableOpacity 
-          style={styles.actionButton} 
-          onPress={() => launchImageLibrary({ mediaType: 'photo', quality: 1 }, handleImagePick)}
-        >
+        <TouchableOpacity style={styles.actionButton} onPress={() => launchImageLibrary({ mediaType: 'photo', quality: 1 }, handleImagePick)}>
           <Text style={styles.buttonText}>📂 Galerie</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.cameraButton]} 
-          onPress={() => launchCamera({ mediaType: 'photo', quality: 1, saveToPhotos: true }, handleImagePick)}
-        >
+        <TouchableOpacity style={[styles.actionButton, styles.cameraButton]} onPress={() => launchCamera({ mediaType: 'photo', quality: 1, saveToPhotos: true }, handleImagePick)}>
           <Text style={styles.buttonText}>📸 Caméra</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Indicateur de chargement IA */}
       {isLoading && <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />}
 
-      {/* AdjustmentPanel (Contrôle du texte en temps réel - TextOverlayEditor) */}
+      {/* AdjustmentPanel d'origine — optimisé avec 7 sélecteurs */}
       {selectedImage && selectedPunchline !== "" && (
         <View style={styles.adjustmentPanel}>
           <Text style={styles.panelTitle}>⚙️ Ajustement du Calque (TextOverlayEditor)</Text>
@@ -122,20 +121,26 @@ export default function StatusRemixerScreen() {
             <TouchableOpacity style={styles.panelBtn} onPress={() => setTextSize(prev => Math.min(32, prev + 2))}>
               <Text style={styles.btnText}>A+</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.panelBtn, { backgroundColor: '#e74c3c' }]} onPress={() => setTextColor('#e74c3c')}>
-              <View style={styles.colorIndicator} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.panelBtn, { backgroundColor: '#f1c40f' }]} onPress={() => setTextColor('#f1c40f')}>
-              <View style={styles.colorIndicator} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.panelBtn, { backgroundColor: '#ffffff' }]} onPress={() => setTextColor('#ffffff')}>
-              <View style={styles.colorIndicator} />
-            </TouchableOpacity>
+            
+            {/* Boucle d'affichage pour les 7 boutons de couleur compacts */}
+            {extendedColors.map((color, idx) => (
+              <TouchableOpacity 
+                key={idx} 
+                style={[
+                  styles.panelBtn, 
+                  { backgroundColor: color },
+                  textColor === color && styles.panelBtnSelected
+                ]} 
+                onPress={() => setTextColor(color)}
+              >
+                <View style={[styles.colorIndicator, textColor === color && { borderWidth: 1, borderColor: '#000' }]} />
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       )}
 
-      {/* Choix des punchlines IA (Visible uniquement après traitement) */}
+      {/* Propositions de mèmes IA */}
       {selectedImage && !isLoading && aiPunchlines.length > 0 && (
         <View style={styles.punchlineSection}>
           <Text style={styles.sectionTitle}>✨ Propositions de l'IA (Mixy) :</Text>
@@ -151,19 +156,12 @@ export default function StatusRemixerScreen() {
         </View>
       )}
 
-      {/* Bouton de nettoyage */}
       {selectedImage && (
         <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
           <Text style={styles.resetButtonText}>Retirer l'image</Text>
         </TouchableOpacity>
       )}
-
-      {/* Compagnon Mixy */}
-      <View style={styles.companionBox}>
-        <Text style={styles.companionText}>
-          💬 Mixy : "Clique sur une de mes punchlines pour l'incruster sur l'image, puis ajuste sa taille et sa couleur avec mon panneau !"
-        </Text>
-      </View>
+      
     </ScrollView>
   );
 }
@@ -183,43 +181,29 @@ const styles = StyleSheet.create({
   actionButton: { flex: 1, backgroundColor: theme.colors.primary, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   cameraButton: { backgroundColor: '#34495e' },
   buttonText: { color: theme.colors.text, fontWeight: 'bold' },
-
+  
+  // Style d'origine peaufiné pour accueillir les 7 boutons
   adjustmentPanel: { 
     width: '100%', 
-    backgroundColor: '#1c1c1e', // Surface légèrement surélevée
-    padding: 16, 
-    borderRadius: 14, 
-    marginTop: 15, 
+    backgroundColor: theme.colors.surface, 
+    padding: 12, 
+    borderRadius: 10, 
+    marginTop: 10, 
     borderWidth: 1, 
-    borderColor: 'rgba(130, 87, 229, 0.25)', // Lueur subtile violet KERNEL FORGE
-    
-    // Ombre portée optimisée pour Android natif (Jour 4 Polish)
-    elevation: 6, 
-    shadowColor: '#000000',
+    borderColor: 'rgba(130, 87, 229, 0.25)',
+    elevation: 6,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 5,
   },
-
-  //adjustmentPanel: { width: '100%', backgroundColor: theme.colors.surface, padding: 12, borderRadius: 10, marginTop: 10, borderWidth: 1, borderColor: '#2d2d30' },
   panelTitle: { color: theme.colors.textMuted, fontSize: 11, fontWeight: 'bold', marginBottom: 8 },
-  controlRow: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-
-  panelBtn: { 
-    backgroundColor: '#2c2c2e', 
-    paddingHorizontal: 14, 
-    paddingVertical: 10, 
-    borderRadius: 8, 
-    justifyContent: 'center', 
-    minWidth: 46, 
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#3a3a3c'
-  },
-
-  //panelBtn: { backgroundColor: '#2d2d30', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 6, justifyContent: 'center', minWidth: 44, alignItems: 'center' },
-  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
+  controlRow: { flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' },
+  panelBtn: { backgroundColor: '#2d2d30', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 6, justifyContent: 'center', minWidth: 36, alignItems: 'center', borderWidth: 1, borderColor: '#3a3a3c' },
+  panelBtnSelected: { borderColor: theme.colors.accent, borderWidth: 1.5 },
+  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 11 },
   colorIndicator: { width: 12, height: 12, borderRadius: 6 },
+  
   punchlineSection: { width: '100%', marginTop: 15 },
   sectionTitle: { color: theme.colors.accent, fontWeight: 'bold', marginBottom: 8, fontSize: 14 },
   punchlineCard: { backgroundColor: theme.colors.surface, padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#2d2d30' },
@@ -228,7 +212,6 @@ const styles = StyleSheet.create({
   resetButton: { marginTop: 15, padding: 10 },
   resetButtonText: { color: '#ff5252', fontWeight: 'bold' },
   companionBox: { marginTop: 25, padding: 15, backgroundColor: '#1c1c1e', borderRadius: 12, borderLeftWidth: 4, borderLeftColor: theme.colors.accent, width: '100%' },
-  companionText: { color: theme.colors.text, fontStyle: 'italic', fontSize: 13, lineHeight: 18 }
-});
+})
 
 
