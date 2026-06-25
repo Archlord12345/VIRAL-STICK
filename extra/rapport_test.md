@@ -8,3 +8,12 @@
 * **Statut :** SUCCES VERT
 * **Test effectué :** Sélection du contexte culturel "cameroun" et generalisation d'un mème basé sur une situation de stress étudiant.
 * **Remarque :** L'intelligence artificielle génère parfaitement les textes du mèmeet sa description. Cependant, aucune image visuelle ne s'affiche à la place de l'icone centrale  ( à valider si c'est le comportement attendu à cette étape).
+
+# rapport de test QA - 25 juin 2026 (Backend)
+
+## 3. plateforme web (Remixer)
+* **Statut :** SUCCES VERT
+* **Test effectué :** Utilisation du compagnon "Bio" avec le filtre "Fire" pour créer un mème sur le stress d'un  bug juste avant une  présentation.
+* **Remarque :** L'IA fournit des suggestions textuelles très pertinentes et des recommandations de cadrages/effets visueles. L'aperçu graphique cependant un espace réservé (pas de génération d'image concrète).
+
+  
