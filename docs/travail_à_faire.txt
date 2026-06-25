@@ -1,0 +1,84 @@
+voici les differents taches a acomplire pour la bonne relaisation de ce projet tu ne fera que le cahier de charge complet dans un premier temps  c'est apres ma validation avant que tu ne pourra te lancer directement dans le taff:
+
+-  analyse les document du mis a a disposition pour comprendre la logique et e contexte du pprojet
+- celui ci sera en deux format
+	. une application react native cli community
+	. une version web
+	. un panel admin inclut dans chaque version
+- les models a utiliser ici seront (gemini, mistral, ceux de ollama et ceux de openrouter)
+- pour les interface elle devrons etre funne  et conivial avec des animation et autre element amusant car apres tout cette apps est pour les meme
+- une integration whatsapp poour pouvoir ajouter mes sticker meme vers whatsapp sans avoir trop de soucis
+- une systeme de forum ou les sticker et mem public seront visible par tout et pourrais soit utiliser soit modifier par les autre user en fesant une copier pour faire le leur
+- les interface devrons etre clores et cette apps devra disposer de 2theme chacun possedants sa propre pallete de couleur
+- et pour les animation menu vers page et page vers menu on utilisera ceci et elle devra etre coherente et les epace vide devron possede une couleur adapter au thme pour viter de incoherence:(
+✦ L'animation que vous voyez lors de la transition entre l'accueil et le menu s'appelle techniquement un "Advanced Drawer Navigation Animation" (ou plus simplement un "Side Drawer Transition with
+Transformation").
+Voici ce qui se passe techniquement "sous le capot" pour créer cet effet fluide :
+Les 4 composantes de l'animation :
+1.	Translation (Glissement) : L'écran principal se déplace horizontalement vers la droite pour révéler le menu qui se trouve en arrière-plan.
+2.	Scaling (Mise à l'échelle) : L'écran principal rétrécit légèrement pendant la transition pour donner une impression de profondeur.
+3.	Rotation (Inclinaison/Skew) : L'écran principal s'incline légèrement, ce qui crée un effet de perspective (effet 3D), faisant paraître le menu comme s'il était réellement "derrière" l'accueil.
+4.	Clipping (Masquage des coins) : L'ajout de bordures arrondies (BorderRadius) sur l'écran principal pendant qu'il se déplace renforce l'effet visuel de "feuille" qui se soulève.
+Dans votre projet :
+Cette animation est gérée par le package flutter_advanced_drawer. Si vous regardez dans votre lib/main.dart, vous verrez ces propriétés qui définissent le comportement :
+1 AdvancedDrawer(
+2   animationCurve: Curves.easeInOut,      // Rend le mouvement naturel (accélération/décélération)
+3   animationDuration: const Duration(milliseconds: 300), // La vitesse de la transition
+4   animateChildDecoration: true,          // Active la transformation 3D/coins arrondis
+5   // ...
+6 )
+En résumé, ce n'est pas une simple animation de glissement, mais une transformation affine combinée (Translation + Scale + Rotation) qui donne cet aspect très professionnel et moderne, caractéristique du design
+"Material" évolué.
+ecrit une documentation pour expliquer cette animation puis continue a creer toutes les interface manuquante et leur contenu
+Documenting Animation & Finalizing Interfaces: I will document the Drawer animation and complete the remaining module interfaces, ensuring a fully scaffolded Papo application.
+✦ Documentation : Animation du Menu (Advanced Drawer)
+Cette documentation explique l'effet visuel de navigation utilisé dans l'application Papo pour la transition entre le tableau de bord et le menu latéral.
+
+1.	Concept Technique
+L'effet visuel de transition est techniquement classé comme une "Transformation de Vue 3D avec Glissement". Contrairement à un Drawer classique (qui se contente de glisser par-dessus l'écran), celui-ci
+transforme l'écran principal pour créer une illusion de profondeur.
+2.	Décomposition de l'Effet
+L'animation repose sur une combinaison de quatre propriétés synchronisées :
+·	Translation X : Déplacement horizontal de l'écran principal pour révéler le menu situé en arrière-plan.
+·	Mise à l'échelle (Scaling) : Réduction proportionnelle de la taille de l'écran d'accueil pour simuler un éloignement de la caméra.
+·	Rotation (Skew/Perspective) : Inclinaison latérale de l'écran principal pour accentuer l'effet de perspective 3D.
+·	Masquage dynamique (Clipping) : Application de bordures arrondies (BorderRadius) sur le container principal pendant le mouvement, créant une séparation visuelle nette entre l'accueil et le menu.
+3.	Configuration dans lib/main.dart
+L'animation est configurée via le widget AdvancedDrawer :
+1 AdvancedDrawer(
+2   animationCurve: Curves.easeInOut,      // Équation de mouvement pour une fluidité naturelle
+3   animationDuration: const Duration(milliseconds: 300), // Durée du cycle d'animation
+4   animateChildDecoration: true,          // Activation du clipping (bords arrondis)
+5   // ...
+6 )
+
+)
+- pour la gestion des varible d'environnement et de deployement on aura:
+	.version web(avec son panel admin) seront deployer sur vercel vi le repot du projet d'ou le vercel.json a configurer
+	.version mobile(avec son panel admin) sera aussi ans le repot et on y ajoutera des git acion pour le build de l'apk release et de l'aab
+	.pour les build sur github nous utiliseront creeont un environnement pour nos variable et il se nommera "STICK" et voici les variable d'environnement qu'il contiendra
+		+la variable google: qui contiendra tout le contenu du fichier google.json car notre apps utilisera une bd nosql en ligne (le firestore) en plus de sa propre bd local
+		+les variable du projet cloudianary ou seront stocker tout les fichier et images qui trasiteront sur le projet
+		+les cle d'api pour les differentes ia(tu me proposera des service ia pouvant me fournir les ia neccesaire pour la realisation de mon projet ensachant que je ne pourrais avoir que des compte gratuit)
+	.pour la bd tu me produira un shema corecte pour le transit de mes infos et le stockage des message et autres 
+	.l'apps inclura aussi sa propre bd sqlite por la persistante des donnee et pour ne pas dependre à de la bd firestore
+	.une compagnon integre in teractif qui se representera souvant au coint de lecran et qui affichera des bulles de message pour savoir si vous etes toujours et pour donner des blaque ou vous informer de l'avance du processus et les difentent compagnons disposigne sont dans le dossier /asset/compagnons ou seront liste leur image avec nom dessus
+- n'oublie pas d'intergre des fonctionalite de partage de sticker et de pack de sticker; on peut les partage en ligne via un veritable systeme depeeplinking qui marchera avec https et aussi et en mode offline via bluettoth 
+- l'app comportera des veritable dashbord fonctionnelle avec des fonctionnalite et elle doit aussi avoir aussi un systeme de classement pour connaitre les meilleur classement de createur de sticker et les classement sur les user se feront en fonction des likerecu sur leur creaion dans la page forum , des commentaire, et enfin le nombre de partage reussi
+- et ajoute une page de appropos sur les version mobile et web ou tu presentera le lien du projet github, le theme du projet et son role et utilité et enfin les memebres de l'equipe qui ont travailler sur ce projet et voici les emelentque chaque membre devra fournir:
+	.le nom de membre
+	. son role
+	.le lien de sa photo ou sa photo de profil charger
+	.son pseudo github qui sera un lien qui menera a sapage github
+-Documentation (README) : Instructions claires pour installer et lancer le projet en local (frontend et backend), ainsi que la configuration des clés d'API
+nécessaires.
+-Démonstration Vidéo : Une courte vidéo (3 à 5 minutes) démontrant les parcours utilisateurs (Voice-to-meme, Context Reader) directement sur un téléphone
+physique ou un émulateur.
+- amnitenant le systeme prompt sera un fichier json complet inclu directement dans le code de la version web et mobile et celuici sera adapter au conexte et a la nature de mon projet et ce systeme prompt devra etre le plus cohernet et performant possible capable de comprendre les balqgue et les memes,
+- et aussi l'apps comportera un ecran de chargement dynamiqueet unique avec des animation et le logo y sera present et le temps de cette ecran de chargement durera 6s et les appel api devront prendre en compte cela dans l'appel des api et du temps d'attente
+- un fichier image logo contenu dans ce dossier /asset/logo/
+
+-pour la petite structure du projet en plus des dossier deja present a la racine nous auront les dossier suivant
+	.dossier "mobile" ou sera contenu le code de la version mobile de l'apps celui ci sera fait en react native cli community et prendre en comptre le safe screen view
+	.dossier "web" ou sea contenu le code de la version web ainsi que tout les appel d'ai et ceux ci devront etre concut pour respecter la norme du compte vercel gratuit il et il sera fait en reactjs avec des framework
+-metjodologie de presentation des codes du projet ceux ci seront en architecture MVC pour une comprehension radical du projet et une facilation lord de la maintenance et chaque ecran ou pages devra avoir son propre fichier cela dans le but d'evite les logn fichier de code impossible a mintenu

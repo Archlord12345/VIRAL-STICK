@@ -1,24 +1,73 @@
-# Variables d'environnement
-.env
-.env.local
-.env.*
-.env.example
-
-# Node.js
+# ============================
+# Node.js / Backend / Web
+# ============================
 node_modules/
-
-# Logs
-logs
-*.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
 
-# Build React
+# Variables d'environnement (clés API, secrets)
+.env
+.env copy.example
+.env.local
+.env.*.local
+backend/.env
+
+# Builds
+dist/
+build/
 web/build/
+web/dist/
 
-# Fichiers système
+# ============================
+# React Native / Mobile
+# ============================
+
+# Android
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/app/.cxx/
+mobile/android/build/
+mobile/android/local.properties
+mobile/android/.idea/
+mobile/android/*.iml
+mobile/android/captures/
+mobile/android/.externalNativeBuild/
+mobile/android/.cxx/
+*.hprof
+
+# iOS (si jamais buildé sur Mac plus tard)
+mobile/ios/build/
+mobile/ios/Pods/
+mobile/ios/*.xcworkspace
+mobile/ios/*.xcuserstate
+
+# Metro / Expo
+mobile/.expo/
+mobile/.expo-shared/
+*.jsbundle
+
+# ============================
+# Logs & fichiers temporaires
+# ============================
+*.log
+logs/
+*.tmp
+*.lock
+!package-lock.json
+
+# ============================
+# OS / Editeur
+# ============================
 .DS_Store
 Thumbs.db
-
-# IDE
 .vscode/
 .idea/
+*.swp
+
+# ============================
+# Tests & coverage
+# ============================
+coverage/
+.nyc_output/

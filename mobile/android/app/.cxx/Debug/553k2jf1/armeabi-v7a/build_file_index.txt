@@ -1,1 +1,0 @@
-/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/src/main/jni/CMakeLists.txt
