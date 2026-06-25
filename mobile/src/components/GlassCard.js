@@ -1,7 +1,9 @@
 import React, { useRef, useEffect } from "react";
-import { View, StyleSheet, Animated } from "react-native";
+import { StyleSheet, Animated } from "react-native";
+import { useTheme } from "../theme";
 
 const GlassCard = ({ children, style, animate = false, delay = 0 }) => {
+  const { theme } = useTheme();
   const fade = useRef(new Animated.Value(animate ? 0 : 1)).current;
   const ty   = useRef(new Animated.Value(animate ? 16 : 0)).current;
 
@@ -14,7 +16,20 @@ const GlassCard = ({ children, style, animate = false, delay = 0 }) => {
   }, [animate, delay, fade, ty]);
 
   return (
-    <Animated.View style={[styles.card, style, { opacity: fade, transform: [{ translateY: ty }] }]}>
+    <Animated.View style={[
+      styles.card,
+      {
+        backgroundColor: theme.backgroundCard,
+        borderColor: theme.border,
+        shadowColor: theme.cardShadow.shadowColor,
+        shadowOffset: theme.cardShadow.shadowOffset,
+        shadowOpacity: theme.cardShadow.shadowOpacity,
+        shadowRadius: theme.cardShadow.shadowRadius,
+        elevation: theme.cardShadow.elevation,
+      },
+      style,
+      { opacity: fade, transform: [{ translateY: ty }] }
+    ]}>
       {children}
     </Animated.View>
   );
@@ -22,16 +37,9 @@ const GlassCard = ({ children, style, animate = false, delay = 0 }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: "#e5e5e5",
     padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
   },
 });
 

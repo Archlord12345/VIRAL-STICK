@@ -1,22 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, SafeAreaView, StatusBar, Image, Dimensions } from "react-native";
-import { useTheme, spacing, radius, typography } from "../theme";
-<<<<<<< HEAD
-=======
-import { wp, rs } from "../theme/responsive";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, SafeAreaView, StatusBar, Image } from "react-native";
+import { useTheme, spacing, radius } from "../theme";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
-import { colors } from "../theme/tokens";
-
-const { width } = Dimensions.get("window");
-
-const MODULES = [
-  { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel adapté", icon: "📖", color: colors.art },
-  { key: "VoiceToMeme",  title: "Voice → Mème",   subtitle: "Parole spontanée → punchline", icon: "🎙️", color: colors.duoGreen },
-  { key: "StatusRemixer",title: "Status Remixer",  subtitle: "Visuel ou status → remix viral",icon: "🎨", color: colors.bio },
-];
+import AppIcon from "../components/AppIcon";
 
 const COMPANIONS = ["bio", "ubu", "art"];
 const MESSAGES   = [
@@ -26,9 +14,16 @@ const MESSAGES   = [
 ];
 
 const HomeScreen = ({ navigate }) => {
+  const { theme, isDark } = useTheme();
   const [companionIdx, setCompanionIdx] = useState(0);
   const headerY  = useRef(new Animated.Value(-30)).current;
   const headerOp = useRef(new Animated.Value(0)).current;
+
+  const MODULES = [
+    { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel adapté", icon: "context", color: theme.warning },
+    { key: "VoiceToMeme",  title: "Voice → Mème",   subtitle: "Parole spontanée → punchline", icon: "voice", color: theme.secondary },
+    { key: "StatusRemixer",title: "Status Remixer",  subtitle: "Visuel ou status → remix viral",icon: "remix", color: theme.primary },
+  ];
 
   useEffect(() => {
     Animated.parallel([
@@ -40,22 +35,22 @@ const HomeScreen = ({ navigate }) => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         {/* Hero */}
         <Animated.View style={{ opacity: headerOp, transform: [{ translateY: headerY }] }}>
-          <GlassCard animate style={styles.hero}>
+          <GlassCard style={styles.hero}>
             <View style={styles.heroTop}>
               <View style={{ flex: 1 }}>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>STUDIO IA MULTIMODAL</Text>
+                <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}>
+                  <Text style={[styles.badgeText, { color: theme.secondary }]}>STUDIO IA MULTIMODAL</Text>
                 </View>
-                <Text style={styles.heroTitle}>
-                  Viral {"\n"}<Text style={{ color: colors.duoGreen }}>Stick</Text>
+                <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
+                  Viral {"\n"}<Text style={{ color: theme.secondary }}>Stick</Text>
                 </Text>
-                <Text style={styles.heroSub}>Crée du contenu viral avec tes compagnons IA.</Text>
+                <Text style={[styles.heroSub, { color: theme.textSecondary }]}>Crée du contenu viral avec tes compagnons IA.</Text>
               </View>
               <Image source={require("../../assets/logo/logo_sans_fond.png")} style={styles.logo} resizeMode="contain" />
             </View>
@@ -66,25 +61,25 @@ const HomeScreen = ({ navigate }) => {
         </Animated.View>
 
         {/* Modules */}
-        <Text style={styles.section}>MODULES</Text>
+        <Text style={[styles.section, { color: theme.textMuted }]}>MODULES</Text>
         {MODULES.map((m, i) => (
           <GlassCard key={m.key} animate delay={100 + i * 80} style={styles.moduleCard}>
             <TouchableOpacity onPress={() => navigate?.(m.key)} activeOpacity={0.8} style={styles.moduleInner}>
               <View style={[styles.iconBadge, { backgroundColor: `${m.color}18`, borderColor: `${m.color}44` }]}>
-                <Text style={styles.moduleIcon}>{m.icon}</Text>
+                <AppIcon name={m.icon} color={m.color} size={22} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.moduleName}>{m.title}</Text>
-                <Text style={styles.moduleSub}>{m.subtitle}</Text>
+                <Text style={[styles.moduleName, { color: theme.textPrimary }]}>{m.title}</Text>
+                <Text style={[styles.moduleSub, { color: theme.textSecondary }]}>{m.subtitle}</Text>
               </View>
-              <Text style={[styles.arrow, { color: m.color }]}>›</Text>
+              <AppIcon name="chevron-right" color={m.color} size={18} />
             </TouchableOpacity>
           </GlassCard>
         ))}
 
         {/* CTA */}
-        <GlassCard animate delay={400} style={[styles.cta, { backgroundColor: colors.duoGreenLight, borderColor: `${colors.duoGreen}44` }]}>
-          <Text style={styles.ctaTitle}>Prêt à créer du contenu viral ? 🚀</Text>
+        <GlassCard animate delay={400} style={[styles.cta, { backgroundColor: theme.secondaryLight, borderColor: `${theme.secondary}44` }]}>
+          <Text style={[styles.ctaTitle, { color: theme.textPrimary }]}>Prêt à créer du contenu viral ? </Text>
           <AnimatedButton title="Commencer avec Context Reader" onPress={() => navigate?.("ContextReader")} size="lg" style={{ marginTop: spacing.md }} />
         </GlassCard>
 
@@ -95,47 +90,24 @@ const HomeScreen = ({ navigate }) => {
 };
 
 const styles = StyleSheet.create({
-  safe:       { flex: 1, backgroundColor: "#ffffff" },
-<<<<<<< HEAD
-  scroll:     { paddingHorizontal: spacing.md, paddingTop: 80 },
-=======
+  safe:       { flex: 1 },
   scroll:     { paddingHorizontal: spacing.md, paddingTop: spacing.md },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
   hero:       { padding: spacing.lg, marginBottom: spacing.lg },
   heroTop:    { flexDirection: "row", gap: spacing.md, alignItems: "center" },
   heroBottom: { marginTop: spacing.md, alignItems: "center" },
-  badge:      { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 8 },
-<<<<<<< HEAD
-  badgeText:  { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  heroTitle:  { fontSize: 36, fontWeight: "900", color: colors.almostBlack, letterSpacing: -1, lineHeight: 40 },
-  heroSub:    { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
+  badge:      { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 8 },
+  badgeText:  { fontSize: 10, fontWeight: "800", letterSpacing: 1 },
+  heroTitle:  { fontSize: 36, fontWeight: "900", letterSpacing: -1, lineHeight: 40 },
+  heroSub:    { fontSize: 14, marginTop: 6, lineHeight: 20 },
   logo:       { width: 90, height: 90 },
-  section:    { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 2, marginBottom: spacing.sm },
+  section:    { fontSize: 11, fontWeight: "800", letterSpacing: 2, marginBottom: spacing.sm },
   moduleCard: { marginBottom: spacing.sm, padding: 0 },
   moduleInner:{ flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
   iconBadge:  { width: 52, height: 52, borderRadius: radius.md, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  moduleIcon: { fontSize: 24 },
-  moduleName: { fontSize: 16, fontWeight: "800", color: colors.almostBlack },
-  moduleSub:  { fontSize: 13, color: colors.graphite, marginTop: 3 },
-  arrow:      { fontSize: 28, fontWeight: "300" },
+  moduleName: { fontSize: 16, fontWeight: "800" },
+  moduleSub:  { fontSize: 13, marginTop: 3 },
   cta:        { padding: spacing.lg, marginTop: spacing.md },
-  ctaTitle:   { fontSize: 18, fontWeight: "800", color: colors.almostBlack, textAlign: "center" },
-=======
-  badgeText:  { fontSize: rs(10), fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  heroTitle:  { fontSize: rs(36), fontWeight: "900", color: colors.almostBlack, letterSpacing: -1, lineHeight: rs(40) },
-  heroSub:    { fontSize: rs(14), color: colors.graphite, marginTop: 6, lineHeight: rs(20) },
-  logo:       { width: wp(23), height: wp(23) },
-  section:    { fontSize: rs(11), fontWeight: "800", color: colors.silver, letterSpacing: 2, marginBottom: spacing.sm },
-  moduleCard: { marginBottom: spacing.sm, padding: 0 },
-  moduleInner:{ flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
-  iconBadge:  { width: 52, height: 52, borderRadius: radius.md, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  moduleIcon: { fontSize: rs(24) },
-  moduleName: { fontSize: rs(16), fontWeight: "800", color: colors.almostBlack },
-  moduleSub:  { fontSize: rs(13), color: colors.graphite, marginTop: 3 },
-  arrow:      { fontSize: rs(28), fontWeight: "300" },
-  cta:        { padding: spacing.lg, marginTop: spacing.md },
-  ctaTitle:   { fontSize: rs(18), fontWeight: "800", color: colors.almostBlack, textAlign: "center" },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+  ctaTitle:   { fontSize: 18, fontWeight: "800", textAlign: "center" },
 });
 
 export default HomeScreen;

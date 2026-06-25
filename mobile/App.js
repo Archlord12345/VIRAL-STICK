@@ -63,15 +63,15 @@ const App = () => {
 
   return (
     <AppErrorBoundary>
-      {showSplash ? (
-        <SplashScreen onFinish={() => setShowSplash(false)} />
-      ) : showOnboarding ? (
-        <OnboardingScreen onFinish={() => setShowOnboarding(false)} />
-      ) : (
-        <ThemeProvider>
+      <ThemeProvider>
+        {showSplash ? (
+          <SplashScreen onFinish={() => setShowSplash(false)} />
+        ) : showOnboarding ? (
+          <OnboardingScreen onFinish={() => setShowOnboarding(false)} />
+        ) : (
           <RootNavigator />
-        </ThemeProvider>
-      )}
+        )}
+      </ThemeProvider>
     </AppErrorBoundary>
   );
 };

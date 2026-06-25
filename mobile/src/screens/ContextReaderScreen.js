@@ -1,15 +1,11 @@
 import React, { useMemo, useRef, useState } from "react";
 import { View, Text, TextInput, StyleSheet, ScrollView, SafeAreaView, Animated, Alert, Keyboard, ActivityIndicator, StatusBar } from "react-native";
 import axios from "axios";
-import { spacing, radius, typography } from "../theme";
-<<<<<<< HEAD
-=======
-import { rs, wp } from "../theme/responsive";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
-import { colors } from "../theme/tokens";
+import { useTheme, spacing, radius } from "../theme";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
+import AppIcon from "../components/AppIcon";
 import { apiUrl } from "../config/api";
 
 const QUICK_IDEAS = [
@@ -19,6 +15,7 @@ const QUICK_IDEAS = [
 ];
 
 const ContextReaderScreen = ({ navigate }) => {
+  const { theme, isDark } = useTheme();
   const [text, setText]       = useState("");
   const [meme, setMeme]       = useState(null);
   const [loading, setLoading] = useState(false);
@@ -43,39 +40,39 @@ const ContextReaderScreen = ({ navigate }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {/* Hero */}
-        <GlassCard animate style={styles.hero}>
-          <View style={styles.badge}><Text style={styles.badgeText}>MODULE 01 · CONTEXT READER</Text></View>
-          <Text style={styles.title}>Context <Text style={{ color: colors.art }}>Reader</Text></Text>
-          <Text style={styles.sub}>Transforme une situation en mème drôle et postable.</Text>
+        <GlassCard style={styles.hero}>
+          <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>MODULE 01 · CONTEXT READER</Text></View>
+          <Text style={[styles.title, { color: theme.textPrimary }]}>Context <Text style={{ color: theme.warning }}>Reader</Text></Text>
+          <Text style={[styles.sub, { color: theme.textSecondary }]}>Transforme une situation en mème drôle et postable.</Text>
           <View style={{ alignItems: "center", marginTop: spacing.md }}>
             <CompanionAvatar companion="art" size={96} floating message={msg} />
           </View>
         </GlassCard>
 
         {/* Formulaire */}
-        <GlassCard animate delay={80} style={styles.card}>
-          <Text style={styles.label}>Décris la scène ou la contradiction</Text>
+        <GlassCard style={styles.card}>
+          <Text style={[styles.label, { color: theme.textSecondary }]}>Décris la scène ou la contradiction</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border, color: theme.textPrimary }]}
             value={text} onChangeText={setText}
             placeholder="Ex: Mon pote dit «5 minutes» depuis 1h30…"
-            placeholderTextColor={colors.silver}
+            placeholderTextColor={theme.textMuted}
             multiline numberOfLines={6} textAlignVertical="top" maxLength={500}
           />
           <View style={styles.meta}>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+            <View style={[styles.progressTrack, { backgroundColor: theme.border }]}>
+              <View style={[styles.progressFill, { width: `${progress * 100}%`, backgroundColor: theme.secondary }]} />
             </View>
-            <Text style={styles.counter}>{text.length}/500</Text>
+            <Text style={[styles.counter, { color: theme.textMuted }]}>{text.length}/500</Text>
           </View>
           {/* Quick ideas */}
           <View style={{ gap: 6, marginTop: spacing.sm }}>
             {QUICK_IDEAS.map((idea) => (
-              <Text key={idea} style={styles.quickIdea} onPress={() => setText(idea)}>{idea}</Text>
+              <Text key={idea} style={[styles.quickIdea, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border, color: theme.textSecondary }]} onPress={() => setText(idea)}>{idea}</Text>
             ))}
           </View>
         </GlassCard>
@@ -87,30 +84,30 @@ const ContextReaderScreen = ({ navigate }) => {
         </View>
 
         {loading && (
-          <GlassCard animate style={styles.loadCard}>
-            <ActivityIndicator color={colors.duoGreen} size="large" />
-            <Text style={styles.loadTitle}>Analyse en cours…</Text>
-            <Text style={styles.loadSub}>Détection de l'angle comique et de la meilleure scène.</Text>
+          <GlassCard style={styles.loadCard}>
+            <ActivityIndicator color={theme.secondary} size="large" />
+            <Text style={[styles.loadTitle, { color: theme.textPrimary }]}>Analyse en cours…</Text>
+            <Text style={[styles.loadSub, { color: theme.textMuted }]}>Détection de l'angle comique et de la meilleure scène.</Text>
           </GlassCard>
         )}
 
         {meme && (
           <Animated.View style={{ opacity: resultAnim, transform: [{ translateY: resultAnim.interpolate({ inputRange: [0,1], outputRange: [24,0] }) }] }}>
             <GlassCard style={styles.card}>
-              <View style={styles.badge}><Text style={[styles.badgeText, { color: colors.duoGreenDark }]}>✅ RÉSULTAT IA</Text></View>
-              <View style={styles.memePreview}>
-                <Text style={styles.memeText}>{meme.topText || ""}</Text>
-                <View style={styles.memeScene}>
-                  <Text style={{ fontSize: 40 }}>🎬</Text>
-                  <Text style={styles.memeSceneText}>{meme.descriptionImage || "Scène en attente"}</Text>
+              <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>✅ RÉSULTAT IA</Text></View>
+              <View style={[styles.memePreview, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+                <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.topText || ""}</Text>
+                <View style={[styles.memeScene, { backgroundColor: theme.backgroundCard, borderColor: theme.border }]}>
+                  <AppIcon name="remix" color={theme.primary} size={36} />
+                  <Text style={[styles.memeSceneText, { color: theme.textSecondary }]}>{meme.descriptionImage || "Scène en attente"}</Text>
                 </View>
-                <Text style={styles.memeText}>{meme.bottomText || ""}</Text>
+                <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.bottomText || ""}</Text>
               </View>
               <View style={styles.grid}>
                 {[["TOP TEXT", meme.topText], ["BOTTOM TEXT", meme.bottomText]].map(([l, v]) => (
-                  <View key={l} style={styles.gridItem}>
-                    <Text style={styles.gridLabel}>{l}</Text>
-                    <Text style={styles.gridValue}>{v}</Text>
+                  <View key={l} style={[styles.gridItem, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+                    <Text style={[styles.gridLabel, { color: theme.textMuted }]}>{l}</Text>
+                    <Text style={[styles.gridValue, { color: theme.textPrimary }]}>{v}</Text>
                   </View>
                 ))}
               </View>
@@ -124,62 +121,33 @@ const ContextReaderScreen = ({ navigate }) => {
 };
 
 const styles = StyleSheet.create({
-  safe:        { flex: 1, backgroundColor: "#ffffff" },
-<<<<<<< HEAD
-  scroll:      { paddingHorizontal: spacing.md, paddingTop: 80 },
-  hero:        { padding: spacing.lg, marginBottom: spacing.md },
-  badge:       { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
-  badgeText:   { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  title:       { fontSize: 32, fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
-  sub:         { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
-  card:        { marginBottom: spacing.md },
-  label:       { fontSize: 14, fontWeight: "800", color: colors.charcoal, marginBottom: 8 },
-  input:       { minHeight: 140, borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, fontSize: 15, color: colors.almostBlack, backgroundColor: colors.bgSecondary },
-  meta:        { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: 8 },
-  progressTrack:{ flex: 1, height: 6, backgroundColor: colors.cloudGray, borderRadius: radius.pill, overflow: "hidden" },
-  progressFill: { height: "100%", backgroundColor: colors.duoGreen, borderRadius: radius.pill },
-  counter:     { fontSize: 12, fontWeight: "700", color: colors.silver },
-  quickIdea:   { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: 10, fontSize: 13, color: colors.charcoal, backgroundColor: colors.bgSecondary },
-  actions:     { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
-  loadCard:    { alignItems: "center", gap: spacing.sm, marginBottom: spacing.md },
-  loadTitle:   { fontSize: 17, fontWeight: "800", color: colors.almostBlack, marginTop: spacing.sm },
-  loadSub:     { textAlign: "center", fontSize: 13, color: colors.silver, lineHeight: 18 },
-  memePreview: { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md, backgroundColor: colors.bgSecondary },
-  memeText:    { fontSize: 17, fontWeight: "900", textTransform: "uppercase", textAlign: "center", color: colors.almostBlack, lineHeight: 22 },
-  memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 120, borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, alignItems: "center", justifyContent: "center", padding: spacing.md, backgroundColor: "#ffffff" },
-  memeSceneText:{ textAlign: "center", fontSize: 13, color: colors.graphite, lineHeight: 19, marginTop: 8 },
-  grid:        { gap: spacing.sm },
-  gridItem:    { padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, borderWidth: 2, borderColor: colors.cloudGray },
-  gridLabel:   { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 1, marginBottom: 6 },
-  gridValue:   { fontSize: 14, fontWeight: "700", color: colors.almostBlack, lineHeight: 19 },
-=======
+  safe:        { flex: 1 },
   scroll:      { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   hero:        { padding: spacing.lg, marginBottom: spacing.md },
-  badge:       { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
-  badgeText:   { fontSize: rs(10), fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  title:       { fontSize: rs(32), fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
-  sub:         { fontSize: rs(14), color: colors.graphite, marginTop: 6, lineHeight: rs(20) },
+  badge:       { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
+  badgeText:   { fontSize: 10, fontWeight: "800", letterSpacing: 1 },
+  title:       { fontSize: 32, fontWeight: "900", letterSpacing: -0.5 },
+  sub:         { fontSize: 14, marginTop: 6, lineHeight: 20 },
   card:        { marginBottom: spacing.md },
-  label:       { fontSize: rs(14), fontWeight: "800", color: colors.charcoal, marginBottom: 8 },
-  input:       { minHeight: 140, borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, fontSize: rs(15), color: colors.almostBlack, backgroundColor: colors.bgSecondary },
+  label:       { fontSize: 14, fontWeight: "800", marginBottom: 8 },
+  input:       { minHeight: 140, borderWidth: 2, borderRadius: radius.md, padding: spacing.md, fontSize: 15 },
   meta:        { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: 8 },
-  progressTrack:{ flex: 1, height: 6, backgroundColor: colors.cloudGray, borderRadius: radius.pill, overflow: "hidden" },
-  progressFill: { height: "100%", backgroundColor: colors.duoGreen, borderRadius: radius.pill },
-  counter:     { fontSize: rs(12), fontWeight: "700", color: colors.silver },
-  quickIdea:   { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: 10, fontSize: rs(13), color: colors.charcoal, backgroundColor: colors.bgSecondary },
+  progressTrack:{ flex: 1, height: 6, borderRadius: radius.pill, overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: radius.pill },
+  counter:     { fontSize: 12, fontWeight: "700" },
+  quickIdea:   { borderWidth: 2, borderRadius: radius.md, padding: 10, fontSize: 13, fontWeight: "600" },
   actions:     { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
   loadCard:    { alignItems: "center", gap: spacing.sm, marginBottom: spacing.md },
-  loadTitle:   { fontSize: rs(17), fontWeight: "800", color: colors.almostBlack, marginTop: spacing.sm },
-  loadSub:     { textAlign: "center", fontSize: rs(13), color: colors.silver, lineHeight: rs(18) },
-  memePreview: { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md, backgroundColor: colors.bgSecondary },
-  memeText:    { fontSize: rs(17), fontWeight: "900", textTransform: "uppercase", textAlign: "center", color: colors.almostBlack, lineHeight: rs(22) },
-  memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 120, borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, alignItems: "center", justifyContent: "center", padding: spacing.md, backgroundColor: "#ffffff" },
-  memeSceneText:{ textAlign: "center", fontSize: rs(13), color: colors.graphite, lineHeight: rs(19), marginTop: 8 },
+  loadTitle:   { fontSize: 17, fontWeight: "800", marginTop: spacing.sm },
+  loadSub:     { textAlign: "center", fontSize: 13, lineHeight: 18 },
+  memePreview: { borderWidth: 2, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md },
+  memeText:    { fontSize: 17, fontWeight: "900", textTransform: "uppercase", textAlign: "center", lineHeight: 22 },
+  memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 120, borderWidth: 2, borderRadius: radius.md, alignItems: "center", justifyContent: "center", padding: spacing.md },
+  memeSceneText:{ textAlign: "center", fontSize: 13, lineHeight: 19, marginTop: 8 },
   grid:        { gap: spacing.sm },
-  gridItem:    { padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, borderWidth: 2, borderColor: colors.cloudGray },
-  gridLabel:   { fontSize: rs(11), fontWeight: "800", color: colors.silver, letterSpacing: 1, marginBottom: 6 },
-  gridValue:   { fontSize: rs(14), fontWeight: "700", color: colors.almostBlack, lineHeight: rs(19) },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+  gridItem:    { padding: spacing.md, borderRadius: radius.md, borderWidth: 2 },
+  gridLabel:   { fontSize: 11, fontWeight: "800", letterSpacing: 1, marginBottom: 6 },
+  gridValue:   { fontSize: 14, fontWeight: "700", lineHeight: 19 },
 });
 
 export default ContextReaderScreen;

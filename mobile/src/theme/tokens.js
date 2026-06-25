@@ -1,49 +1,52 @@
-// Viral Stick Mobile — Design Tokens — Style Duo Blue
+// Viral Stick Mobile — Design Tokens — Style Coral & Midnight
 export const colors = {
-  // ── Primary : Bleu Duo ─────────────────────
-  duoBlue:       "#1cb0f6",
-  duoBlueDark:   "#1899d6",
-  duoBlueLight:  "#d0f0fd",
+  // ── Primary : Coral ─────────────────────
+  coral:       "#FF6B6B",
+  coralDark:   "#E55A5A",
+  coralLight:  "#FFB3B3",
+  coralOrange: "#FF8E53",
 
   // ── Success / validation ───────────────────
-  duoGreen:      "#58cc02",
-  duoGreenDark:  "#3f8f01",
-  duoGreenLight: "#d7ffb8",
+  successGreen:      "#4ADE80",
+  successGreenDark:  "#22C55E",
+  successGreenLight: "#DCFCE7",
 
   // ── Accents illustration ───────────────────
-  skyBlue:       "#1cb0f6",   // alias
-  skyBlueDark:   "#1899d6",
-  sunshineYellow:"#ffc700",
-  grapeSoda:     "#a570ff",
-  bubblegumPink: "#cc348d",
+  skyBlue:       "#3B82F6",
+  sunshineYellow:"#F59E0B",
+  grapeSoda:     "#8B5CF6",
+  bubblegumPink: "#F43F5E",
+  emerald:       "#10B981",
 
   // ── Neutrals ──────────────────────────────
-  snowWhite:   "#ffffff",
-  cloudGray:   "#e5e5e5",
-  silver:      "#afafaf",
-  graphite:    "#777777",
-  charcoal:    "#4b4b4b",
-  almostBlack: "#3c3c3c",
+  snowWhite:   "#FFFFFF",
+  cloudGray:   "#F3F4F6",
+  silver:      "#9CA3AF",
+  graphite:    "#6B7280",
+  charcoal:    "#374151",
+  darkGray:    "#1F2937",
+  cardBg:      "#141414",
+  almostBlack: "#0D0D0D",
 
   // ── Semantic ──────────────────────────────
-  bg:            "#ffffff",
-  bgSecondary:   "#f7f7f7",
-  border:        "#e5e5e5",
-  text:          "#3c3c3c",
-  textSecondary: "#4b4b4b",
-  textMuted:     "#afafaf",
-  success:       "#58cc02",
-  warning:       "#ffc700",
-  danger:        "#ee2a2a",
-
+  bg:            "#0D0D0D",
+  bgSecondary:   "#141414",
+  border:        "rgba(255,255,255,0.06)",
+  text:          "#FFFFFF",
+  textSecondary: "#A0A0A0",
+  textMuted:     "#6B7280",
+  success:       "#4ADE80",
+  warning:       "#F59E0B",
+  danger:        "#FF6B6B",
+  
   // ── Compagnons ────────────────────────────
-  arch: "#1cb0f6",   // bleu
-  art:  "#ffc700",   // jaune
-  bio:  "#a570ff",   // violet
-  data: "#58cc02",   // vert
-  para: "#ff9600",   // orange
-  secu: "#cc348d",   // rose
-  ubu:  "#ce82ff",   // lavande
+  arch: "#3B82F6",   // bleu
+  art:  "#F59E0B",   // ambre
+  bio:  "#FF6B6B",   // corail
+  data: "#10B981",   // vert
+  para: "#FF8E53",   // orange
+  secu: "#8B5CF6",   // violet
+  ubu:  "#F43F5E",   // rose
 };
 
 export const spacing = {
@@ -55,6 +58,6 @@ export const borderRadius = {
 };
 
 export const shadows = {
-  card: { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3 },
-  btn:  { shadowColor: "#1899d6", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 0, elevation: 0 },
+  card: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 5 },
+  btn:  { shadowColor: "#FF6B6B", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
 };

@@ -1,46 +1,33 @@
 import React, { useState, useRef, useEffect } from "react";
-<<<<<<< HEAD
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, TextInput, Alert, StatusBar } from "react-native";
-import { spacing, radius } from "../theme";
-=======
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, TextInput, Alert, StatusBar, ActivityIndicator } from "react-native";
 import axios from "axios";
-import { spacing, radius } from "../theme";
-import { rs, wp } from "../theme/responsive";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
-import { colors } from "../theme/tokens";
+import { useTheme, spacing, radius } from "../theme";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
-<<<<<<< HEAD
-=======
+import AppIcon from "../components/AppIcon";
 import { apiUrl } from "../config/api";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
-
-const PROVIDERS = [
-  { key: "gemini",   label: "Gemini",   emoji: "💎", color: "#7C3AED", desc: "Provider principal — texte et image." },
-  { key: "mistral",  label: "Mistral",  emoji: "🌊", color: "#06B6D4", desc: "Fallback texte — garantit la génération." },
-  { key: "deepseek", label: "DeepSeek", emoji: "🔍", color: colors.duoGreen, desc: "Deuxième fallback texte." },
-];
 
 const SettingsScreen = ({ navigate }) => {
+  const { theme, isDark, toggleTheme } = useTheme();
   const [gemini, setGemini]     = useState("");
   const [mistral, setMistral]   = useState("");
   const [deepseek, setDeepseek] = useState("");
   const [show, setShow]         = useState(false);
   const [status, setStatus]     = useState("");
-<<<<<<< HEAD
-=======
   const [testing, setTesting]   = useState(false);
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
   const anim                    = useRef(new Animated.Value(0)).current;
+
+  const PROVIDERS = [
+    { key: "gemini",   label: "Gemini",   icon: "context", color: "#7C3AED", desc: "Provider principal — texte et image." },
+    { key: "mistral",  label: "Mistral",  icon: "voice",   color: "#06B6D4", desc: "Fallback texte — garantit la génération." },
+    { key: "deepseek", label: "DeepSeek", icon: "settings", color: theme.secondary, desc: "Deuxième fallback texte." },
+  ];
 
   useEffect(() => {
     Animated.spring(anim, { toValue: 1, tension: 60, friction: 8, useNativeDriver: true }).start();
   }, [anim]);
 
-<<<<<<< HEAD
-=======
   const testConnection = async () => {
     setTesting(true);
     setStatus("");
@@ -60,7 +47,6 @@ const SettingsScreen = ({ navigate }) => {
     }
   };
 
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
   const save = () => {
     if (!gemini.trim() && !mistral.trim() && !deepseek.trim()) {
       Alert.alert("Viral Stick", "Entre au moins une clé API avant d'enregistrer."); return;
@@ -69,31 +55,58 @@ const SettingsScreen = ({ navigate }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Animated.View style={{ opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0,1], outputRange: [-20,0] }) }] }}>
 
           {/* Hero */}
-          <GlassCard animate style={styles.hero}>
-            <View style={styles.badge}><Text style={styles.badgeText}>PARAMÈTRES IA</Text></View>
-            <Text style={styles.title}>Configu<Text style={{ color: colors.para }}>ration</Text></Text>
-            <Text style={styles.sub}>Gère les clés API pour activer les moteurs d'intelligence artificielle.</Text>
+          <GlassCard style={styles.hero}>
+            <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>PARAMÈTRES IA</Text></View>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>Configu<Text style={{ color: theme.primary }}>ration</Text></Text>
+            <Text style={[styles.sub, { color: theme.textSecondary }]}>Gère les clés API et configure l'interface du studio.</Text>
             <View style={{ alignItems: "center", marginTop: spacing.md }}>
               <CompanionAvatar companion="para" size={88} floating message="Je garde les réglages clairs et prêts pour l'exploitation." />
             </View>
           </GlassCard>
 
+          {/* Thème */}
+          <GlassCard animate delay={50} style={styles.card}>
+            <View style={styles.sectionHeader}>
+              <AppIcon name="remix" color={theme.primary} size={20} />
+              <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Préférences d'affichage</Text>
+            </View>
+            <View style={styles.themeRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.themeLabel, { color: theme.textPrimary }]}>Thème Sombre</Text>
+                <Text style={[styles.themeDesc, { color: theme.textSecondary }]}>Activer l'ambiance nocturne pour l'application.</Text>
+              </View>
+              <TouchableOpacity
+                onPress={toggleTheme}
+                activeOpacity={0.8}
+                style={[styles.switchContainer, { backgroundColor: isDark ? theme.secondary : theme.border }]}
+              >
+                <View style={[styles.switchPin, {
+                  alignSelf: isDark ? "flex-end" : "flex-start",
+                  backgroundColor: "#ffffff"
+                }]} />
+              </TouchableOpacity>
+            </View>
+          </GlassCard>
+
           {/* Providers actifs */}
           <GlassCard animate delay={100} style={styles.card}>
-            <Text style={styles.sectionTitle}>🧠 Providers actifs</Text>
+            <View style={styles.sectionHeader}>
+              <AppIcon name="about" color={theme.primary} size={20} />
+              <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Providers actifs</Text>
+            </View>
             {PROVIDERS.map((p) => (
               <View key={p.key} style={[styles.providerRow, { backgroundColor: `${p.color}10`, borderColor: `${p.color}33` }]}>
                 <View style={[styles.providerDot, { backgroundColor: p.color }]} />
-                <Text style={styles.providerEmoji}>{p.emoji}</Text>
+                <AppIcon name={p.icon} color={p.color} size={18} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.providerName}>{p.label}</Text>
-                  <Text style={styles.providerDesc}>{p.desc}</Text>
+                  <Text style={[styles.providerName, { color: theme.textPrimary }]}>{p.label}</Text>
+                  <Text style={[styles.providerDesc, { color: theme.textSecondary }]}>{p.desc}</Text>
                 </View>
               </View>
             ))}
@@ -102,12 +115,15 @@ const SettingsScreen = ({ navigate }) => {
           {/* Clés API */}
           <GlassCard animate delay={200} style={styles.card}>
             <View style={styles.keyHeader}>
-              <Text style={styles.sectionTitle}>🔑 Clés API</Text>
+              <View style={styles.sectionHeader}>
+                <AppIcon name="settings" color={theme.primary} size={20} />
+                <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Clés API</Text>
+              </View>
               <TouchableOpacity
                 onPress={() => setShow((v) => !v)}
-                style={styles.toggleBtn}
+                style={[styles.toggleBtn, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}
               >
-                <Text style={styles.toggleText}>{show ? "🙈 Masquer" : "👁️ Afficher"}</Text>
+                <Text style={[styles.toggleText, { color: theme.textSecondary }]}>{show ? "Masquer" : "Afficher"}</Text>
               </TouchableOpacity>
             </View>
 
@@ -117,51 +133,45 @@ const SettingsScreen = ({ navigate }) => {
               ["DeepSeek API Key", deepseek, setDeepseek, "sk-..."],
             ].map(([label, value, setter, ph]) => (
               <View key={label} style={{ marginBottom: 16 }}>
-                <Text style={styles.fieldLabel}>{label}</Text>
+                <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>{label}</Text>
                 <TextInput
-                  style={styles.input} value={value} onChangeText={setter}
-                  placeholder={ph} placeholderTextColor={colors.silver}
+                  style={[styles.input, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border, color: theme.textPrimary }]}
+                  value={value} onChangeText={setter}
+                  placeholder={ph} placeholderTextColor={theme.textMuted}
                   secureTextEntry={!show} autoCapitalize="none" autoCorrect={false}
                 />
               </View>
             ))}
 
-<<<<<<< HEAD
-            {!!status && (
-              <View style={[styles.statusBox, { backgroundColor: colors.duoGreenLight, borderColor: `${colors.duoGreen}44` }]}>
-                <Text style={[styles.statusText, { color: colors.duoGreenDark }]}>{status}</Text>
-              </View>
-            )}
-
-            <AnimatedButton title="Enregistrer les clés" onPress={save} size="lg" style={{ marginTop: spacing.sm }} />
-=======
             <View style={styles.actions}>
-              <AnimatedButton title="Enregistrer les clés" onPress={save} size="lg" style={{ flex: 1 }} />
+              <AnimatedButton title="Enregistrer" onPress={save} size="lg" style={{ flex: 1 }} />
               <TouchableOpacity
-                style={[styles.testBtn, { borderColor: testing ? colors.silver : colors.duoGreen }]}
+                style={[styles.testBtn, { backgroundColor: theme.backgroundSecondary, borderColor: testing ? theme.textMuted : theme.secondary }]}
                 onPress={testConnection}
                 disabled={testing}
               >
-                {testing ? <ActivityIndicator size="small" color={colors.silver} /> : <Text style={styles.testBtnText}>Tester Connexion</Text>}
+                {testing ? <ActivityIndicator size="small" color={theme.textSecondary} /> : <Text style={[styles.testBtnText, { color: theme.textPrimary }]}>Tester Connexion</Text>}
               </TouchableOpacity>
             </View>
 
             {!!status && (
-              <View style={[styles.statusBox, { backgroundColor: status.startsWith("✅") ? colors.duoGreenLight : "#fee2e2", borderColor: status.startsWith("✅") ? `${colors.duoGreen}44` : "#fecaca" }]}>
-                <Text style={[styles.statusText, { color: status.startsWith("✅") ? colors.duoGreenDark : "#b91c1c" }]}>{status}</Text>
+              <View style={[styles.statusBox, { backgroundColor: status.startsWith("✅") ? theme.secondaryLight : "#fee2e2", borderColor: status.startsWith("✅") ? `${theme.secondary}44` : "#fecaca" }]}>
+                <Text style={[styles.statusText, { color: status.startsWith("✅") ? theme.secondary : "#b91c1c" }]}>{status}</Text>
               </View>
             )}
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
           </GlassCard>
 
           {/* Lien à propos */}
           <GlassCard animate delay={300} style={styles.card}>
             <TouchableOpacity onPress={() => navigate?.("About")} activeOpacity={0.8} style={styles.aboutRow}>
-              <View>
-                <Text style={styles.aboutLabel}>ℹ️ À propos du produit</Text>
-                <Text style={styles.aboutDesc}>Identité, stack, équipe et vision.</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <AppIcon name="about" color={theme.primary} size={20} />
+                <View>
+                  <Text style={[styles.aboutLabel, { color: theme.textPrimary }]}>À propos du produit</Text>
+                  <Text style={[styles.aboutDesc, { color: theme.textSecondary }]}>Identité, stack, équipe et vision.</Text>
+                </View>
               </View>
-              <Text style={[styles.arrow, { color: colors.skyBlue }]}>›</Text>
+              <AppIcon name="chevron-right" color={theme.primary} size={18} />
             </TouchableOpacity>
           </GlassCard>
 
@@ -173,61 +183,38 @@ const SettingsScreen = ({ navigate }) => {
 };
 
 const styles = StyleSheet.create({
-  safe:        { flex: 1, backgroundColor: "#ffffff" },
-<<<<<<< HEAD
-  scroll:      { paddingHorizontal: spacing.md, paddingTop: 80 },
-  hero:        { padding: spacing.lg, marginBottom: spacing.md },
-  badge:       { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
-  badgeText:   { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  title:       { fontSize: 32, fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
-  sub:         { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
-  card:        { marginBottom: spacing.md },
-  sectionTitle:{ fontSize: 18, fontWeight: "800", color: colors.almostBlack, marginBottom: spacing.md },
-  providerRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderRadius: radius.md, borderWidth: 2, marginBottom: 8 },
-  providerDot: { width: 10, height: 10, borderRadius: 5 },
-  providerEmoji:{ fontSize: 18 },
-  providerName:{ fontSize: 15, fontWeight: "800", color: colors.almostBlack },
-  providerDesc:{ fontSize: 12, color: colors.silver, marginTop: 2, lineHeight: 16 },
-  keyHeader:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md },
-  toggleBtn:   { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: colors.bgSecondary },
-  toggleText:  { fontSize: 13, fontWeight: "700", color: colors.charcoal },
-  fieldLabel:  { fontSize: 14, fontWeight: "800", color: colors.charcoal, marginBottom: 8 },
-  input:       { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, fontSize: 14, color: colors.almostBlack, backgroundColor: colors.bgSecondary },
-  statusBox:   { borderWidth: 2, borderRadius: radius.md, padding: 12, marginBottom: spacing.sm },
-  statusText:  { fontSize: 14, fontWeight: "700", lineHeight: 19 },
-  aboutRow:    { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  aboutLabel:  { fontSize: 16, fontWeight: "800", color: colors.almostBlack },
-  aboutDesc:   { fontSize: 13, color: colors.silver, marginTop: 4 },
-  arrow:       { fontSize: 28, fontWeight: "300" },
-=======
+  safe:        { flex: 1 },
   scroll:      { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   hero:        { padding: spacing.lg, marginBottom: spacing.md },
-  badge:       { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
-  badgeText:   { fontSize: rs(10), fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  title:       { fontSize: rs(32), fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
-  sub:         { fontSize: rs(14), color: colors.graphite, marginTop: 6, lineHeight: rs(20) },
+  badge:       { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
+  badgeText:   { fontSize: 10, fontWeight: "800", letterSpacing: 1 },
+  title:       { fontSize: 32, fontWeight: "900", letterSpacing: -0.5 },
+  sub:         { fontSize: 14, marginTop: 6, lineHeight: 20 },
   card:        { marginBottom: spacing.md },
-  sectionTitle:{ fontSize: rs(18), fontWeight: "800", color: colors.almostBlack, marginBottom: spacing.md },
-  providerRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderRadius: radius.md, borderWidth: 2, marginBottom: 8 },
-  providerDot: { width: 10, height: 10, borderRadius: 5 },
-  providerEmoji:{ fontSize: rs(18) },
-  providerName:{ fontSize: rs(15), fontWeight: "800", color: colors.almostBlack },
-  providerDesc:{ fontSize: rs(12), color: colors.silver, marginTop: 2, lineHeight: rs(16) },
+  sectionHeader:{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: spacing.md },
+  sectionTitle:{ fontSize: 18, fontWeight: "800" },
+  themeRow:    { flexDirection: "row", alignItems: "center", paddingVertical: 4 },
+  themeLabel:  { fontSize: 15, fontWeight: "800" },
+  themeDesc:   { fontSize: 12, marginTop: 2 },
+  switchContainer:{ width: 50, height: 28, borderRadius: 14, padding: 3, justifyContent: "center" },
+  switchPin:   { width: 22, height: 22, borderRadius: 11 },
+  providerRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: radius.md, borderWidth: 2, marginBottom: 8 },
+  providerDot: { width: 8, height: 8, borderRadius: 4 },
+  providerName:{ fontSize: 15, fontWeight: "800" },
+  providerDesc:{ fontSize: 12, marginTop: 2, lineHeight: 16 },
   keyHeader:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md },
-  toggleBtn:   { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: colors.bgSecondary },
-  toggleText:  { fontSize: rs(13), fontWeight: "700", color: colors.charcoal },
-  fieldLabel:  { fontSize: rs(14), fontWeight: "800", color: colors.charcoal, marginBottom: 8 },
-  input:       { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, fontSize: rs(14), color: colors.almostBlack, backgroundColor: colors.bgSecondary },
+  toggleBtn:   { borderWidth: 2, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 7 },
+  toggleText:  { fontSize: 13, fontWeight: "700" },
+  fieldLabel:  { fontSize: 14, fontWeight: "800", marginBottom: 8 },
+  input:       { borderWidth: 2, borderRadius: radius.md, padding: spacing.md, fontSize: 14 },
   actions:     { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
-  testBtn:     { flex: 1, borderWidth: 2, borderRadius: radius.md, justifyContent: "center", alignItems: "center", backgroundColor: colors.bgSecondary },
-  testBtnText: { fontSize: rs(14), fontWeight: "800", color: colors.charcoal },
+  testBtn:     { flex: 1, borderWidth: 2, borderRadius: radius.md, justifyContent: "center", alignItems: "center" },
+  testBtnText: { fontSize: 14, fontWeight: "800" },
   statusBox:   { borderWidth: 2, borderRadius: radius.md, padding: 12, marginTop: spacing.md },
-  statusText:  { fontSize: rs(14), fontWeight: "700", lineHeight: rs(19) },
+  statusText:  { fontSize: 14, fontWeight: "700", lineHeight: 19 },
   aboutRow:    { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  aboutLabel:  { fontSize: rs(16), fontWeight: "800", color: colors.almostBlack },
-  aboutDesc:   { fontSize: rs(13), color: colors.silver, marginTop: 4 },
-  arrow:       { fontSize: rs(28), fontWeight: "300" },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+  aboutLabel:  { fontSize: 16, fontWeight: "800" },
+  aboutDesc:   { fontSize: 13, marginTop: 4 },
 });
 
 export default SettingsScreen;

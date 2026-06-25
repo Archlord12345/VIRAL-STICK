@@ -1,13 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
-import {
-  View,
-  Image,
-  Animated,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from "react-native";
-import { colors, borderRadius, spacing } from "../theme/tokens";
+import { View, Image, Animated, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useTheme } from "../theme";
 import { wp, rs } from "../theme/responsive";
 
 const COMPANIONS = {
@@ -37,19 +30,15 @@ const CompanionAvatar = ({
   floating = false,
   onPress,
 }) => {
+  const { theme } = useTheme();
   const floatAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
   const [showBubble, setShowBubble] = useState(!!message);
 
   useEffect(() => {
-<<<<<<< HEAD
-    if (floating) {
-      Animated.loop(
-=======
     let loop;
     if (floating) {
       loop = Animated.loop(
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
         Animated.sequence([
           Animated.timing(floatAnim, {
             toValue: -8,
@@ -62,12 +51,8 @@ const CompanionAvatar = ({
             useNativeDriver: true,
           }),
         ]),
-<<<<<<< HEAD
-      ).start();
-=======
       );
       loop.start();
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
     }
 
     Animated.spring(scaleAnim, {
@@ -76,20 +61,17 @@ const CompanionAvatar = ({
       friction: 7,
       useNativeDriver: true,
     }).start();
-<<<<<<< HEAD
-=======
 
     return () => {
       if (loop) loop.stop();
     };
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
   }, [floating, floatAnim, scaleAnim]);
 
   useEffect(() => {
     setShowBubble(!!message);
   }, [message]);
 
-  const accentColor = colors[companion] || colors.arch;
+  const accentColor = theme.primary;
 
   return (
     <TouchableOpacity
@@ -136,11 +118,11 @@ const CompanionAvatar = ({
       </Animated.View>
 
       {showBubble && message && (
-        <View style={[styles.bubble, { borderColor: `${accentColor}88` }]}>
-          <Text style={[styles.bubbleName, { color: accentColor }]}>
+        <View style={[styles.bubble, { backgroundColor: theme.backgroundCard, borderColor: theme.border }]}>
+          <Text style={[styles.bubbleName, { color: theme.secondary }]}>
             {COMPANION_NAMES[companion]}
           </Text>
-          <Text style={styles.bubbleText}>{message}</Text>
+          <Text style={[styles.bubbleText, { color: theme.textPrimary }]}>{message}</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -171,10 +153,14 @@ const styles = StyleSheet.create({
   bubble: {
     marginTop: wp(2),
     borderRadius: rs(14),
-    borderWidth: 1,
+    borderWidth: 2,
     padding: wp(3.5),
     maxWidth: wp(75),
-    backgroundColor: "rgba(12,18,35,0.92)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   bubbleName: {
     fontWeight: "800",
@@ -186,7 +172,7 @@ const styles = StyleSheet.create({
   bubbleText: {
     fontSize: rs(14),
     lineHeight: rs(14) * 1.4,
-    color: colors.text,
+    fontWeight: "600",
   },
 });
 
