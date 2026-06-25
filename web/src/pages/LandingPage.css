@@ -1,0 +1,17 @@
+.landing-container {
+  min-height: 100vh;
+  padding: 2rem;
+  color: #F8FAFC;
+}
+
+.header {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.main-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 4rem;
+}

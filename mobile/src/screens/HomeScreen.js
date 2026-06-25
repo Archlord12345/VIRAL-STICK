@@ -1,180 +1,116 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
-import { theme } from '../theme/theme';
+import React, { useRef, useEffect, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, SafeAreaView, StatusBar, Image, Dimensions } from "react-native";
+import { useTheme, spacing, radius, typography } from "../theme";
+import GlassCard from "../components/GlassCard";
+import AnimatedButton from "../components/AnimatedButton";
+import CompanionAvatar from "../components/CompanionAvatar";
+import { colors } from "../theme/tokens";
 
-export default function HomeScreen({ navigation }) {
+const { width } = Dimensions.get("window");
+
+const MODULES = [
+  { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel adapté", icon: "📖", color: colors.art },
+  { key: "VoiceToMeme",  title: "Voice → Mème",   subtitle: "Parole spontanée → punchline", icon: "🎙️", color: colors.duoGreen },
+  { key: "StatusRemixer",title: "Status Remixer",  subtitle: "Visuel ou status → remix viral",icon: "🎨", color: colors.bio },
+];
+
+const COMPANIONS = ["bio", "ubu", "art"];
+const MESSAGES   = [
+  "Le studio est prêt. On crée quelque chose de viral ?",
+  "Un bon angle, une bonne image : voilà la méthode.",
+  "Tes mèmes méritent une identité forte.",
+];
+
+const HomeScreen = ({ navigate }) => {
+  const [companionIdx, setCompanionIdx] = useState(0);
+  const headerY  = useRef(new Animated.Value(-30)).current;
+  const headerOp = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(headerY, { toValue: 0, tension: 60, friction: 8, useNativeDriver: true }),
+      Animated.timing(headerOp, { toValue: 1, duration: 600, useNativeDriver: true }),
+    ]).start();
+    const t = setInterval(() => setCompanionIdx((i) => (i + 1) % 3), 4500);
+    return () => clearInterval(t);
+  }, []);
+
   return (
-    <ScrollView 
-      style={styles.container} 
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false} // Cache la barre pour un défilement plus propre
-    >
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-      {/* En-tête de la Forge */}
-      <View style={styles.headerSection}>
-        <Text style={styles.title}>VIRAL STICK 🚀</Text>
-        <Text style={styles.subtitle}>Générateur de Mèmes Multimodal</Text>
-      </View>
+        {/* Hero */}
+        <Animated.View style={{ opacity: headerOp, transform: [{ translateY: headerY }] }}>
+          <GlassCard animate style={styles.hero}>
+            <View style={styles.heroTop}>
+              <View style={{ flex: 1 }}>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>STUDIO IA MULTIMODAL</Text>
+                </View>
+                <Text style={styles.heroTitle}>
+                  Viral {"\n"}<Text style={{ color: colors.duoGreen }}>Stick</Text>
+                </Text>
+                <Text style={styles.heroSub}>Crée du contenu viral avec tes compagnons IA.</Text>
+              </View>
+              <Image source={require("../../assets/logo/logo_sans_fond.png")} style={styles.logo} resizeMode="contain" />
+            </View>
+            <View style={styles.heroBottom}>
+              <CompanionAvatar companion={COMPANIONS[companionIdx]} size={96} floating message={MESSAGES[companionIdx]} />
+            </View>
+          </GlassCard>
+        </Animated.View>
 
-      {/* Cartes de Sélection Stylisées */}
-      <View style={styles.menuGrid}>
-        
-        <TouchableOpacity 
-          style={styles.card} 
-          onPress={() => navigation.navigate('ContextReader')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.iconContainer}>
-            <Text style={styles.cardIcon}>txt</Text>
-          </View>
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardTitle}>📝 Context Reader</Text>
-            <Text style={styles.cardDescription}>Analyse le ton de tes discussions textuelles.</Text>
-          </View>
-        </TouchableOpacity>
+        {/* Modules */}
+        <Text style={styles.section}>MODULES</Text>
+        {MODULES.map((m, i) => (
+          <GlassCard key={m.key} animate delay={100 + i * 80} style={styles.moduleCard}>
+            <TouchableOpacity onPress={() => navigate?.(m.key)} activeOpacity={0.8} style={styles.moduleInner}>
+              <View style={[styles.iconBadge, { backgroundColor: `${m.color}18`, borderColor: `${m.color}44` }]}>
+                <Text style={styles.moduleIcon}>{m.icon}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.moduleName}>{m.title}</Text>
+                <Text style={styles.moduleSub}>{m.subtitle}</Text>
+              </View>
+              <Text style={[styles.arrow, { color: m.color }]}>›</Text>
+            </TouchableOpacity>
+          </GlassCard>
+        ))}
 
-        <TouchableOpacity 
-          style={[styles.card, styles.cardAudio]} 
-          onPress={() => navigation.navigate('VoiceToMeme')}
-          activeOpacity={0.8}
-        >
-          <View style={[styles.iconContainer, styles.iconAudio]}>
-            <Text style={styles.cardIcon}>voc</Text>
-          </View>
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardTitle}>🎙️ Voice-To-Meme</Text>
-            <Text style={styles.cardDescription}>Transcrit et transforme tes notes vocales en mèmes.</Text>
-          </View>
-        </TouchableOpacity>
+        {/* CTA */}
+        <GlassCard animate delay={400} style={[styles.cta, { backgroundColor: colors.duoGreenLight, borderColor: `${colors.duoGreen}44` }]}>
+          <Text style={styles.ctaTitle}>Prêt à créer du contenu viral ? 🚀</Text>
+          <AnimatedButton title="Commencer avec Context Reader" onPress={() => navigate?.("ContextReader")} size="lg" style={{ marginTop: spacing.md }} />
+        </GlassCard>
 
-        <TouchableOpacity 
-          style={[styles.card, styles.cardImage]} 
-          onPress={() => navigation.navigate('StatusRemixer')}
-          activeOpacity={0.8}
-        >
-          <View style={[styles.iconContainer, styles.iconImage]}>
-            <Text style={styles.cardIcon}>img</Text>
-          </View>
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardTitle}>🖼️ Status Remixer</Text>
-            <Text style={styles.cardDescription}>Incruste des punchlines IA sur tes photos locales.</Text>
-          </View>
-        </TouchableOpacity>
-
-      </View>
-
-      {/* Intégration Finale de la Mascotte Archy */}
-      <View style={styles.companionBox}>
-        <Text style={styles.companionTag}>COMPAGNON ACTIF</Text>
-        <Text style={styles.companionText}>
-          💬 Archy : "Le code est propre, la navigation est fluide et l'architecture est validée. Choisis un module pour lancer la démo !"
-        </Text>
-      </View>
-    </ScrollView>
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: theme.colors.background 
-  },
-  contentContainer: { 
-    padding: 24, 
-    paddingBottom: 40 
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 30
-  },
-  title: { 
-    fontSize: 30, 
-    fontWeight: '900', 
-    color: theme.colors.accent, 
-    letterSpacing: 1.5 
-  },
-  subtitle: { 
-    fontSize: 14, 
-    color: theme.colors.textMuted, 
-    marginTop: 4,
-    fontWeight: '500'
-  },
-  menuGrid: { 
-    gap: 16,
-    width: '100%'
-  },
-  card: { 
-    backgroundColor: theme.colors.surface, 
-    flexDirection: 'row',
-    padding: 16, 
-    borderRadius: 16, // Angles adoucis professionnels
-    borderWidth: 1, 
-    borderColor: '#2d2d30',
-    alignItems: 'center',
-    // Légère ombre pour donner du relief
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-  },
-  // Variations subtiles de bordures gauches pour repérer les modules
-  cardAudio: { borderLeftWidth: 4, borderLeftColor: '#ff9800' },
-  cardImage: { borderLeftWidth: 4, borderLeftColor: theme.colors.primary },
-  iconContainer: {
-    width: 46,
-    height: 46,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0, 230, 118, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16
-  },
-  iconAudio: { backgroundColor: 'rgba(255, 152, 0, 0.1)' },
-  iconImage: { backgroundColor: 'rgba(130, 87, 229, 0.1)' },
-  cardIcon: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-    textTransform: 'uppercase'
-  },
-  cardTextContainer: {
-    flex: 1
-  },
-  cardTitle: { 
-    color: theme.colors.text, 
-    fontSize: 17, 
-    fontWeight: 'bold' 
-  },
-  cardDescription: { 
-    color: theme.colors.textMuted, 
-    fontSize: 12,
-    marginTop: 4,
-    lineHeight: 16
-  },
-  companionBox: { 
-    marginTop: 35, 
-    padding: 16, 
-    backgroundColor: '#16161a', 
-    borderRadius: 14, 
-    borderWidth: 1,
-    borderColor: '#2d2d30',
-    width: '100%' 
-  },
-  companionTag: {
-    color: theme.colors.accent,
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginBottom: 6,
-    letterSpacing: 1
-  },
-  companionText: { 
-    color: theme.colors.text, 
-    fontStyle: 'italic', 
-    fontSize: 13, 
-    lineHeight: 18 
-  }
+  safe:       { flex: 1, backgroundColor: "#ffffff" },
+  scroll:     { paddingHorizontal: spacing.md, paddingTop: 80 },
+  hero:       { padding: spacing.lg, marginBottom: spacing.lg },
+  heroTop:    { flexDirection: "row", gap: spacing.md, alignItems: "center" },
+  heroBottom: { marginTop: spacing.md, alignItems: "center" },
+  badge:      { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 8 },
+  badgeText:  { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
+  heroTitle:  { fontSize: 36, fontWeight: "900", color: colors.almostBlack, letterSpacing: -1, lineHeight: 40 },
+  heroSub:    { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
+  logo:       { width: 90, height: 90 },
+  section:    { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 2, marginBottom: spacing.sm },
+  moduleCard: { marginBottom: spacing.sm, padding: 0 },
+  moduleInner:{ flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
+  iconBadge:  { width: 52, height: 52, borderRadius: radius.md, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  moduleIcon: { fontSize: 24 },
+  moduleName: { fontSize: 16, fontWeight: "800", color: colors.almostBlack },
+  moduleSub:  { fontSize: 13, color: colors.graphite, marginTop: 3 },
+  arrow:      { fontSize: 28, fontWeight: "300" },
+  cta:        { padding: spacing.lg, marginTop: spacing.md },
+  ctaTitle:   { fontSize: 18, fontWeight: "800", color: colors.almostBlack, textAlign: "center" },
 });
 
+export default HomeScreen;

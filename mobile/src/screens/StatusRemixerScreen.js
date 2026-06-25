@@ -1,217 +1,335 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { useRoute } from '@react-navigation/native'; 
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { theme } from '../theme/theme';
-import { apiService } from '../services/api'; 
+// Remplacez la ligne 1 existante par celle-ci :
+import React, { useMemo, useRef, useState, useEffect } from "react"; 
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  SafeAreaView, 
+  Animated, 
+  TouchableOpacity, 
+  TextInput, 
+  Alert, 
+  Image, 
+  ActivityIndicator, 
+  StatusBar,
+  PermissionsAndroid,
+  Platform
+} from "react-native";
+import axios from "axios";
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker'; // ◄ Import natif requis
+import { spacing, radius } from "../theme";
+import { colors } from "../theme/tokens";
+import GlassCard from "../components/GlassCard";
+import AnimatedButton from "../components/AnimatedButton";
+import CompanionAvatar from "../components/CompanionAvatar";
+import { apiUrl } from "../config/api";
 
-export default function StatusRemixerScreen() {
-  const route = useRoute();
-  
-  // États de l'image et de l'IA
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [aiPunchlines, setAiPunchlines] = useState([]);
-  const [selectedPunchline, setSelectedPunchline] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+const FILTERS = [
+  { id: "none", label: "Original", emoji: "📷" },
+  { id: "dramatic", label: "Dramatic", emoji: "🌑" },
+  { id: "neon", label: "Neon", emoji: "💫" },
+  { id: "vintage", label: "Vintage", emoji: "🎞️" },
+  { id: "fire", label: "Fire", emoji: "🔥" },
+];
 
-  // États du TextOverlayEditor (Style du calque de texte)
-  const [textSize, setTextSize] = useState(16);
-  const [textColor, setTextColor] = useState('#ffffff');
+const POSITIONS = ["top", "center", "bottom"];
 
-  // Palette professionnelle de 7 couleurs demandée
-  const extendedColors = [
-    '#00e676', // Vert Flash
-    '#00e5ff', // Cyan
-    '#ff007f', // Rose
-    '#e74c3c', // Rouge
-    '#ff9800'  // Orange
-  ];
+//const StatusRemixerScreen = ({ navigate }) => {
+  const StatusRemixerScreen = ({ navigate, sharedImageFromIntent, clearSharedImage }) => {
+  const [filter, setFilter]       = useState("none");
+  const [caption, setCaption]     = useState("");
+  const [position, setPosition]   = useState("bottom");
+  const [selectedImage, setSelectedImage] = useState(null); // ◄ URI de l'image réelle
+  const [loading, setLoading]     = useState(false);
+  const [remix, setRemix]         = useState(null);
+  const [msg, setMsg]             = useState("Envoie un visuel ou une intention. Je m'occupe du reste.");
+  const previewAnim               = useRef(new Animated.Value(0)).current;
 
-  // Interception du Share Intent (J3)
-  useEffect(() => {
-    if (route.params?.sharedImageUri) {
-      const uriReçue = route.params.sharedImageUri;
-      setSelectedImage(uriReçue);
-      triggerAIGeneration(uriReçue); 
+  const overlay = useMemo(() => ({
+    dramatic: "rgba(0,0,0,0.55)", 
+    neon: "rgba(34,211,238,0.22)",
+    vintage: "rgba(193,132,79,0.24)", 
+    fire: "rgba(239,68,68,0.28)",
+  }[filter] || "transparent"), [filter]);
+
+
+  // Modifiez ce bloc exactement comme ceci :
+ useEffect(() => {
+  if (sharedImageFromIntent) {
+    setSelectedImage(sharedImageFromIntent);
+
+    Animated.spring(previewAnim, {
+      toValue: 1,
+      tension: 70,
+      friction: 8,
+      useNativeDriver: true,
+    }).start();
+
+    if (clearSharedImage) {
+      clearSharedImage();
     }
-  }, [route.params?.sharedImageUri]);
+  }
+}, [sharedImageFromIntent, clearSharedImage, previewAnim]);
 
-  // Sélection via Galerie/Caméra
-  const handleImagePick = (response) => {
-    if (response.didCancel || response.errorMessage) return;
+
+  // Handler d'image universel pour extraire l'URI du média
+  const handleImageResponse = (response) => {
+    if (response.didCancel) return;
+    if (response.errorMessage) {
+      Alert.alert("Erreur", response.errorMessage);
+      return;
+    }
     if (response.assets && response.assets.length > 0) {
-      const uri = response.assets[0].uri;
-      setSelectedImage(uri);
-      triggerAIGeneration(uri); 
+      setSelectedImage(response.assets[0].uri);
+      setMsg("Base visuelle chargée. On va construire une vraie publication.");
+      Animated.spring(previewAnim, { 
+        toValue: 1, 
+        tension: 70, 
+        friction: 8, 
+        useNativeDriver: true 
+      }).start();
     }
   };
 
-  // Déclenchement IA de Mixy
-  const triggerAIGeneration = async (uri) => {
-    setIsLoading(true);
-    setSelectedPunchline("");
-    
-    const punchlines = await apiService.analyzeImageForMeme(uri);
-    
-    if (punchlines && punchlines.length > 0) {
-      setAiPunchlines(punchlines);
-    } else {
-      setAiPunchlines([
-        "Quand le code compile du premier coup à l'UY1 🤯",
-        "Tu veux l'argent de quoi ? C'est le mbeng ? 🇨🇲",
-        "POV: Quand le prof d'ICT202 prolonge le TP d'une semaine"
-      ]);
-      Alert.alert(
-        "Mode Hors-Ligne 🔌", 
-        "Le serveur est injoignable. Mixy passe en mode de secours avec des expressions locales !"
-      );
-    }
-    setIsLoading(false);
+    // Menu d'aiguillage vers la Galerie ou l'Appareil Photo
+  const pickImage = () => {
+    Alert.alert("Source du visuel", "Choisir un média depuis :", [
+      { 
+        text: "🖼️ Galerie Photo", 
+        onPress: () => launchImageLibrary({ 
+          mediaType: 'photo', 
+          quality: 0.6,          // ◄ Compresser à 60% pour éviter la surcharge
+          maxWidth: 1024,        // ◄ Redimensionner la largeur max
+          maxHeight: 1024        // ◄ Redimensionner la hauteur max
+        }, handleImageResponse) 
+      },
+      { 
+        text: "📷 Appareil Photo", 
+        onPress: async () => {
+          // Validation de la permission Android
+          if (Platform.OS === 'android') {
+            const granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.CAMERA
+            );
+            if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+              Alert.alert("Accès Refusé ❌", "La caméra ne peut pas s'ouvrir.");
+              return;
+            }
+          }
+          
+          // Lancement natif avec compression de sécurité
+          launchCamera({ 
+            mediaType: 'photo', 
+            quality: 0.5,        // ◄ Compresser la photo brute à 50% (indispensable)
+            maxWidth: 1024,      // ◄ Limiter la résolution max
+            maxHeight: 1024,     // ◄ Limiter la résolution max
+            saveToPhotos: true 
+          }, handleImageResponse);
+        } 
+      },
+      { text: "Annuler", style: "cancel" },
+    ]);
   };
 
-  const handleReset = () => {
-    setSelectedImage(null);
-    setSelectedPunchline("");
-    setAiPunchlines([]);
+
+
+  // Simulation d'une image de démonstration (Fallback d'UI)
+  const useDemoImage = () => {
+    setSelectedImage("https://picsum.photos");
+    setMsg("Base visuelle chargée. On va construire une vraie publication.");
+    Animated.spring(previewAnim, { 
+      toValue: 1, 
+      tension: 70, 
+      friction: 8, 
+      useNativeDriver: true 
+    }).start();
+  };
+
+  // Requête asynchrone vers le serveur KERNEL FORGE
+  const askRemix = async () => {
+    if (!selectedImage && !caption.trim()) { 
+      Alert.alert("Viral Stick", "Charge une image ou décris une idée."); 
+      return; 
+    }
+    setLoading(true); 
+    setRemix(null); 
+    setMsg("Je cherche une caption social-first...");
+    
+    try {
+      const res = await axios.post(apiUrl("/api/memes/status-remixer"), {
+        text: caption || "Image de réaction expressive à transformer en mème",
+        imageContext: selectedImage ? `Filtre: ${filter}. Position: ${position}.` : undefined,
+      });
+      setRemix(res.data);
+      if (res.data?.meme_text) setCaption(res.data.meme_text);
+      setMsg(res.data?.companionComment || "Remix prêt. Caption et édition alignés.");
+    } catch (err) {
+      setMsg("Le remix IA n'a pas répondu. Réessaie.");
+      Alert.alert("Erreur", "Connexion backend impossible.");
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text style={styles.title}> STATUS REMIXER</Text>
-      <Text style={styles.subtitle}>Génération de calques et mèmes automatiques par IA</Text>
-
-      {/* Zone d'aperçu d'origine avec texte superposé */}
-      <View style={styles.imagePreviewContainer}>
-        {selectedImage ? (
-          <View style={styles.memeContainer}>
-            <Image source={{ uri: selectedImage }} style={styles.previewImage} />
-            {selectedPunchline !== "" && (
-              <View style={styles.textOverlayContainer}>
-                <Text style={[styles.memeText, { fontSize: textSize, color: textColor }]}>
-                  {selectedPunchline.toUpperCase()}
-                </Text>
-              </View>
-            )}
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        
+        <GlassCard animate style={styles.hero}>
+          <View style={styles.badge}><Text style={styles.badgeText}>MODULE 03 · VISUAL REMIX</Text></View>
+          <Text style={styles.title}>Status <Text style={{ color: colors.bio }}>Remixer</Text></Text>
+          <Text style={styles.sub}>Passe d'un visuel brut à une publication mieux cadrée et plus lisible.</Text>
+          <View style={{ alignItems: "center", marginTop: spacing.md }}>
+            <CompanionAvatar companion="bio" size={96} floating message={msg} />
           </View>
+        </GlassCard>
+
+        {!selectedImage ? (
+          <GlassCard animate delay={80} style={styles.card}>
+            <Text style={styles.label}>SOURCE VISUELLE</Text>
+            <Text style={styles.sectionTitle}>Charge une image à remixer</Text>
+            <Text style={styles.sectionSub}>Caméra ou galerie — l'IA analyse le contexte et génère la meilleure caption.</Text>
+            <AnimatedButton title="Choisir une image" onPress={pickImage} size="lg" style={{ marginTop: spacing.md }} />
+            <AnimatedButton title="Utiliser une image démo" onPress={useDemoImage} variant="ghost" size="lg" style={{ marginTop: spacing.sm }} />
+          </GlassCard>
         ) : (
-          <Text style={styles.placeholderText}>Sélectionnez un visuel</Text>
+          <>
+            <Animated.View style={{ opacity: previewAnim, transform: [{ scale: previewAnim.interpolate({ inputRange:[0, 1], outputRange: [0.93, 1] }) }] }}>
+              <GlassCard style={styles.card}>
+                <Text style={styles.label}>CANVAS</Text>
+                <View style={styles.canvas}>
+                  {selectedImage ? (
+                    <Image source={{ uri: selectedImage }} style={styles.canvasImg} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.canvasPlaceholder}>
+                      <Text style={{ fontSize: 56 }}>{filter === "fire" ? "🔥" : filter === "neon" ? "💫" : "📸"}</Text>
+                      <Text style={styles.canvasLabel}>Visuel de démonstration</Text>
+                    </View>
+                  )}
+                  {/* Calque de couleur de filtre par-dessus l'image */}
+                  <View style={[StyleSheet.absoluteFill, { backgroundColor: overlay, borderRadius: radius.md }]} pointerEvents="none" />
+                  
+                  {/* Superposition de la Punchline Texte */}
+                  {!!caption && (
+                    <Text style={[styles.overlay, position === "top" ? styles.top : position === "center" ? styles.center : styles.bottom]}>
+                      {caption.toUpperCase()}
+                    </Text>
+                  )}
+                </View>
+              </GlassCard>
+            </Animated.View>
+
+            <GlassCard animate delay={100} style={styles.card}>
+              <Text style={styles.label}>ÉDITION</Text>
+              <Text style={styles.sectionTitle}>Caption principale</Text>
+              <TextInput 
+                style={styles.input} 
+                value={caption} 
+                onChangeText={setCaption} 
+                placeholder="Caption courte et percutante..." 
+                placeholderTextColor={colors.silver} 
+                multiline 
+              />
+
+              <Text style={[styles.sectionTitle, { marginTop: spacing.md }]}>Filtre</Text>
+              <View style={styles.filterRow}>
+                {FILTERS.map((f) => (
+                  <TouchableOpacity 
+                    key={f.id} 
+                    onPress={() => setFilter(f.id)} 
+                    style={[styles.filterChip, { backgroundColor: filter === f.id ? colors.duoGreenLight : colors.bgSecondary, borderColor: filter === f.id ? colors.duoGreen : colors.cloudGray }]}
+                  >
+                    <Text>{f.emoji}</Text>
+                    <Text style={[styles.filterLabel, { color: filter === f.id ? colors.duoGreenDark : colors.graphite }]}>{f.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.sectionTitle, { marginTop: spacing.md }]}>Position du texte</Text>
+              <View style={styles.posRow}>
+                {POSITIONS.map((p) => (
+                  <TouchableOpacity 
+                    key={p} 
+                    onPress={() => setPosition(p)} 
+                    style={[styles.posBtn, { backgroundColor: position === p ? `${colors.bio}18` : colors.bgSecondary, borderColor: position === p ? colors.bio : colors.cloudGray }]}
+                  >
+                    <Text style={[styles.posLabel, { color: position === p ? colors.bio : colors.charcoal }]}>
+                      {p === "top" ? "Haut" : p === "center" ? "Centre" : "Bas"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </GlassCard>
+
+            <View style={styles.actions}>
+              <AnimatedButton title={loading ? "Remix IA..." : "Remixer avec l'IA"} onPress={askRemix} loading={loading} disabled={loading} size="lg" style={{ flex: 1 }} />
+              <AnimatedButton title="Exporter" onPress={() => Alert.alert("Viral Stick", "Export PNG à finaliser côté pipeline.")} variant="ghost" size="lg" style={{ flex: 1 }} />
+            </View>
+
+            {loading && (
+              <GlassCard animate style={[styles.card, { alignItems: "center", gap: spacing.sm }]}>
+                <ActivityIndicator color={colors.bio} size="large" />
+
+                <Text style={styles.loadTitle}>Direction visuelle en cours</Text>
+                <Text style={styles.loadSub}>Recherche caption social-first et améliorations de cadrage.</Text>
+              </GlassCard>
+            )}
+
+            {remix && (
+              <GlassCard style={styles.card}>
+                <View style={styles.badge}><Text style={[styles.badgeText, { color: colors.duoGreenDark }]}>✅ RECOMMANDATIONS IA</Text></View>
+                <Text style={[styles.sectionTitle, { marginBottom: spacing.md }]}>{remix.meme_text || caption || "Caption prête"}</Text>
+                {(remix.visual_enhancements || []).map((item, i) => (
+                  <View key={i} style={styles.enhancement}>
+                    <Text style={[styles.enhIdx, { color: colors.bio }]}>{i + 1}</Text>
+                    <Text style={styles.enhText}>{item}</Text>
+                  </View>
+                ))}
+              </GlassCard>
+            )}
+          </>
         )}
-      </View>
-
-      {/* Boutons de sélection d'origine */}
-      <View style={styles.buttonGroup}>
-        <TouchableOpacity style={styles.actionButton} onPress={() => launchImageLibrary({ mediaType: 'photo', quality: 1 }, handleImagePick)}>
-          <Text style={styles.buttonText}>📂 Galerie</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionButton, styles.cameraButton]} onPress={() => launchCamera({ mediaType: 'photo', quality: 1, saveToPhotos: true }, handleImagePick)}>
-          <Text style={styles.buttonText}>📸 Caméra</Text>
-        </TouchableOpacity>
-      </View>
-
-      {isLoading && <ActivityIndicator size="large" color={theme.colors.accent} style={{ marginTop: 20 }} />}
-
-      {/* AdjustmentPanel d'origine — optimisé avec 7 sélecteurs */}
-      {selectedImage && selectedPunchline !== "" && (
-        <View style={styles.adjustmentPanel}>
-          <Text style={styles.panelTitle}>⚙️ Ajustement du Calque (TextOverlayEditor)</Text>
-          <View style={styles.controlRow}>
-            <TouchableOpacity style={styles.panelBtn} onPress={() => setTextSize(prev => Math.max(12, prev - 2))}>
-              <Text style={styles.btnText}>A-</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.panelBtn} onPress={() => setTextSize(prev => Math.min(32, prev + 2))}>
-              <Text style={styles.btnText}>A+</Text>
-            </TouchableOpacity>
-            
-            {/* Boucle d'affichage pour les 7 boutons de couleur compacts */}
-            {extendedColors.map((color, idx) => (
-              <TouchableOpacity 
-                key={idx} 
-                style={[
-                  styles.panelBtn, 
-                  { backgroundColor: color },
-                  textColor === color && styles.panelBtnSelected
-                ]} 
-                onPress={() => setTextColor(color)}
-              >
-                <View style={[styles.colorIndicator, textColor === color && { borderWidth: 1, borderColor: '#000' }]} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* Propositions de mèmes IA */}
-      {selectedImage && !isLoading && aiPunchlines.length > 0 && (
-        <View style={styles.punchlineSection}>
-          <Text style={styles.sectionTitle}>✨ Propositions de l'IA (Mixy) :</Text>
-          {aiPunchlines.map((p, i) => (
-            <TouchableOpacity 
-              key={i} 
-              style={[styles.punchlineCard, selectedPunchline === p && styles.punchlineCardSelected]}
-              onPress={() => setSelectedPunchline(p)}
-            >
-              <Text style={styles.punchlineText}>{p}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {selectedImage && (
-        <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-          <Text style={styles.resetButtonText}>Retirer l'image</Text>
-        </TouchableOpacity>
-      )}
-      
-    </ScrollView>
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  contentContainer: { padding: 20, alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: 'bold', color: theme.colors.accent, marginVertical: 5 },
-  subtitle: { fontSize: 13, color: theme.colors.textMuted, textAlign: 'center', marginBottom: 20 },
-  imagePreviewContainer: { width: '100%', height: 280, backgroundColor: theme.colors.surface, borderRadius: 12, borderWidth: 2, borderColor: theme.colors.primary, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
-  memeContainer: { width: '100%', height: '100%', justifyContent: 'flex-end' },
-  previewImage: { width: '100%', height: '100%', position: 'absolute', resizeMode: 'cover' },
-  textOverlayContainer: { width: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', paddingVertical: 12, paddingHorizontal: 10 },
-  memeText: { fontWeight: '900', textAlign: 'center', textShadowColor: '#000', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 2 },
-  placeholderText: { color: theme.colors.textMuted, fontStyle: 'italic' },
-  buttonGroup: { flexDirection: 'row', gap: 10, width: '100%', marginBottom: 10 },
-  actionButton: { flex: 1, backgroundColor: theme.colors.primary, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  cameraButton: { backgroundColor: '#34495e' },
-  buttonText: { color: theme.colors.text, fontWeight: 'bold' },
-  
-  // Style d'origine peaufiné pour accueillir les 7 boutons
-  adjustmentPanel: { 
-    width: '100%', 
-    backgroundColor: theme.colors.surface, 
-    padding: 12, 
-    borderRadius: 10, 
-    marginTop: 10, 
-    borderWidth: 1, 
-    borderColor: 'rgba(130, 87, 229, 0.25)',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 5,
-  },
-  panelTitle: { color: theme.colors.textMuted, fontSize: 11, fontWeight: 'bold', marginBottom: 8 },
-  controlRow: { flexDirection: 'row', gap: 6, alignItems: 'center', flexWrap: 'wrap' },
-  panelBtn: { backgroundColor: '#2d2d30', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 6, justifyContent: 'center', minWidth: 36, alignItems: 'center', borderWidth: 1, borderColor: '#3a3a3c' },
-  panelBtnSelected: { borderColor: theme.colors.accent, borderWidth: 1.5 },
-  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 11 },
-  colorIndicator: { width: 12, height: 12, borderRadius: 6 },
-  
-  punchlineSection: { width: '100%', marginTop: 15 },
-  sectionTitle: { color: theme.colors.accent, fontWeight: 'bold', marginBottom: 8, fontSize: 14 },
-  punchlineCard: { backgroundColor: theme.colors.surface, padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#2d2d30' },
-  punchlineCardSelected: { borderColor: theme.colors.accent, backgroundColor: '#1f2d24' },
-  punchlineText: { color: theme.colors.text, fontSize: 13 },
-  resetButton: { marginTop: 15, padding: 10 },
-  resetButtonText: { color: '#ff5252', fontWeight: 'bold' },
-  companionBox: { marginTop: 25, padding: 15, backgroundColor: '#1c1c1e', borderRadius: 12, borderLeftWidth: 4, borderLeftColor: theme.colors.accent, width: '100%' },
-})
+  safe:         { flex: 1, backgroundColor: "#ffffff" },
+  scroll:       { paddingHorizontal: spacing.md, paddingTop: 80 },
+  hero:         { padding: spacing.lg, marginBottom: spacing.md },
+  badge:        { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
+  badgeText:    { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
+  title:        { fontSize: 32, fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
+  sub:          { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
+  card:         { marginBottom: spacing.md },
+  label:        { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 1.5, marginBottom: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: "800", color: colors.almostBlack, marginBottom: 6 },
+  sectionSub:   { fontSize: 13, color: colors.graphite, lineHeight: 19, marginBottom: spacing.sm },
+  canvas:       { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, minHeight: 280, overflow: "hidden", justifyContent: "center", alignItems: "center", position: "relative" },
+  canvasImg:    { ...StyleSheet.absoluteFillObject, width: "100%", height: "100%" },
+  canvasPlaceholder: { alignItems: "center", justifyContent: "center" },
+  canvasLabel:  { fontSize: 13, color: colors.silver, marginTop: 8 },
+  overlay:      { position: "absolute", left: 16, right: 16, color: "#ffffff", fontSize: 20, fontWeight: "900", textAlign: "center", textTransform: "uppercase", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
+  top:          { top: 16 },
+  center:       { top: "44%" },
+  bottom:       { bottom: 16 },
+  input:        { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, fontSize: 15, color: colors.almostBlack, minHeight: 80, backgroundColor: colors.bgSecondary, textAlignVertical: "top" },
+  filterRow:    { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  filterChip:   { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 9 },
+  filterLabel:  { fontSize: 13, fontWeight: "700" },
+  posRow:       { flexDirection: "row", gap: spacing.sm },
+  posBtn:       { flex: 1, borderWidth: 2, borderRadius: radius.md, paddingVertical: 11, alignItems: "center" },
+  posLabel:     { fontSize: 14, fontWeight: "800" },
+  actions:      { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
+  loadTitle:    { fontSize: 17, fontWeight: "800", color: colors.almostBlack },
+  loadSub:      { textAlign: "center", fontSize: 13, color: colors.silver, lineHeight: 18 },
+  enhancement:  { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm, padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, marginBottom: spacing.sm },
+  enhIdx:       { fontSize: 15, fontWeight: "900", minWidth: 18 },
+  enhText:      { flex: 1, fontSize: 13, color: colors.charcoal, lineHeight: 19 },
+});
 
-
+export default StatusRemixerScreen;

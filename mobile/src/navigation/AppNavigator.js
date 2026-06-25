@@ -114,4 +114,3 @@ const styles = StyleSheet.create({
   versionText: { color: theme.colors.textMuted, fontSize: 10, marginTop: 2, fontStyle: 'italic' },
 });
 
-
