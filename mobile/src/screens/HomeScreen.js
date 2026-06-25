@@ -1,6 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, SafeAreaView, StatusBar, Image, Dimensions } from "react-native";
 import { useTheme, spacing, radius, typography } from "../theme";
+<<<<<<< HEAD
+=======
+import { wp, rs } from "../theme/responsive";
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
@@ -92,11 +96,16 @@ const HomeScreen = ({ navigate }) => {
 
 const styles = StyleSheet.create({
   safe:       { flex: 1, backgroundColor: "#ffffff" },
+<<<<<<< HEAD
   scroll:     { paddingHorizontal: spacing.md, paddingTop: 80 },
+=======
+  scroll:     { paddingHorizontal: spacing.md, paddingTop: spacing.md },
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
   hero:       { padding: spacing.lg, marginBottom: spacing.lg },
   heroTop:    { flexDirection: "row", gap: spacing.md, alignItems: "center" },
   heroBottom: { marginTop: spacing.md, alignItems: "center" },
   badge:      { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 8 },
+<<<<<<< HEAD
   badgeText:  { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
   heroTitle:  { fontSize: 36, fontWeight: "900", color: colors.almostBlack, letterSpacing: -1, lineHeight: 40 },
   heroSub:    { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
@@ -111,6 +120,22 @@ const styles = StyleSheet.create({
   arrow:      { fontSize: 28, fontWeight: "300" },
   cta:        { padding: spacing.lg, marginTop: spacing.md },
   ctaTitle:   { fontSize: 18, fontWeight: "800", color: colors.almostBlack, textAlign: "center" },
+=======
+  badgeText:  { fontSize: rs(10), fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
+  heroTitle:  { fontSize: rs(36), fontWeight: "900", color: colors.almostBlack, letterSpacing: -1, lineHeight: rs(40) },
+  heroSub:    { fontSize: rs(14), color: colors.graphite, marginTop: 6, lineHeight: rs(20) },
+  logo:       { width: wp(23), height: wp(23) },
+  section:    { fontSize: rs(11), fontWeight: "800", color: colors.silver, letterSpacing: 2, marginBottom: spacing.sm },
+  moduleCard: { marginBottom: spacing.sm, padding: 0 },
+  moduleInner:{ flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
+  iconBadge:  { width: 52, height: 52, borderRadius: radius.md, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  moduleIcon: { fontSize: rs(24) },
+  moduleName: { fontSize: rs(16), fontWeight: "800", color: colors.almostBlack },
+  moduleSub:  { fontSize: rs(13), color: colors.graphite, marginTop: 3 },
+  arrow:      { fontSize: rs(28), fontWeight: "300" },
+  cta:        { padding: spacing.lg, marginTop: spacing.md },
+  ctaTitle:   { fontSize: rs(18), fontWeight: "800", color: colors.almostBlack, textAlign: "center" },
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 });
 
 export default HomeScreen;

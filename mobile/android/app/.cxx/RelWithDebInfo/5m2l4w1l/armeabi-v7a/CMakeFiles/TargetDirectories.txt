@@ -1,3 +1,0 @@
-/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/RelWithDebInfo/5m2l4w1l/armeabi-v7a/CMakeFiles/appmodules.dir
-/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/RelWithDebInfo/5m2l4w1l/armeabi-v7a/CMakeFiles/edit_cache.dir
-/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/RelWithDebInfo/5m2l4w1l/armeabi-v7a/CMakeFiles/rebuild_cache.dir
