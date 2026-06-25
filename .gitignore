@@ -1,0 +1,24 @@
+# Variables d'environnement
+.env
+.env.local
+.env.*
+.env.example
+
+# Node.js
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Build React
+web/build/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

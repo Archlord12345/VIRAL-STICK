@@ -1,0 +1,4 @@
+/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
+/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
+/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
+/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/4u10601m/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir
