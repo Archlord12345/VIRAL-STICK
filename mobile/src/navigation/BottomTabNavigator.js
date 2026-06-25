@@ -1,30 +1,32 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions, Platform } from "react-native";
-import { colors, spacing, borderRadius } from "../theme/tokens";
-
-const { width: SW } = Dimensions.get("window");
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from "react-native";
+import { useTheme } from "../theme";
+import AppIcon from "../components/AppIcon";
 
 const TAB_ITEMS = [
-  { key: "Home",           label: "Accueil",   icon: "🏠", accent: colors.duoGreen },
-  { key: "ContextReader",  label: "Context",   icon: "📖", accent: colors.art },
-  { key: "VoiceToMeme",    label: "Voice",     icon: "🎙️", accent: colors.duoGreen },
-  { key: "StatusRemixer",  label: "Remix",     icon: "🎨", accent: colors.bio },
-  { key: "Menu",           label: "Menu",      icon: "☰",  accent: colors.silver },
+  { key: "Home",           label: "Accueil",   icon: "home",           accentKey: "secondary" },
+  { key: "ContextReader",  label: "Context",   icon: "context",        accentKey: "warning" },
+  { key: "VoiceToMeme",    label: "Voice",     icon: "voice",          accentKey: "secondary" },
+  { key: "StatusRemixer",  label: "Remix",     icon: "remix",          accentKey: "primary" },
+  { key: "Menu",           label: "Menu",      icon: "settings",       accentKey: "textSecondary" },
 ];
 
 const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
       {/* Contenu de l'écran */}
       <View style={styles.content}>
         {children}
       </View>
 
       {/* Barre de navigation basse */}
-      <SafeAreaView style={styles.tabBarContainer}>
+      <SafeAreaView style={[styles.tabBarContainer, { backgroundColor: theme.backgroundSecondary, borderTopColor: theme.border }]}>
         <View style={styles.tabBar}>
           {TAB_ITEMS.map((item) => {
             const active = currentScreen === item.key;
+            const accentColor = theme[item.accentKey] || theme.primary;
             return (
               <TouchableOpacity
                 key={item.key}
@@ -34,19 +36,21 @@ const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
               >
                 <View style={[
                   styles.iconBox,
-                  active && { backgroundColor: `${item.accent}18`, borderColor: item.accent, borderWidth: 2 }
+                  active && { backgroundColor: `${accentColor}18`, borderColor: accentColor, borderWidth: 2 }
                 ]}>
-                  <Text style={[styles.tabIcon, active && { transform: [{ scale: 1.1 }] }]}>
-                    {item.icon}
-                  </Text>
+                  <AppIcon
+                    name={item.icon}
+                    color={active ? accentColor : theme.textSecondary}
+                    size={20}
+                  />
                 </View>
                 <Text style={[
                   styles.tabLabel,
-                  { color: active ? item.accent : colors.silver, fontWeight: active ? "900" : "700" }
+                  { color: active ? accentColor : theme.textSecondary, fontWeight: active ? "900" : "700" }
                 ]}>
                   {item.label}
                 </Text>
-                {active && <View style={[styles.activeIndicator, { backgroundColor: item.accent }]} />}
+                {active && <View style={[styles.activeIndicator, { backgroundColor: accentColor }]} />}
               </TouchableOpacity>
             );
           })}
@@ -59,15 +63,12 @@ const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#ffffff",
   },
   content: {
     flex: 1,
   },
   tabBarContainer: {
-    backgroundColor: "#ffffff",
     borderTopWidth: 2,
-    borderTopColor: colors.cloudGray,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
@@ -103,9 +104,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     borderWidth: 2,
     borderColor: "transparent",
-  },
-  tabIcon: {
-    fontSize: 20,
   },
   tabLabel: {
     fontSize: 10,

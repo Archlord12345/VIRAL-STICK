@@ -1,15 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from "react-native";
 import axios from "axios";
-import { spacing, radius } from "../theme";
-<<<<<<< HEAD
-=======
-import { rs, wp } from "../theme/responsive";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
-import { colors } from "../theme/tokens";
+import { useTheme, spacing, radius } from "../theme";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
+import AppIcon from "../components/AppIcon";
 import { apiUrl } from "../config/api";
 
 const DEMOS = [
@@ -19,6 +15,7 @@ const DEMOS = [
 ];
 
 const WaveBar = ({ index, active }) => {
+  const { theme } = useTheme();
   const anim = useRef(new Animated.Value(0.25)).current;
   useEffect(() => {
     if (active) {
@@ -32,10 +29,11 @@ const WaveBar = ({ index, active }) => {
       Animated.timing(anim, { toValue: 0.25, duration: 160, useNativeDriver: true }).start();
     }
   }, [active, anim, index]);
-  return <Animated.View style={[styles.waveBar, { transform: [{ scaleY: anim }], backgroundColor: colors.duoGreen }]} />;
+  return <Animated.View style={[styles.waveBar, { transform: [{ scaleY: anim }], backgroundColor: theme.secondary }]} />;
 };
 
 const VoiceToMemeScreen = ({ navigate }) => {
+  const { theme, isDark } = useTheme();
   const [recording, setRecording]     = useState(false);
   const [transcription, setTranscription] = useState("");
   const [meme, setMeme]               = useState(null);
@@ -86,73 +84,80 @@ const VoiceToMemeScreen = ({ navigate }) => {
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <GlassCard animate style={styles.hero}>
-          <View style={styles.badge}><Text style={styles.badgeText}>MODULE 02 · VOICE CAPTURE</Text></View>
-          <Text style={styles.title}>Voice <Text style={{ color: colors.duoGreen }}>→ Mème</Text></Text>
-          <Text style={styles.sub}>Transforme une parole spontanée en punchline mémorable.</Text>
+        <GlassCard style={styles.hero}>
+          <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>MODULE 02 · VOICE CAPTURE</Text></View>
+          <Text style={[styles.title, { color: theme.textPrimary }]}>Voice <Text style={{ color: theme.secondary }}>→ Mème</Text></Text>
+          <Text style={[styles.sub, { color: theme.textSecondary }]}>Transforme une parole spontanée en punchline mémorable.</Text>
           <View style={{ alignItems: "center", marginTop: spacing.md }}>
             <CompanionAvatar companion="ubu" size={96} floating message={msg} />
           </View>
         </GlassCard>
 
         {/* Recorder */}
-        <GlassCard animate delay={80} style={[styles.card, { alignItems: "center", gap: spacing.md }]}>
-          <Text style={styles.label}>RECORDER STUDIO</Text>
+        <GlassCard style={[styles.card, { alignItems: "center", gap: spacing.md }]}>
+          <Text style={[styles.label, { color: theme.textMuted }]}>RECORDER STUDIO</Text>
           <View style={styles.wave}>
             {Array.from({ length: 26 }).map((_, i) => <WaveBar key={i} index={i} active={recording} />)}
           </View>
-          <Text style={[styles.durationText, { color: recording ? colors.danger : colors.silver }]}>
+          <Text style={[styles.durationText, { color: recording ? theme.danger : theme.textMuted }]}>
             {recording ? `● REC ${fmt(duration)}` : fmt(duration)}
           </Text>
           <Animated.View style={{ transform: [{ scale: micScale }] }}>
             <TouchableOpacity
               onPress={recording ? stopRec : startRec}
-              style={[styles.micBtn, { backgroundColor: recording ? colors.danger : colors.duoGreen, shadowColor: recording ? colors.danger : colors.duoGreenDark }]}
+              style={[styles.micBtn, {
+                backgroundColor: recording ? theme.danger : theme.secondary,
+                shadowColor: recording ? theme.danger : theme.secondaryLight
+              }]}
               activeOpacity={0.85}
             >
-              <Text style={styles.micIcon}>{recording ? "⏹" : "🎙️"}</Text>
+              {recording ? (
+                <View style={styles.stopIcon} />
+              ) : (
+                <AppIcon name="voice" color="#ffffff" size={32} />
+              )}
             </TouchableOpacity>
           </Animated.View>
-          <Text style={styles.hint}>
+          <Text style={[styles.hint, { color: theme.textMuted }]}>
             {recording ? "Parle naturellement. Le mème naît de la spontanéité." : "Appuie pour démarrer une prise démo, puis transforme en mème."}
           </Text>
         </GlassCard>
 
         {transcription.length > 0 && (
-          <GlassCard animate delay={100} style={styles.card}>
-            <Text style={styles.label}>TRANSCRIPTION</Text>
-            <Text style={[styles.transcript]}>"{transcription}"</Text>
+          <GlassCard style={styles.card}>
+            <Text style={[styles.label, { color: theme.textMuted }]}>TRANSCRIPTION</Text>
+            <Text style={[styles.transcript, { color: theme.textPrimary }]}>"{transcription}"</Text>
             <AnimatedButton title={loading ? "Transformation..." : "Transformer en mème"} onPress={generate} loading={loading} disabled={loading} size="lg" style={{ marginTop: spacing.md }} />
           </GlassCard>
         )}
 
         {loading && (
-          <GlassCard animate style={[styles.card, { alignItems: "center", gap: spacing.sm }]}>
-            <ActivityIndicator color={colors.duoGreen} size="large" />
-            <Text style={styles.loadTitle}>Remix vocal en cours</Text>
-            <Text style={styles.loadSub}>Préservation de la spontanéité et recherche de la meilleure chute.</Text>
+          <GlassCard style={[styles.card, { alignItems: "center", gap: spacing.sm }]}>
+            <ActivityIndicator color={theme.secondary} size="large" />
+            <Text style={[styles.loadTitle, { color: theme.textPrimary }]}>Remix vocal en cours</Text>
+            <Text style={[styles.loadSub, { color: theme.textMuted }]}>Préservation de la spontanéité et recherche de la meilleure chute.</Text>
           </GlassCard>
         )}
 
         {meme && (
           <Animated.View style={{ opacity: resultAnim, transform: [{ translateY: resultAnim.interpolate({ inputRange: [0,1], outputRange: [24,0] }) }] }}>
             <GlassCard style={styles.card}>
-              <View style={styles.badge}><Text style={[styles.badgeText, { color: colors.duoGreenDark }]}>✅ MÈME VOCAL PRÊT</Text></View>
-              <View style={styles.memeBox}>
-                <Text style={styles.memeText}>{meme.topText}</Text>
+              <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>✅ MÈME VOCAL PRÊT</Text></View>
+              <View style={[styles.memeBox, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+                <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.topText}</Text>
                 <View style={styles.memeScene}>
-                  <Text style={{ fontSize: 40 }}>🎤</Text>
-                  <Text style={styles.memeSceneText}>{meme.descriptionImage}</Text>
+                  <AppIcon name="voice" color={theme.secondary} size={36} />
+                  <Text style={[styles.memeSceneText, { color: theme.textSecondary }]}>{meme.descriptionImage}</Text>
                 </View>
-                <Text style={styles.memeText}>{meme.bottomText}</Text>
+                <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.bottomText}</Text>
               </View>
               {meme.original_transcript_subtitle ? (
-                <View style={styles.subtitleCard}>
-                  <Text style={styles.gridLabel}>SOUS-TITRE ORIGINAL</Text>
-                  <Text style={styles.subtitleText}>"{meme.original_transcript_subtitle}"</Text>
+                <View style={[styles.subtitleCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+                  <Text style={[styles.gridLabel, { color: theme.textMuted }]}>SOUS-TITRE ORIGINAL</Text>
+                  <Text style={[styles.subtitleText, { color: theme.textPrimary }]}>"{meme.original_transcript_subtitle}"</Text>
                 </View>
               ) : null}
             </GlassCard>
@@ -165,58 +170,31 @@ const VoiceToMemeScreen = ({ navigate }) => {
 };
 
 const styles = StyleSheet.create({
-  safe:        { flex: 1, backgroundColor: "#ffffff" },
-<<<<<<< HEAD
-  scroll:      { paddingHorizontal: spacing.md, paddingTop: 80 },
+  safe:        { flex: 1 },
+  scroll:      { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   hero:        { padding: spacing.lg, marginBottom: spacing.md },
-  badge:       { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
-  badgeText:   { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  title:       { fontSize: 32, fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
-  sub:         { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
+  badge:       { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
+  badgeText:   { fontSize: 10, fontWeight: "800", letterSpacing: 1 },
+  title:       { fontSize: 32, fontWeight: "900", letterSpacing: -0.5 },
+  sub:         { fontSize: 14, marginTop: 6, lineHeight: 20 },
   card:        { marginBottom: spacing.md, padding: spacing.md },
-  label:       { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 1.5, marginBottom: 8 },
+  label:       { fontSize: 11, fontWeight: "800", letterSpacing: 1.5, marginBottom: 8 },
   wave:        { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, height: 60, width: "100%" },
   waveBar:     { width: 5, height: 44, borderRadius: 5 },
   durationText:{ fontSize: 18, fontWeight: "800", letterSpacing: 2 },
   micBtn:      { width: 96, height: 96, borderRadius: 48, alignItems: "center", justifyContent: "center", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 0, elevation: 4 },
-  micIcon:     { fontSize: 38 },
-  hint:        { textAlign: "center", fontSize: 13, color: colors.silver, lineHeight: 19, paddingHorizontal: spacing.sm },
-  transcript:  { fontSize: 16, color: colors.almostBlack, fontStyle: "italic", lineHeight: 24, fontWeight: "600" },
-  loadTitle:   { fontSize: 17, fontWeight: "800", color: colors.almostBlack },
-  loadSub:     { textAlign: "center", fontSize: 13, color: colors.silver, lineHeight: 18 },
-  memeBox:     { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md, backgroundColor: colors.bgSecondary },
-  memeText:    { fontSize: 17, fontWeight: "900", textTransform: "uppercase", textAlign: "center", color: colors.almostBlack, lineHeight: 22 },
+  stopIcon:    { width: 22, height: 22, borderRadius: 4, backgroundColor: "#ffffff" },
+  hint:        { textAlign: "center", fontSize: 13, lineHeight: 19, paddingHorizontal: spacing.sm },
+  transcript:  { fontSize: 16, fontStyle: "italic", lineHeight: 24, fontWeight: "600" },
+  loadTitle:   { fontSize: 17, fontWeight: "800" },
+  loadSub:     { textAlign: "center", fontSize: 13, lineHeight: 18 },
+  memeBox:     { borderWidth: 2, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md },
+  memeText:    { fontSize: 17, fontWeight: "900", textTransform: "uppercase", textAlign: "center", lineHeight: 22 },
   memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 100, alignItems: "center", justifyContent: "center", padding: spacing.md },
-  memeSceneText:{ textAlign: "center", fontSize: 13, color: colors.graphite, lineHeight: 19, marginTop: 8 },
-  subtitleCard:{ padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, borderWidth: 2, borderColor: colors.cloudGray },
-  gridLabel:   { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 1, marginBottom: 6 },
-  subtitleText:{ fontSize: 14, fontStyle: "italic", color: colors.charcoal, lineHeight: 19 },
-=======
-  scroll:      { paddingHorizontal: spacing.md, paddingTop: spacing.md },
-  hero:        { padding: spacing.lg, marginBottom: spacing.md },
-  badge:       { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
-  badgeText:   { fontSize: rs(10), fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  title:       { fontSize: rs(32), fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
-  sub:         { fontSize: rs(14), color: colors.graphite, marginTop: 6, lineHeight: rs(20) },
-  card:        { marginBottom: spacing.md, padding: spacing.md },
-  label:       { fontSize: rs(11), fontWeight: "800", color: colors.silver, letterSpacing: 1.5, marginBottom: 8 },
-  wave:        { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, height: 60, width: "100%" },
-  waveBar:     { width: 5, height: 44, borderRadius: 5 },
-  durationText:{ fontSize: rs(18), fontWeight: "800", letterSpacing: 2 },
-  micBtn:      { width: 96, height: 96, borderRadius: 48, alignItems: "center", justifyContent: "center", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 0, elevation: 4 },
-  micIcon:     { fontSize: rs(38) },
-  hint:        { textAlign: "center", fontSize: rs(13), color: colors.silver, lineHeight: rs(19), paddingHorizontal: spacing.sm },
-  transcript:  { fontSize: rs(16), color: colors.almostBlack, fontStyle: "italic", lineHeight: rs(24), fontWeight: "600" },
-  loadTitle:   { fontSize: rs(17), fontWeight: "800", color: colors.almostBlack },
-  loadSub:     { textAlign: "center", fontSize: rs(13), color: colors.silver, lineHeight: rs(18) },
-  memeBox:     { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md, backgroundColor: colors.bgSecondary },
-  memeText:    { fontSize: rs(17), fontWeight: "900", textTransform: "uppercase", textAlign: "center", color: colors.almostBlack, lineHeight: rs(22) },
-  memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 100, alignItems: "center", justifyContent: "center", padding: spacing.md },
-  memeSceneText:{ textAlign: "center", fontSize: rs(13), color: colors.graphite, lineHeight: rs(19), marginTop: 8 },
-  subtitleCard:{ padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, borderWidth: 2, borderColor: colors.cloudGray },
-  gridLabel:   { fontSize: rs(11), fontWeight: "800", color: colors.silver, letterSpacing: 1, marginBottom: 6 },
-  subtitleText:{ fontSize: rs(14), fontStyle: "italic", color: colors.charcoal, lineHeight: rs(19) },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+  memeSceneText:{ textAlign: "center", fontSize: 13, lineHeight: 19, marginTop: 8 },
+  subtitleCard:{ padding: spacing.md, borderRadius: radius.md, borderWidth: 2 },
+  gridLabel:   { fontSize: 11, fontWeight: "800", letterSpacing: 1, marginBottom: 6 },
+  subtitleText:{ fontSize: 14, fontStyle: "italic", lineHeight: 19 },
 });
 
 export default VoiceToMemeScreen;

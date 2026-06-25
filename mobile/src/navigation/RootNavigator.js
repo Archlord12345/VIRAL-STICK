@@ -4,15 +4,11 @@
  */
 
 import React, { useState } from "react";
-<<<<<<< HEAD
-import { View, StyleSheet } from "react-native";
-import DrawerNavigator from "./DrawerNavigator";
-=======
 import { View, StyleSheet, StatusBar } from "react-native";
 import BottomTabNavigator from "./BottomTabNavigator";
 import Header from "../components/Header";
 import { colors } from "../theme/tokens";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+import { useTheme } from "../theme";
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -23,18 +19,6 @@ import CompanionChatScreen from "../screens/CompanionChatScreen";
 import MultiChatScreen from "../screens/MultiChatScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import AboutScreen from "../screens/AboutScreen";
-<<<<<<< HEAD
-
-const SCREENS = {
-  Home: HomeScreen,
-  ContextReader: ContextReaderScreen,
-  VoiceToMeme: VoiceToMemeScreen,
-  StatusRemixer: StatusRemixerScreen,
-  CompanionChat: CompanionChatScreen,
-  MultiChat: MultiChatScreen,
-  Settings: SettingsScreen,
-  About: AboutScreen,
-=======
 import MenuScreen from "../screens/MenuScreen";
 
 const SCREENS = {
@@ -47,28 +31,12 @@ const SCREENS = {
   Settings: { comp: SettingsScreen, title: "Paramètres", sub: "Configuration" },
   About: { comp: AboutScreen, title: "À propos", sub: "Manifeste" },
   Menu: { comp: MenuScreen, title: "Menu", sub: "Options du Studio" },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 };
 
 const RootNavigator = () => {
   const [currentScreen, setCurrentScreen] = useState("Home");
+  const { theme } = useTheme();
 
-<<<<<<< HEAD
-  const Screen = SCREENS[currentScreen] || HomeScreen;
-
-  return (
-    <DrawerNavigator
-      currentScreen={currentScreen}
-      onNavigate={setCurrentScreen}
-    >
-      <View style={StyleSheet.absoluteFill}>
-        <Screen navigate={setCurrentScreen} />
-      </View>
-    </DrawerNavigator>
-  );
-};
-
-=======
   const screenInfo = SCREENS[currentScreen] || SCREENS.Home;
   const ScreenComp = screenInfo.comp;
 
@@ -87,8 +55,8 @@ const RootNavigator = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.backgroundSecondary} />
       <Header
         title={screenInfo.title}
         subtitle={screenInfo.sub}
@@ -109,12 +77,10 @@ const RootNavigator = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
   },
   screenWrapper: {
     flex: 1,
   },
 });
 
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 export default RootNavigator;
