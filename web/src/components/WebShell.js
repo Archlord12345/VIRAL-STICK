@@ -4,7 +4,8 @@
  */
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase";
 import { colors, radius, spacing } from "../theme/tokens";
 import CompanionAvatarWeb from "./CompanionAvatarWeb";
 import AppIcon from "./AppIcon";
@@ -23,7 +24,6 @@ const NAV = [
 const WebShell = ({ children, title, companion }) => {
   const { pathname } = useLocation();
   const [user, setUser] = React.useState(null);
-  const auth = getAuth();
   const navigate = useNavigate();
 
   React.useEffect(() => {
