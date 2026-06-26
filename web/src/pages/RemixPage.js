@@ -22,6 +22,8 @@ const RemixPage = () => {
   const [loading, setLoading]                   = useState(false);
   const [result, setResult]                     = useState(null);
   const [error, setError]                       = useState("");
+  const [published, setPublished]               = useState(false);
+  const [sourceMemeId, setSourceMemeId]         = useState(null);
 
   useEffect(() => {
     if (locationState?.imageUrl) {
@@ -30,6 +32,9 @@ const RemixPage = () => {
     }
     if (locationState?.text) {
       setRemixText(locationState.text);
+    }
+    if (locationState?.sourceMemeId) {
+      setSourceMemeId(locationState.sourceMemeId);
     }
   }, [locationState]);
 
@@ -48,7 +53,7 @@ const RemixPage = () => {
 
   const handleRemix = async () => {
     if (!remixText.trim() && !inputImageBase64) return;
-    setLoading(true); setError(""); setResult(null);
+    setLoading(true); setError(""); setResult(null); setPublished(false);
     try {
       const res  = await fetch("/api/memes/status-remixer", {
         method: "POST",
@@ -60,6 +65,24 @@ const RemixPage = () => {
       setResult(data);
     } catch (e) { setError(e.message); }
     setLoading(false);
+  };
+
+  const publishToForum = async () => {
+    if (!result || published) return;
+    try {
+      const res = await fetch("/api/forum/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shareId: result.share?.shareId,
+          imageUrl: result.imageUrl,
+          topText: result.meme_text,
+          bottomText: result.companionComment,
+          sourceMemeId: sourceMemeId
+        }),
+      });
+      if (res.ok) setPublished(true);
+    } catch (e) { console.error(e); }
   };
 
   const overlayColor = {
@@ -227,28 +250,25 @@ const RemixPage = () => {
                 </div>
               </div>
 
-              {Array.isArray(result.visual_enhancements) && result.visual_enhancements.length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 13, color: colors.charcoal, marginBottom: 8 }}>
-                    Recommandations visuelles :
-                  </div>
-                  {result.visual_enhancements.map((item, i) => (
-                    <div key={i} style={{
-                      display: "flex", gap: 10, alignItems: "flex-start",
-                      padding: "8px 0", borderBottom: i < result.visual_enhancements.length - 1 ? `1px solid ${colors.cloudGray}` : "none",
-                    }}>
-                      <span style={{ color: colors.duoGreen, fontWeight: 800, fontSize: 14 }}>{i + 1}.</span>
-                      <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: colors.graphite }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <WhatsAppShareButton
+                  text={shareText}
+                  url={result.share?.publicUrl}
+                  imageDataUrl={result.share?.imageDataUrl}
+                  label="Partager le remix"
+                  style={{ width: "100%", justifyContent: "center" }}
+                />
 
-              <WhatsAppShareButton
-                text={shareText}
-                label="Partager le remix"
-                style={{ width: "100%", justifyContent: "center" }}
-              />
+                {!published ? (
+                  <PremiumButton variant="green" onClick={publishToForum} style={{ width: "100%" }}>
+                    🌍 Propulser sur le Forum
+                  </PremiumButton>
+                ) : (
+                  <div style={{ textAlign: "center", padding: 12, background: colors.duoGreenLight, color: colors.duoGreenDark, borderRadius: radius.md, fontWeight: 800 }}>
+                    ✅ Remix publié !
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div style={{ textAlign: "center", padding: 16 }}>
