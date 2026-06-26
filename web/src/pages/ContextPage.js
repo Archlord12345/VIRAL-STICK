@@ -46,7 +46,7 @@ const ContextPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           shareId: result.share?.shareId,
-          imageUrl: result.imageUrl,
+          imageUrl: result.share?.publicUrl || result.imageUrl,
           topText: result.topText,
           bottomText: result.bottomText
         }),
