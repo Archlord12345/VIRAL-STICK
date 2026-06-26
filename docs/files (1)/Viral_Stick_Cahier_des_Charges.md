@@ -172,9 +172,9 @@ Contrainte exprimée par le porteur de projet : n'utiliser que des comptes gratu
 | Repli / texte volumineux | Mistral AI — offre « Experiment » | NLP texte | Sans carte bancaire (vérification téléphone) ; volume mensuel de tokens généreux pour le prototypage. |
 | Repli multi-fournisseurs | OpenRouter (modèles suffixés « :free ») | NLP texte | Gratuit mais partagé et limité en débit ; prévoir une bascule automatique vers un autre modèle « :free » en cas d'erreur 429. |
 | Tests locaux / vie privée / sans quota | Ollama (modèles open-weights hébergés en local) | NLP texte | Aucune limite d'appel, mais dépend des ressources matérielles disponibles ; adapté au développement, pas forcément à la production. |
-| Transcription audio (Voice-to-Meme) | Whisper (open-weights), via Hugging Face Inference ou exécution locale | Speech-to-Text | Tier gratuit limité en débit ; auto-hébergement possible si besoin de volume. |
-| Voix du Compagnon (texte → parole) | Piper TTS (open-source, déjà utilisé sur le projet J.A.R.V.I.S.) ou modèles TTS Hugging Face | Text-to-Speech | Auto-hébergement gratuit et illimité (Piper) ou tier gratuit limité (HF). |
-| Génération d'image (Status Remixer / sticker personnalisé) | Modèles de diffusion via Hugging Face Inference Providers | Texte → Image | Tier gratuit avec quotas et possible temps de démarrage à froid ; à tester avant de s'y appuyer en production. |
+| Transcription audio (Voice-to-Meme) | Whisper (open-weights), via Puter Inference ou exécution locale | Speech-to-Text | Tier gratuit limité en débit ; auto-hébergement possible si besoin de volume. |
+| Voix du Compagnon (texte → parole) | Piper TTS (open-source, déjà utilisé sur le projet J.A.R.V.I.S.) ou modèles TTS Puter | Text-to-Speech | Auto-hébergement gratuit et illimité (Piper) ou tier gratuit limité (HF). |
+| Génération d'image (Status Remixer / sticker personnalisé) | Modèles de diffusion via Puter Inference Providers | Texte → Image | Tier gratuit avec quotas et possible temps de démarrage à froid ; à tester avant de s'y appuyer en production. |
 
 ## 6.3 Bases de données
 
@@ -424,7 +424,7 @@ L'échéance académique communiquée (« jusqu'à 1 semaine ») couvre par cons
 
 - **b) Personnalisation par visage/voix : à cadrer strictement à l****'****usage du visage/de la voix propre de l****'****utilisateur, avec consentement explicite, sans génération de contenu représentant un tiers sans son accord. Voir §2.2.**
 
-- **c) Quotas des IA gratuites : les chiffres communiqués par Gemini, Mistral, OpenRouter et Hugging Face évoluent fréquemment et varient selon les sources ; à revérifier en direct dans les consoles officielles avant chaque jalon, avec une logique de bascule entre fournisseurs en cas d****'****erreur de quota (429).**
+- **c) Quotas des IA gratuites : les chiffres communiqués par Gemini, Mistral, OpenRouter et Puter évoluent fréquemment et varient selon les sources ; à revérifier en direct dans les consoles officielles avant chaque jalon, avec une logique de bascule entre fournisseurs en cas d****'****erreur de quota (429).**
 
 - **d) Limites du plan Vercel gratuit : timeout des fonctions serverless potentiellement trop court pour certains appels IA (image/voix) — prévoir un traitement asynchrone. Voir §12.1.**
 

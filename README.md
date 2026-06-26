@@ -42,12 +42,12 @@ Le backend lit dynamiquement les variables suivantes :
 
 | Variable | Usage | Statut |
 | --- | --- | --- |
-| `HUGGING_FACE_KEY` | Provider principal pour texte, conversations et images | Fortement recommandée |
-| `HUGGING_FACE_PROMPT_MODEL` | Modèle HF pour fabriquer les prompts optimisés | Optionnelle |
-| `HUGGING_FACE_TEXT_MODEL` | Modèle HF pour génération texte structurée | Optionnelle |
-| `HUGGING_FACE_CHAT_MODEL` | Modèle HF pour les conversations compagnons | Optionnelle |
-| `HUGGING_FACE_REASONING_MODEL` | Modèle HF pour tâches de raisonnement renforcé | Optionnelle |
-| `HUGGING_FACE_MODEL` | Modèle HF pour la génération d’image | Optionnelle |
+| `PUTER_KEY` | Provider principal pour texte, conversations et images | Fortement recommandée |
+| `PUTER_PROMPT_MODEL` | Modèle HF pour fabriquer les prompts optimisés | Optionnelle |
+| `PUTER_TEXT_MODEL` | Modèle HF pour génération texte structurée | Optionnelle |
+| `PUTER_CHAT_MODEL` | Modèle HF pour les conversations compagnons | Optionnelle |
+| `PUTER_REASONING_MODEL` | Modèle HF pour tâches de raisonnement renforcé | Optionnelle |
+| `PUTER_MODEL` | Modèle HF pour la génération d’image | Optionnelle |
 | `OPENROUTER_API_KEY` | Fallback texte ou image OpenRouter | Optionnelle |
 | `OPENROUTER_MODEL` | Modèle texte OpenRouter | Optionnelle |
 | `OPENROUTER_IMAGE_MODEL` | Fallback image OpenRouter | Optionnelle |
@@ -64,15 +64,15 @@ Le backend lit dynamiquement les variables suivantes :
 - Sur Vercel, les variables doivent être configurées dans le dashboard Vercel Project Settings → Environment Variables ; elles seront injectées par la plateforme sans dépendre du fichier `.env`.
 - Le chargeur d'env n'écrase rien côté Vercel si la plateforme a déjà injecté les variables : les variables système restent prioritaires par l'ordre réel de déploiement.
 - Le backend est conçu pour **continuer à fonctionner côté texte** même si un provider secondaire est absent.
-- Le backend utilise **Hugging Face** comme provider principal pour le texte, les conversations compagnons et les images.
+- Le backend utilise **Puter** comme provider principal pour le texte, les conversations compagnons et les images.
 - OpenRouter, Mistral, DeepSeek et Gemini restent des fallbacks selon le type de requête.
-- Sans `HUGGING_FACE_KEY` (ou `HF_TOKEN` legacy), le backend bascule automatiquement sur les providers secondaires configurés.
+- Sans `PUTER_KEY` (ou `PUTER_TOKEN` legacy), le backend bascule automatiquement sur les providers secondaires configurés.
 
 ## 🧠 Providers IA actuellement prévus
 
 ### Texte
 Ordre de fallback dans `backend/services-ia/aiService.js` :
-1. Hugging Face Prompt Model → Hugging Face Text Model
+1. Puter Prompt Model → Puter Text Model
 2. Mistral
 3. DeepSeek
 4. Gemini
@@ -80,14 +80,14 @@ Ordre de fallback dans `backend/services-ia/aiService.js` :
 
 ### Conversations compagnons
 Ordre actuel :
-1. Hugging Face Prompt Model → Hugging Face Chat Model
+1. Puter Prompt Model → Puter Chat Model
 2. Mistral / DeepSeek / Gemini / OpenRouter via fallback standard
 
 ### Image
 Ordre actuel :
-1. Hugging Face Prompt Model → Hugging Face Image Model `black-forest-labs/FLUX.1-schnell`
+1. Puter Prompt Model → Puter Image Model `black-forest-labs/FLUX.1-schnell`
 2. fallback image HF : `stabilityai/stable-diffusion-3-medium-diffusers`
-3. fallback sans image (`huggingface-text-only-fallback`) si `hf-inference` n'est pas disponible pour votre compte
+3. fallback sans image (`puter-text-only-fallback`) si `hf-inference` n'est pas disponible pour votre compte
 
 ### Modèles recommandés par opération
 - Prompt engineering général : `openai/gpt-oss-120b`
@@ -97,13 +97,13 @@ Ordre actuel :
 - Génération image premium / économique : `black-forest-labs/FLUX.1-schnell`
 - Fallback image HF validé : `stabilityai/stable-diffusion-3-medium-diffusers`
 
-Le backend essaie maintenant plusieurs modèles Hugging Face plausibles avant de basculer sur les providers de secours. La compatibilité réelle dépend toujours de votre token HF et doit être validée via `node backend/scripts/testHuggingFaceModels.js`. Sur ton compte actuel, les modèles image HF validés sont `black-forest-labs/FLUX.1-schnell` et `stabilityai/stable-diffusion-3-medium-diffusers` ; le système reste strictement Hugging Face pour l'image et tombe proprement en `huggingface-text-only-fallback` si aucun modèle image HF n'est autorisé.
+Le backend essaie maintenant plusieurs modèles Puter plausibles avant de basculer sur les providers de secours. La compatibilité réelle dépend toujours de votre token HF et doit être validée via `node backend/scripts/testPuterModels.js`. Sur ton compte actuel, les modèles image HF validés sont `black-forest-labs/FLUX.1-schnell` et `stabilityai/stable-diffusion-3-medium-diffusers` ; le système reste strictement Puter pour l'image et tombe proprement en `puter-text-only-fallback` si aucun modèle image HF n'est autorisé.
 
 ## 🖼️ Services IA image gratuits ou avec entrée gratuite
 
 Si vous voulez une génération d’image utilisable sans gros budget, voici les meilleures options de départ :
 
-### 1. Hugging Face
+### 1. Puter
 **Le plus simple pour commencer gratuitement** si vous avez juste besoin de tester ou d’avoir un petit volume.
 
 Avantages :
@@ -112,7 +112,7 @@ Avantages :
 - token unique,
 - bonne option pour prototype produit.
 
-Dans ce projet, c’est désormais la colonne vertébrale côté backend via `HUGGING_FACE_KEY`.
+Dans ce projet, c’est désormais la colonne vertébrale côté backend via `PUTER_KEY`.
 
 ### 2. Replicate
 Souvent très pratique pour tester des modèles image modernes.
@@ -168,12 +168,12 @@ Le workflow Android déclenche notamment :
 - `ANDROID_KEY_PASSWORD`
 
 #### Environnement / build
-- `HUGGING_FACE_KEY`
-- `HUGGING_FACE_PROMPT_MODEL`
-- `HUGGING_FACE_TEXT_MODEL`
-- `HUGGING_FACE_CHAT_MODEL`
-- `HUGGING_FACE_REASONING_MODEL`
-- `HUGGING_FACE_MODEL`
+- `PUTER_KEY`
+- `PUTER_PROMPT_MODEL`
+- `PUTER_TEXT_MODEL`
+- `PUTER_CHAT_MODEL`
+- `PUTER_REASONING_MODEL`
+- `PUTER_MODEL`
 - `OPENROUTER_API_KEY`
 - `OPENROUTER_MODEL`
 - `OPENROUTER_IMAGE_MODEL`
@@ -182,7 +182,7 @@ Le workflow Android déclenche notamment :
 - `GEMINI_API_KEY`
 - `DEEPSEEK_API_KEY`
 - `MISTRAL_API_KEY`
-- `HF_TOKEN` uniquement pour compatibilité legacy
+- `PUTER_TOKEN` uniquement pour compatibilité legacy
 
 ## 📱 Mobile — écrans principaux
 
@@ -212,20 +212,20 @@ npm run build --prefix web
 Prévoyez des tests manuels avec des clés réelles pour :
 - génération texte,
 - fallback texte,
-- génération image Hugging Face,
+- génération image Puter,
 - fallback image.
 
 Script de validation rapide :
 ```bash
 node backend/scripts/check_env.js
-node backend/scripts/testHuggingFaceModels.js
-node backend/scripts/discoverHuggingFaceImageModels.js
+node backend/scripts/testPuterModels.js
+node backend/scripts/discoverPuterImageModels.js
 node backend/scripts/testImageProvider.js "Un mème visuel orange premium, réaction WhatsApp, composition forte, style Viral Stick"
 ```
 
 Pour scanner une liste personnalisée de modèles image HF :
 ```bash
-node backend/scripts/discoverHuggingFaceImageModels.js black-forest-labs/FLUX.1-Krea-dev Qwen/Qwen-Image runwayml/stable-diffusion-v1-5
+node backend/scripts/discoverPuterImageModels.js black-forest-labs/FLUX.1-Krea-dev Qwen/Qwen-Image runwayml/stable-diffusion-v1-5
 ```
 
 ---

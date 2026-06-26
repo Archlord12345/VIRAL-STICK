@@ -8,12 +8,12 @@ Use `backend/.env` or `backend/.env.local`.
 Recommended values:
 
 ```env
-HUGGING_FACE_KEY=...
-HUGGING_FACE_PROMPT_MODEL=openai/gpt-oss-120b
-HUGGING_FACE_TEXT_MODEL=openai/gpt-oss-120b
-HUGGING_FACE_CHAT_MODEL=zai-org/GLM-4.5V
-HUGGING_FACE_REASONING_MODEL=zai-org/GLM-4.5V
-HUGGING_FACE_MODEL=black-forest-labs/FLUX.1-schnell
+PUTER_KEY=...
+PUTER_PROMPT_MODEL=openai/gpt-oss-120b
+PUTER_TEXT_MODEL=openai/gpt-oss-120b
+PUTER_CHAT_MODEL=zai-org/GLM-4.5V
+PUTER_REASONING_MODEL=zai-org/GLM-4.5V
+PUTER_MODEL=black-forest-labs/FLUX.1-schnell
 ```
 
 ## Vercel
@@ -24,8 +24,8 @@ Add the same variables in Project Settings -> Environment Variables.
 ### Backend
 ```bash
 node backend/scripts/check_env.js
-node backend/scripts/testHuggingFaceModels.js
-node backend/scripts/discoverHuggingFaceImageModels.js
+node backend/scripts/testPuterModels.js
+node backend/scripts/discoverPuterImageModels.js
 node backend/scripts/testImageProvider.js "Un mème visuel orange premium, réaction WhatsApp, composition forte, style Viral Stick"
 ```
 
@@ -86,5 +86,10 @@ Response includes:
 - Web supports image upload as base64 input.
 - Backend accepts larger JSON payloads for image base64 (`20mb`).
 - Mobile currently supports image-aware pipeline fields, but not a full native gallery/camera picker yet.
+<<<<<<< HEAD
+- Image generation is Puter only.
+- If Puter Router returns `402 Payment Required` on text models, your monthly included credits are exhausted; text generation will rely on configured fallbacks when available.
+=======
 - Image generation is Hugging Face only.
 - If Hugging Face Router returns `402 Payment Required` on text models, your monthly included credits are exhausted; text generation will rely on configured fallbacks when available.
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075

@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from "react-native";
 import axios from "axios";
 import { spacing, radius } from "../theme";
+<<<<<<< HEAD
+=======
 import { rs, wp } from "../theme/responsive";
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 import { colors } from "../theme/tokens";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
@@ -163,6 +166,32 @@ const VoiceToMemeScreen = ({ navigate }) => {
 
 const styles = StyleSheet.create({
   safe:        { flex: 1, backgroundColor: "#ffffff" },
+<<<<<<< HEAD
+  scroll:      { paddingHorizontal: spacing.md, paddingTop: 80 },
+  hero:        { padding: spacing.lg, marginBottom: spacing.md },
+  badge:       { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
+  badgeText:   { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
+  title:       { fontSize: 32, fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
+  sub:         { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
+  card:        { marginBottom: spacing.md, padding: spacing.md },
+  label:       { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 1.5, marginBottom: 8 },
+  wave:        { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, height: 60, width: "100%" },
+  waveBar:     { width: 5, height: 44, borderRadius: 5 },
+  durationText:{ fontSize: 18, fontWeight: "800", letterSpacing: 2 },
+  micBtn:      { width: 96, height: 96, borderRadius: 48, alignItems: "center", justifyContent: "center", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 0, elevation: 4 },
+  micIcon:     { fontSize: 38 },
+  hint:        { textAlign: "center", fontSize: 13, color: colors.silver, lineHeight: 19, paddingHorizontal: spacing.sm },
+  transcript:  { fontSize: 16, color: colors.almostBlack, fontStyle: "italic", lineHeight: 24, fontWeight: "600" },
+  loadTitle:   { fontSize: 17, fontWeight: "800", color: colors.almostBlack },
+  loadSub:     { textAlign: "center", fontSize: 13, color: colors.silver, lineHeight: 18 },
+  memeBox:     { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md, backgroundColor: colors.bgSecondary },
+  memeText:    { fontSize: 17, fontWeight: "900", textTransform: "uppercase", textAlign: "center", color: colors.almostBlack, lineHeight: 22 },
+  memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 100, alignItems: "center", justifyContent: "center", padding: spacing.md },
+  memeSceneText:{ textAlign: "center", fontSize: 13, color: colors.graphite, lineHeight: 19, marginTop: 8 },
+  subtitleCard:{ padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, borderWidth: 2, borderColor: colors.cloudGray },
+  gridLabel:   { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 1, marginBottom: 6 },
+  subtitleText:{ fontSize: 14, fontStyle: "italic", color: colors.charcoal, lineHeight: 19 },
+=======
   scroll:      { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   hero:        { padding: spacing.lg, marginBottom: spacing.md },
   badge:       { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
@@ -187,6 +216,7 @@ const styles = StyleSheet.create({
   subtitleCard:{ padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, borderWidth: 2, borderColor: colors.cloudGray },
   gridLabel:   { fontSize: rs(11), fontWeight: "800", color: colors.silver, letterSpacing: 1, marginBottom: 6 },
   subtitleText:{ fontSize: rs(14), fontStyle: "italic", color: colors.charcoal, lineHeight: rs(19) },
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 });
 
 export default VoiceToMemeScreen;

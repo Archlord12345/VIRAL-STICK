@@ -1,4 +1,44 @@
 const AIService = require("../services-ia/aiService");
+<<<<<<< HEAD
+const ShareService = require("../services-ia/shareService");
+
+async function attachMemeShare(req, memeData) {
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const share = await ShareService.buildShareBundle({
+    topText: memeData.topText,
+    bottomText: memeData.bottomText,
+    imageUrl: memeData.imageUrl,
+    baseUrl,
+  });
+  return {
+    ...memeData,
+    composedImageUrl: share.imageDataUrl || memeData.imageUrl || null,
+    share,
+  };
+}
+
+async function attachRemixShare(req, remix) {
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const sourceImage =
+    remix.sourceImageUrl && String(remix.sourceImageUrl).startsWith("data:")
+      ? remix.sourceImageUrl
+      : remix.imageUrl;
+
+  const share = await ShareService.buildShareBundle({
+    caption: remix.meme_text,
+    bottomText: remix.meme_text,
+    imageUrl: sourceImage,
+    baseUrl,
+  });
+
+  return {
+    ...remix,
+    composedImageUrl: share.imageDataUrl || sourceImage || null,
+    share,
+  };
+}
+=======
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 
 const MemeController = {
   createFromText: async (req, res) => {
@@ -21,9 +61,17 @@ const MemeController = {
         companionComment = "Art adore ce concept ! C'est très visuel.";
       }
 
+<<<<<<< HEAD
+      const withShare = await attachMemeShare(req, memeData);
+
+      res.status(200).json({
+        message: "Mème généré avec succès",
+        ...withShare,
+=======
       res.status(200).json({
         message: "Mème généré avec succès",
         ...memeData,
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
         companionComment,
         location: location || "international",
       });
@@ -35,9 +83,35 @@ const MemeController = {
 
   createFromVoice: async (req, res) => {
     try {
+<<<<<<< HEAD
+      let { transcription } = req.body;
+
+      // Nouveau : si un vrai fichier audio est envoyé (multipart/form-data,
+      // champ "audio"), on le transcrit réellement via Whisper (HF).
+      if (req.file) {
+        try {
+          transcription = await AIService.transcribeAudio(
+            req.file.buffer,
+            req.file.mimetype,
+          );
+        } catch (e) {
+          console.error("[createFromVoice][transcription]", e.message);
+          return res.status(502).json({
+            error:
+              "Le service de transcription audio est indisponible. Réessaie dans un instant.",
+          });
+        }
+      }
+
+      if (!transcription) {
+        return res.status(400).json({
+          error: "Audio (champ 'audio') ou transcription requis",
+        });
+=======
       const { transcription } = req.body;
       if (!transcription) {
         return res.status(400).json({ error: "Transcription requise" });
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
       }
 
       const memeData = await AIService.generateMemeFromVoice(transcription);
@@ -53,9 +127,18 @@ const MemeController = {
         companionComment = "Ubu trouve ça hilarant ! 🤖";
       }
 
+<<<<<<< HEAD
+      const withShare = await attachMemeShare(req, memeData);
+
+      res.status(200).json({
+        message: "Mème vocal généré avec succès",
+        transcription,
+        ...withShare,
+=======
       res.status(200).json({
         message: "Mème vocal généré avec succès",
         ...memeData,
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
         companionComment,
       });
     } catch (error) {
@@ -137,8 +220,15 @@ const MemeController = {
           "Bio valide le rendu : plus lisible, plus postable, plus viral.";
       }
 
+<<<<<<< HEAD
+      const withShare = await attachRemixShare(req, remix);
+
+      res.status(200).json({
+        ...withShare,
+=======
       res.status(200).json({
         ...remix,
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
         companionComment,
         location: location || "international",
       });
