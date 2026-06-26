@@ -4,10 +4,15 @@
  */
 
 import React, { useState } from "react";
+<<<<<<< HEAD
+import { View, StyleSheet } from "react-native";
+import DrawerNavigator from "./DrawerNavigator";
+=======
 import { View, StyleSheet, StatusBar } from "react-native";
 import BottomTabNavigator from "./BottomTabNavigator";
 import Header from "../components/Header";
 import { colors } from "../theme/tokens";
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -18,6 +23,18 @@ import CompanionChatScreen from "../screens/CompanionChatScreen";
 import MultiChatScreen from "../screens/MultiChatScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import AboutScreen from "../screens/AboutScreen";
+<<<<<<< HEAD
+
+const SCREENS = {
+  Home: HomeScreen,
+  ContextReader: ContextReaderScreen,
+  VoiceToMeme: VoiceToMemeScreen,
+  StatusRemixer: StatusRemixerScreen,
+  CompanionChat: CompanionChatScreen,
+  MultiChat: MultiChatScreen,
+  Settings: SettingsScreen,
+  About: AboutScreen,
+=======
 import MenuScreen from "../screens/MenuScreen";
 
 const SCREENS = {
@@ -30,11 +47,28 @@ const SCREENS = {
   Settings: { comp: SettingsScreen, title: "Paramètres", sub: "Configuration" },
   About: { comp: AboutScreen, title: "À propos", sub: "Manifeste" },
   Menu: { comp: MenuScreen, title: "Menu", sub: "Options du Studio" },
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 };
 
 const RootNavigator = () => {
   const [currentScreen, setCurrentScreen] = useState("Home");
 
+<<<<<<< HEAD
+  const Screen = SCREENS[currentScreen] || HomeScreen;
+
+  return (
+    <DrawerNavigator
+      currentScreen={currentScreen}
+      onNavigate={setCurrentScreen}
+    >
+      <View style={StyleSheet.absoluteFill}>
+        <Screen navigate={setCurrentScreen} />
+      </View>
+    </DrawerNavigator>
+  );
+};
+
+=======
   const screenInfo = SCREENS[currentScreen] || SCREENS.Home;
   const ScreenComp = screenInfo.comp;
 
@@ -82,4 +116,5 @@ const styles = StyleSheet.create({
   },
 });
 
+>>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 export default RootNavigator;

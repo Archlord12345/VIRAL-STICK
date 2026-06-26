@@ -1,5 +1,0 @@
-# ninja log v5
-0	3	0	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/.cxx/Debug/553k2jf1/x86/CMakeFiles/cmake.verify_globs	ed22b5067d041e53
-1	3177	1782237097580576429	CMakeFiles/appmodules.dir/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/generated/autolinking/src/main/jni/autolinking.cpp.o	63eedd0d2a9bf404
-1	3512	1782237097912553865	CMakeFiles/appmodules.dir/OnLoad.cpp.o	768a483a890ff6aa
-3512	3565	1782237097980549243	/home/ravel/Bureau/VIRAL-STICK/mobile/android/app/build/intermediates/cxx/Debug/553k2jf1/obj/x86/libappmodules.so	75bdadd626b223f2
