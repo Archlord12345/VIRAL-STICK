@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile
 } from "firebase/auth";
+import { auth } from "../firebase";
 import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
 import { colors, radius } from "../theme/tokens";
@@ -20,7 +20,6 @@ const AuthPage = ({ mode = "login" }) => {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const auth = getAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
