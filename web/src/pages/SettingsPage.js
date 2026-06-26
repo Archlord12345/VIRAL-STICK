@@ -1,48 +1,10 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from "react";
-=======
 import React, { useState } from "react";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 import CompanionAvatarWeb from "../components/CompanionAvatarWeb";
 import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
 import { colors, radius } from "../theme/tokens";
 
 const API_FIELDS = [
-<<<<<<< HEAD
-  { key: "GEMINI_API_KEY",     label: "Google Gemini",   helper: "Primaire texte/mème — Gemini 2.5 Flash (quota généreux, fortement recommandé).", emoji: "💎" },
-  { key: "GROQ_API_KEY",       label: "Groq Whisper",    helper: "Primaire audio — Whisper large-v3 gratuit et ultra-rapide. Obtenir sur console.groq.com", emoji: "🎙️" },
-  { key: "MISTRAL_API_KEY",    label: "Mistral AI",      helper: "Fallback texte 1 — très bon en français.",                                          emoji: "🌊" },
-  { key: "PUTER_KEY",          label: "Puter",           helper: "Fallback texte 2 + image + audio — modèles OpenAI-compat.",                          emoji: "🖥️" },
-  { key: "DEEPSEEK_API_KEY",   label: "DeepSeek",        helper: "Fallback texte 3 — fort en raisonnement structuré.",                                 emoji: "🔍" },
-  { key: "OPENROUTER_API_KEY", label: "OpenRouter",      helper: "Fallback texte 4 — filet de sécurité ultime (50+ modèles disponibles).",             emoji: "🔀" },
-];
-
-const FIELDS_NOTE = "💡 Pollinations.ai (génération d'image) est 100% gratuit et ne nécessite aucune clé.";
-
-const SettingsPage = () => {
-  const [keys, setKeys] = useState({
-    GEMINI_API_KEY:     "",
-    GROQ_API_KEY:       "",
-    MISTRAL_API_KEY:    "",
-    PUTER_KEY:          "",
-    DEEPSEEK_API_KEY:   "",
-    OPENROUTER_API_KEY: "",
-  });
-  const [show, setShow]         = useState(false);
-  const [status, setStatus]     = useState(null);
-  const [saving, setSaving]     = useState(false);
-  const [updatable, setUpdatable] = useState(true);
-  const [checked, setChecked]   = useState(false);
-
-  useEffect(() => {
-    fetch("/api/debug/keys-status")
-      .then((r) => r.json())
-      .then((d) => setUpdatable(!!d.updatable))
-      .catch(() => setUpdatable(false))
-      .finally(() => setChecked(true));
-  }, []);
-=======
   { key: "HUGGING_FACE_KEY", label: "Hugging Face",  helper: "Moteur principal pour le texte, le chat et la génération d'image.", emoji: "🤗" },
   { key: "GEMINI_API_KEY",   label: "Google Gemini", helper: "Liaison de secours pour la génération textuelle.",                   emoji: "💎" },
   { key: "MISTRAL_API_KEY",  label: "Mistral AI",    helper: "Fallback européen pour la structure des mèmes.",                    emoji: "🌊" },
@@ -54,7 +16,6 @@ const SettingsPage = () => {
   const [show, setShow]     = useState(false);
   const [status, setStatus] = useState(null);
   const [saving, setSaving] = useState(false);
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 
   const handleSave = async () => {
     setSaving(true); setStatus(null);
@@ -119,21 +80,6 @@ const SettingsPage = () => {
           </button>
         </div>
 
-<<<<<<< HEAD
-          {checked && !updatable && (
-            <div style={{
-              marginTop: 0, marginBottom: 24, padding: "12px 20px", borderRadius: radius.md,
-              background: `${colors.skyBlue}15`, border: `2px solid ${colors.skyBlue}44`,
-              fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700,
-              color: colors.charcoal,
-            }}>
-              ℹ️ La mise à jour des clés depuis cette page n'est disponible qu'en environnement de développement local.
-              En production, configure les clés directement dans les variables d'environnement du serveur (Vercel / GitHub Actions).
-            </div>
-          )}
-
-=======
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
         <div style={{ display: "grid", gap: 24 }}>
           {API_FIELDS.map((f) => (
             <div key={f.key}>
@@ -152,10 +98,6 @@ const SettingsPage = () => {
                 onChange={(e) => setKeys({ ...keys, [f.key]: e.target.value })}
                 placeholder="Colle ta clé ici..."
                 className="duo-input"
-<<<<<<< HEAD
-                disabled={!updatable}
-=======
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
               />
               <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: colors.silver, margin: "6px 0 0", fontWeight: 600 }}>
                 {f.helper}
@@ -179,11 +121,7 @@ const SettingsPage = () => {
 
         {/* Bouton save */}
         <div style={{ marginTop: 32, display: "flex", justifyContent: "flex-end" }}>
-<<<<<<< HEAD
-          <PremiumButton variant="primary" onClick={handleSave} disabled={saving || !updatable} style={{ minWidth: 220, justifyContent: "center" }}>
-=======
           <PremiumButton variant="primary" onClick={handleSave} disabled={saving} style={{ minWidth: 220, justifyContent: "center" }}>
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
             {saving ? "Enregistrement..." : "💾 Enregistrer les clés"}
           </PremiumButton>
         </div>
