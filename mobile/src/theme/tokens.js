@@ -1,10 +1,10 @@
-// Viral Stick Mobile — Design Tokens — Style Coral & Midnight
+// Viral Stick Mobile — Design Tokens — Style Sapphire & Obsidian
 export const colors = {
-  // ── Primary : Coral ─────────────────────
-  coral:       "#FF6B6B",
-  coralDark:   "#E55A5A",
-  coralLight:  "#FFB3B3",
-  coralOrange: "#FF8E53",
+  // ── Primary : Sapphire ─────────────────────
+  sapphire:       "#2563EB",
+  sapphireDark:   "#1D4ED8",
+  sapphireLight:  "#BFDBFE",
+  sapphireCyan:   "#06B6D4",
 
   // ── Success / validation ───────────────────
   successGreen:      "#4ADE80",
@@ -35,18 +35,18 @@ export const colors = {
   text:          "#FFFFFF",
   textSecondary: "#A0A0A0",
   textMuted:     "#6B7280",
-  success:       "#4ADE80",
+  success:       "#10B981",
   warning:       "#F59E0B",
-  danger:        "#FF6B6B",
+  danger:        "#EF4444",
   
   // ── Compagnons ────────────────────────────
   arch: "#3B82F6",   // bleu
   art:  "#F59E0B",   // ambre
-  bio:  "#FF6B6B",   // corail
-  data: "#10B981",   // vert
-  para: "#FF8E53",   // orange
-  secu: "#8B5CF6",   // violet
-  ubu:  "#F43F5E",   // rose
+  bio:  "#10B981",   // vert
+  data: "#06B6D4",   // cyan
+  para: "#8B5CF6",   // violet
+  secu: "#6366F1",   // indigo
+  ubu:  "#EF4444",   // rouge
 };
 
 export const spacing = {
@@ -59,5 +59,5 @@ export const borderRadius = {
 
 export const shadows = {
   card: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 5 },
-  btn:  { shadowColor: "#FF6B6B", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  btn:  { shadowColor: "#2563EB", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
 };

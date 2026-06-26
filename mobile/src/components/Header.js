@@ -12,7 +12,7 @@ const Header = ({ title, subtitle, rightElement, onBack }) => {
       <View style={styles.left}>
         {onBack && (
           <TouchableOpacity onPress={onBack} style={[styles.backBtn, { backgroundColor: theme.backgroundCard, borderColor: theme.border }]}>
-            <AppIcon name="arrow-left" color={theme.textPrimary} size={16} />
+            <AppIcon name="arrow-left" color={theme.textPrimary} size={18} />
           </TouchableOpacity>
         )}
         <View>
@@ -29,13 +29,12 @@ const Header = ({ title, subtitle, rightElement, onBack }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 70,
+    height: 56, // Plus compact (Linear style)
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.md,
-    borderBottomWidth: 2,
-    paddingTop: 10,
+    borderBottomWidth: 1, // Bordure fine
   },
   left: {
     flexDirection: "row",
@@ -48,16 +47,16 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
+    borderWidth: 1, // Bordure fine
   },
   title: {
     fontSize: 18,
-    fontWeight: "900",
-    letterSpacing: -0.5,
+    fontWeight: "700",
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },

@@ -7,10 +7,10 @@ const AnimatedButton = ({ title, onPress, variant = "primary", size = "md", load
   const pressed = useRef(new Animated.Value(0)).current;
 
   const VARIANTS = {
-    primary: { bg: theme.primary,   shadow: theme.primaryDark,  text: "#ffffff", border: theme.primary },
-    green:   { bg: theme.secondary, shadow: theme.secondaryLight, text: "#ffffff", border: theme.secondary },
-    ghost:   { bg: theme.backgroundCard, shadow: theme.border,  text: theme.primary, border: theme.border },
-    danger:  { bg: theme.danger,    shadow: "#aa1d1d",           text: "#ffffff", border: theme.danger },
+    primary: { bg: theme.primary,   shadow: theme.primary,  text: "#ffffff", border: theme.primaryDark },
+    green:   { bg: theme.secondary, shadow: theme.secondary, text: "#ffffff", border: theme.secondaryLight },
+    ghost:   { bg: "transparent", shadow: "transparent",  text: theme.textPrimary, border: theme.border },
+    danger:  { bg: theme.danger,    shadow: theme.danger,           text: "#ffffff", border: theme.danger },
   };
 
   const v = VARIANTS[variant] || VARIANTS.primary;
@@ -19,7 +19,7 @@ const AnimatedButton = ({ title, onPress, variant = "primary", size = "md", load
   const onIn  = () => Animated.spring(pressed, { toValue: 1, useNativeDriver: true, tension: 300, friction: 10 }).start();
   const onOut = () => Animated.spring(pressed, { toValue: 0, useNativeDriver: true, tension: 300, friction: 10 }).start();
 
-  const translateY = pressed.interpolate({ inputRange: [0, 1], outputRange: [0, 4] });
+  const scale = pressed.interpolate({ inputRange: [0, 1], outputRange: [1, 0.96] });
 
   return (
     <TouchableWithoutFeedback
@@ -29,16 +29,16 @@ const AnimatedButton = ({ title, onPress, variant = "primary", size = "md", load
       <Animated.View style={[
         styles.btn,
         {
-          backgroundColor: disabled ? theme.border : v.bg,
+          backgroundColor: disabled ? theme.backgroundSecondary : v.bg,
           borderColor: disabled ? theme.border : v.border,
           paddingVertical: pad.v, paddingHorizontal: pad.h,
-          borderRadius: radius.md,
-          shadowColor: disabled ? "#555" : v.shadow,
+          borderRadius: radius.pill,
+          shadowColor: disabled ? "transparent" : v.shadow,
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.9,
-          shadowRadius: 0,
-          elevation: 4,
-          transform: [{ translateY }],
+          shadowOpacity: variant === 'ghost' ? 0 : 0.3,
+          shadowRadius: 8,
+          elevation: variant === 'ghost' ? 0 : 4,
+          transform: [{ scale }],
         },
         style,
       ]}>
@@ -52,8 +52,8 @@ const AnimatedButton = ({ title, onPress, variant = "primary", size = "md", load
 };
 
 const styles = StyleSheet.create({
-  btn:   { alignItems: "center", justifyContent: "center", borderWidth: 2, overflow: "hidden" },
-  label: { fontWeight: "800", letterSpacing: 0.4 },
+  btn:   { alignItems: "center", justifyContent: "center", borderWidth: 1, overflow: "hidden" },
+  label: { fontWeight: "700", letterSpacing: 0.2 }, // Plus subtil que 800
 });
 
 export default AnimatedButton;

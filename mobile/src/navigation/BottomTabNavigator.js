@@ -1,14 +1,14 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from "react-native";
+import { View, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from "react-native";
 import { useTheme } from "../theme";
 import AppIcon from "../components/AppIcon";
 
 const TAB_ITEMS = [
-  { key: "Home",           label: "Accueil",   icon: "home",           accentKey: "secondary" },
-  { key: "ContextReader",  label: "Context",   icon: "context",        accentKey: "warning" },
-  { key: "VoiceToMeme",    label: "Voice",     icon: "voice",          accentKey: "secondary" },
-  { key: "StatusRemixer",  label: "Remix",     icon: "remix",          accentKey: "primary" },
-  { key: "Menu",           label: "Menu",      icon: "settings",       accentKey: "textSecondary" },
+  { key: "Home",           icon: "home",           accentKey: "primary" },
+  { key: "ContextReader",  icon: "book",           accentKey: "warning" },
+  { key: "VoiceToMeme",    icon: "mic",            accentKey: "secondary" },
+  { key: "StatusRemixer",  icon: "image",          accentKey: "danger" },
+  { key: "Menu",           icon: "settings",       accentKey: "textPrimary" },
 ];
 
 const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
@@ -21,9 +21,20 @@ const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
         {children}
       </View>
 
-      {/* Barre de navigation basse */}
-      <SafeAreaView style={[styles.tabBarContainer, { backgroundColor: theme.backgroundSecondary, borderTopColor: theme.border }]}>
-        <View style={styles.tabBar}>
+      {/* Barre de navigation basse (Pill flottant) */}
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[
+          styles.tabBar, 
+          { 
+            backgroundColor: theme.backgroundCard, 
+            borderColor: theme.border,
+            shadowColor: theme.cardShadow.shadowColor,
+            shadowOffset: theme.cardShadow.shadowOffset,
+            shadowOpacity: theme.cardShadow.shadowOpacity,
+            shadowRadius: theme.cardShadow.shadowRadius,
+            elevation: theme.cardShadow.elevation,
+          }
+        ]}>
           {TAB_ITEMS.map((item) => {
             const active = currentScreen === item.key;
             const accentColor = theme[item.accentKey] || theme.primary;
@@ -34,22 +45,12 @@ const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
                 activeOpacity={0.7}
                 style={styles.tabItem}
               >
-                <View style={[
-                  styles.iconBox,
-                  active && { backgroundColor: `${accentColor}18`, borderColor: accentColor, borderWidth: 2 }
-                ]}>
-                  <AppIcon
-                    name={item.icon}
-                    color={active ? accentColor : theme.textSecondary}
-                    size={20}
-                  />
-                </View>
-                <Text style={[
-                  styles.tabLabel,
-                  { color: active ? accentColor : theme.textSecondary, fontWeight: active ? "900" : "700" }
-                ]}>
-                  {item.label}
-                </Text>
+                <AppIcon
+                  name={item.icon}
+                  color={active ? accentColor : theme.textMuted}
+                  size={24}
+                />
+                {/* Active indicator dot */}
                 {active && <View style={[styles.activeIndicator, { backgroundColor: accentColor }]} />}
               </TouchableOpacity>
             );
@@ -67,23 +68,20 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  tabBarContainer: {
-    borderTopWidth: 2,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
+  safeArea: {
+    position: "absolute",
+    bottom: Platform.OS === 'ios' ? 24 : 16,
+    left: 0,
+    right: 0,
+    alignItems: "center",
   },
   tabBar: {
     flexDirection: "row",
-    height: 65,
+    height: 64,
+    width: "90%",
+    maxWidth: 400,
+    borderRadius: 32,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "space-around",
     paddingHorizontal: 8,
@@ -93,28 +91,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flex: 1,
     height: "100%",
-    paddingTop: 8,
-  },
-  iconBox: {
-    width: 40,
-    height: 32,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  tabLabel: {
-    fontSize: 10,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
   activeIndicator: {
+    position: "absolute",
+    bottom: 10,
     width: 4,
     height: 4,
     borderRadius: 2,
-    marginTop: 4,
   },
 });
 
