@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import CompanionAvatarWeb from "../components/CompanionAvatarWeb";
 import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
@@ -14,12 +15,23 @@ const FILTERS = [
 ];
 
 const RemixPage = () => {
+  const locationState = useLocation().state;
   const [remixText, setRemixText]               = useState("");
   const [inputImageBase64, setInputImageBase64] = useState("");
   const [filter, setFilter]                     = useState("none");
   const [loading, setLoading]                   = useState(false);
   const [result, setResult]                     = useState(null);
   const [error, setError]                       = useState("");
+
+  useEffect(() => {
+    if (locationState?.imageUrl) {
+      // Si on vient du forum avec une image
+      setInputImageBase64(locationState.imageUrl);
+    }
+    if (locationState?.text) {
+      setRemixText(locationState.text);
+    }
+  }, [locationState]);
 
   const shareText = useMemo(() => {
     if (!result) return remixText;

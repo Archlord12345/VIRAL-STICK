@@ -1,11 +1,7 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, TextInput, Alert, Image, ActivityIndicator, StatusBar } from "react-native";
 import axios from "axios";
-import { spacing, radius } from "../theme";
-<<<<<<< HEAD
-=======
-import { rs, wp } from "../theme/responsive";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+import { spacing, radius } from "../theme/tokens";
 import { colors } from "../theme/tokens";
 import GlassCard from "../components/GlassCard";
 import AnimatedButton from "../components/AnimatedButton";
@@ -22,15 +18,28 @@ const FILTERS = [
 
 const POSITIONS = ["top", "center", "bottom"];
 
-const StatusRemixerScreen = ({ navigate }) => {
+const StatusRemixerScreen = ({ navigate, route }) => {
+  const params = route?.params || {};
   const [filter, setFilter]       = useState("none");
   const [caption, setCaption]     = useState("");
   const [position, setPosition]   = useState("bottom");
   const [imagePicked, setImagePicked] = useState(false);
+  const [initialImage, setInitialImage] = useState(null);
   const [loading, setLoading]     = useState(false);
   const [remix, setRemix]         = useState(null);
   const [msg, setMsg]             = useState("Envoie un visuel ou une intention. Je m'occupe du reste.");
   const previewAnim               = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (params.imageUrl) {
+      setInitialImage(params.imageUrl);
+      setImagePicked(true);
+      animatePreview();
+    }
+    if (params.text) {
+      setCaption(params.text);
+    }
+  }, [params]);
 
   const overlay = useMemo(() => ({
     dramatic: "rgba(0,0,0,0.55)", neon: "rgba(34,211,238,0.22)",
@@ -56,6 +65,7 @@ const StatusRemixerScreen = ({ navigate }) => {
     try {
       const res = await axios.post(apiUrl("/api/memes/status-remixer"), {
         text: caption || "Image de réaction expressive à transformer en mème",
+        inputImageUrl: initialImage || undefined,
         imageContext: imagePicked ? `Filtre: ${filter}. Position: ${position}.` : undefined,
       });
       setRemix(res.data);
@@ -69,7 +79,6 @@ const StatusRemixerScreen = ({ navigate }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <GlassCard animate style={styles.hero}>
           <View style={styles.badge}><Text style={styles.badgeText}>MODULE 03 · VISUAL REMIX</Text></View>
@@ -95,8 +104,8 @@ const StatusRemixerScreen = ({ navigate }) => {
                 <Text style={styles.label}>CANVAS</Text>
                 <View style={styles.canvas}>
                   <View style={[StyleSheet.absoluteFill, { backgroundColor: overlay, borderRadius: radius.md }]} pointerEvents="none" />
-                  {remix?.imageUrl ? (
-                    <Image source={{ uri: remix.imageUrl }} style={styles.canvasImg} resizeMode="cover" />
+                  {remix?.imageUrl || initialImage ? (
+                    <Image source={{ uri: remix?.imageUrl || initialImage }} style={styles.canvasImg} resizeMode="cover" />
                   ) : (
                     <View style={styles.canvasPlaceholder}>
                       <Text style={{ fontSize: 56 }}>{filter === "fire" ? "🔥" : filter === "neon" ? "💫" : "📸"}</Text>
@@ -184,8 +193,7 @@ const StatusRemixerScreen = ({ navigate }) => {
 
 const styles = StyleSheet.create({
   safe:         { flex: 1, backgroundColor: "#ffffff" },
-<<<<<<< HEAD
-  scroll:       { paddingHorizontal: spacing.md, paddingTop: 80 },
+  scroll:       { paddingHorizontal: spacing.md, paddingTop: spacing.md },
   hero:         { padding: spacing.lg, marginBottom: spacing.md },
   badge:        { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
   badgeText:    { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
@@ -216,39 +224,6 @@ const styles = StyleSheet.create({
   enhancement:  { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm, padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, marginBottom: spacing.sm },
   enhIdx:       { fontSize: 15, fontWeight: "900", minWidth: 18 },
   enhText:      { flex: 1, fontSize: 13, color: colors.charcoal, lineHeight: 19 },
-=======
-  scroll:       { paddingHorizontal: spacing.md, paddingTop: spacing.md },
-  hero:         { padding: spacing.lg, marginBottom: spacing.md },
-  badge:        { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 10 },
-  badgeText:    { fontSize: rs(10), fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  title:        { fontSize: rs(32), fontWeight: "900", color: colors.almostBlack, letterSpacing: -0.5 },
-  sub:          { fontSize: rs(14), color: colors.graphite, marginTop: 6, lineHeight: rs(20) },
-  card:         { marginBottom: spacing.md },
-  label:        { fontSize: rs(11), fontWeight: "800", color: colors.silver, letterSpacing: 1.5, marginBottom: 8 },
-  sectionTitle: { fontSize: rs(16), fontWeight: "800", color: colors.almostBlack, marginBottom: 6 },
-  sectionSub:   { fontSize: rs(13), color: colors.graphite, lineHeight: rs(19), marginBottom: spacing.sm },
-  canvas:       { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, minHeight: 280, overflow: "hidden", justifyContent: "center", alignItems: "center", position: "relative" },
-  canvasImg:    { ...StyleSheet.absoluteFillObject, width: "100%", height: "100%" },
-  canvasPlaceholder: { alignItems: "center", justifyContent: "center" },
-  canvasLabel:  { fontSize: rs(13), color: colors.silver, marginTop: 8 },
-  overlay:      { position: "absolute", left: 16, right: 16, color: "#ffffff", fontSize: rs(20), fontWeight: "900", textAlign: "center", textTransform: "uppercase", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
-  top:          { top: 16 },
-  center:       { top: "44%" },
-  bottom:       { bottom: 16 },
-  input:        { borderWidth: 2, borderColor: colors.cloudGray, borderRadius: radius.md, padding: spacing.md, fontSize: rs(15), color: colors.almostBlack, minHeight: 80, backgroundColor: colors.bgSecondary, textAlignVertical: "top" },
-  filterRow:    { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  filterChip:   { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 9 },
-  filterLabel:  { fontSize: rs(13), fontWeight: "700" },
-  posRow:       { flexDirection: "row", gap: spacing.sm },
-  posBtn:       { flex: 1, borderWidth: 2, borderRadius: radius.md, paddingVertical: 11, alignItems: "center" },
-  posLabel:     { fontSize: rs(14), fontWeight: "800" },
-  actions:      { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
-  loadTitle:    { fontSize: rs(17), fontWeight: "800", color: colors.almostBlack },
-  loadSub:      { textAlign: "center", fontSize: rs(13), color: colors.silver, lineHeight: rs(18) },
-  enhancement:  { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm, padding: spacing.md, backgroundColor: colors.bgSecondary, borderRadius: radius.md, marginBottom: spacing.sm },
-  enhIdx:       { fontSize: rs(15), fontWeight: "900", minWidth: 18 },
-  enhText:      { flex: 1, fontSize: rs(13), color: colors.charcoal, lineHeight: rs(19) },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 });
 
 export default StatusRemixerScreen;
