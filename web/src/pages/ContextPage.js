@@ -4,7 +4,7 @@ import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
 import WhatsAppShareButton from "../components/WhatsAppShareButton";
 import AppIcon from "../components/AppIcon";
-import { colors, radius, spacing } from "../theme/tokens";
+import { colors, radius } from "../theme/tokens";
 
 const LOCATIONS = [
   { value: "france",       label: "🇫🇷 France" },
