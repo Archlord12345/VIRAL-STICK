@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { colors, radius, spacing } from '../theme/tokens';
+import { apiUrl } from '../config/api';
 
 const TABS = [
   { id: 'createdAt', label: 'Récents', icon: '🕒' },
@@ -20,7 +21,7 @@ const ForumScreen = ({ navigate }) => {
   const fetchMemes = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`https://viral-stick.vercel.app/api/forum/memes?sortBy=${sortBy}`);
+      const res = await fetch(apiUrl(`/api/forum/memes?sortBy=${sortBy}`));
       const data = await res.json();
       setMemes(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -33,8 +34,10 @@ const ForumScreen = ({ navigate }) => {
 
   const handleLike = async (id) => {
     try {
-      await fetch(`https://viral-stick.vercel.app/api/forum/like/${id}`, { method: 'POST' });
-      setMemes(prev => prev.map(m => m.id === id ? { ...m, likes: m.likes + 1 } : m));
+      const res = await fetch(apiUrl(`/api/forum/like/${id}`), { method: 'POST' });
+      if (res.ok) {
+        setMemes(prev => prev.map(m => m.id === id ? { ...m, likes: (m.likes || 0) + 1 } : m));
+      }
     } catch (e) {
       console.error(e);
     }

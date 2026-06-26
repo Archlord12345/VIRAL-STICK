@@ -75,7 +75,7 @@ const RemixPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           shareId: result.share?.shareId,
-          imageUrl: result.imageUrl,
+          imageUrl: result.share?.publicUrl || result.imageUrl,
           topText: result.meme_text,
           bottomText: result.companionComment,
           sourceMemeId: sourceMemeId

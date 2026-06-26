@@ -85,7 +85,7 @@ const VoiceToMemeScreen = ({ navigate }) => {
     try {
       await axios.post(apiUrl("/api/forum/publish"), {
         shareId: meme.share?.shareId,
-        imageUrl: meme.imageUrl,
+        imageUrl: meme.share?.publicUrl || meme.imageUrl,
         topText: meme.topText,
         bottomText: meme.bottomText
       });

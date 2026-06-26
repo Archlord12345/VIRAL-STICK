@@ -1,4 +1,4 @@
-const { db } = require("../firebase");
+const { db, admin } = require("../firebase");
 
 const ForumController = {
   /**
@@ -8,11 +8,22 @@ const ForumController = {
     try {
       const { shareId, imageUrl, topText, bottomText, sourceMemeId } = req.body;
 
-      if (!db) throw new Error("Firestore non connecté");
-      if (!shareId || !imageUrl) return res.status(400).json({ error: "Données manquantes" });
+      if (!db) {
+        console.error("[Forum Publish] Database not initialized");
+        return res.status(500).json({ error: "Firestore non connecté" });
+      }
 
-      await db.collection("memes").doc(shareId).set({
-        shareId,
+      if (!shareId || !imageUrl) {
+        return res.status(400).json({ error: "Données manquantes (shareId ou imageUrl)" });
+      }
+
+      // Protection contre les payloads trop gros (base64)
+      if (imageUrl.startsWith("data:") && imageUrl.length > 800000) {
+        return res.status(400).json({ error: "L'image est trop volumineuse pour le forum. Utilise l'URL publique." });
+      }
+
+      await db.collection("memes").doc(String(shareId)).set({
+        shareId: String(shareId),
         imageUrl,
         topText: topText || "",
         bottomText: bottomText || "",
@@ -22,19 +33,20 @@ const ForumController = {
       });
 
       // Si c'est un remix, on prévient le mème d'origine
-      if (sourceMemeId) {
-        const admin = require("firebase-admin");
+      if (sourceMemeId && sourceMemeId !== "null" && sourceMemeId !== "undefined") {
         try {
-          await db.collection("memes").doc(sourceMemeId).update({
+          await db.collection("memes").doc(String(sourceMemeId)).update({
             remixes: admin.firestore.FieldValue.increment(1)
           });
-        } catch (e) { /* ignore si l'original n'existe plus */ }
+        } catch (e) {
+          console.warn("[Forum Publish] Could not update source meme:", sourceMemeId, e.message);
+        }
       }
 
       res.json({ success: true, message: "Mème publié sur le forum !" });
     } catch (e) {
-      console.error("[Forum Publish] Error:", e.message);
-      res.status(500).json({ error: e.message });
+      console.error("[Forum Publish] Unexpected Error:", e);
+      res.status(500).json({ error: e.message || "Erreur interne lors de la publication" });
     }
   },
 
@@ -43,15 +55,26 @@ const ForumController = {
       if (!db) return res.json([]);
       const { sortBy = "createdAt" } = req.query;
 
+      // Note: orderBy sur un champ nécessite un index si combiné à d'autres filtres,
+      // ici c'est un orderBy simple, ça devrait passer si les documents ont le champ.
       const snapshot = await db.collection("memes")
         .orderBy(sortBy, "desc")
         .limit(50)
         .get();
 
       const memes = [];
-      snapshot.forEach(doc => { memes.push({ id: doc.id, ...doc.data() }); });
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        memes.push({
+          id: doc.id,
+          ...data,
+          likes: data.likes || 0,
+          remixes: data.remixes || 0
+        });
+      });
       res.json(memes);
     } catch (e) {
+      console.error("[Forum Get] Error:", e.message);
       res.status(500).json({ error: e.message });
     }
   },
@@ -59,12 +82,16 @@ const ForumController = {
   likeMeme: async (req, res) => {
     try {
       const { id } = req.params;
-      const admin = require("firebase-admin");
+      if (!db) throw new Error("Firestore non connecté");
+
       await db.collection("memes").doc(id).update({
         likes: admin.firestore.FieldValue.increment(1)
       });
       res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e) {
+      console.error("[Forum Like] Error:", e.message);
+      res.status(500).json({ error: e.message });
+    }
   }
 };
 
