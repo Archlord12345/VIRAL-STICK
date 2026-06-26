@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, SafeAreaView, StatusBar, Image } from "react-native";
 import { useTheme, spacing, radius } from "../theme";
 import GlassCard from "../components/GlassCard";
+import AccentCard from "../components/AccentCard";
 import AnimatedButton from "../components/AnimatedButton";
 import CompanionAvatar from "../components/CompanionAvatar";
 import AppIcon from "../components/AppIcon";
@@ -20,9 +21,9 @@ const HomeScreen = ({ navigate }) => {
   const headerOp = useRef(new Animated.Value(0)).current;
 
   const MODULES = [
-    { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel adapté", icon: "context", color: theme.warning },
-    { key: "VoiceToMeme",  title: "Voice → Mème",   subtitle: "Parole spontanée → punchline", icon: "voice", color: theme.secondary },
-    { key: "StatusRemixer",title: "Status Remixer",  subtitle: "Visuel ou status → remix viral",icon: "remix", color: theme.primary },
+    { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel", icon: "book", color: theme.warning },
+    { key: "VoiceToMeme",  title: "Voice → Mème",   subtitle: "Parole spontanée", icon: "mic", color: theme.secondary },
+    { key: "StatusRemixer",title: "Status Remixer",  subtitle: "Visuel ou status",icon: "image", color: theme.primary },
   ];
 
   useEffect(() => {
@@ -44,13 +45,13 @@ const HomeScreen = ({ navigate }) => {
           <GlassCard style={styles.hero}>
             <View style={styles.heroTop}>
               <View style={{ flex: 1 }}>
-                <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}>
-                  <Text style={[styles.badgeText, { color: theme.secondary }]}>STUDIO IA MULTIMODAL</Text>
+                <View style={[styles.badge, { backgroundColor: theme.primaryLight }]}>
+                  <Text style={[styles.badgeText, { color: theme.primary }]}>STUDIO IA</Text>
                 </View>
                 <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
-                  Viral {"\n"}<Text style={{ color: theme.secondary }}>Stick</Text>
+                  Crée du contenu {"\n"}<Text style={{ color: theme.primary, fontStyle: 'italic' }}>viral.</Text>
                 </Text>
-                <Text style={[styles.heroSub, { color: theme.textSecondary }]}>Crée du contenu viral avec tes compagnons IA.</Text>
+                <Text style={[styles.heroSub, { color: theme.textSecondary }]}>Avec tes compagnons IA.</Text>
               </View>
               <Image source={require("../../assets/logo/logo_sans_fond.png")} style={styles.logo} resizeMode="contain" />
             </View>
@@ -61,29 +62,24 @@ const HomeScreen = ({ navigate }) => {
         </Animated.View>
 
         {/* Modules */}
-        <Text style={[styles.section, { color: theme.textMuted }]}>MODULES</Text>
+        <Text style={[styles.section, { color: theme.textMuted }]}>— MODULES —</Text>
         {MODULES.map((m, i) => (
-          <GlassCard key={m.key} animate delay={100 + i * 80} style={styles.moduleCard}>
+          <AccentCard key={m.key} animate delay={100 + i * 80} style={styles.moduleCard} accentColor={m.color}>
             <TouchableOpacity onPress={() => navigate?.(m.key)} activeOpacity={0.8} style={styles.moduleInner}>
-              <View style={[styles.iconBadge, { backgroundColor: `${m.color}18`, borderColor: `${m.color}44` }]}>
-                <AppIcon name={m.icon} color={m.color} size={22} />
-              </View>
+              <AppIcon name={m.icon} color={theme.textPrimary} size={24} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.moduleName, { color: theme.textPrimary }]}>{m.title}</Text>
                 <Text style={[styles.moduleSub, { color: theme.textSecondary }]}>{m.subtitle}</Text>
               </View>
-              <AppIcon name="chevron-right" color={m.color} size={18} />
+              <AppIcon name="chevron-right" color={theme.textMuted} size={18} />
             </TouchableOpacity>
-          </GlassCard>
+          </AccentCard>
         ))}
 
         {/* CTA */}
-        <GlassCard animate delay={400} style={[styles.cta, { backgroundColor: theme.secondaryLight, borderColor: `${theme.secondary}44` }]}>
-          <Text style={[styles.ctaTitle, { color: theme.textPrimary }]}>Prêt à créer du contenu viral ? </Text>
-          <AnimatedButton title="Commencer avec Context Reader" onPress={() => navigate?.("ContextReader")} size="lg" style={{ marginTop: spacing.md }} />
-        </GlassCard>
-
-        <View style={{ height: 100 }} />
+        <View style={{ marginTop: spacing.xl, marginBottom: 120 }}>
+          <AnimatedButton title="Commencer avec Context Reader" onPress={() => navigate?.("ContextReader")} size="lg" />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -95,19 +91,16 @@ const styles = StyleSheet.create({
   hero:       { padding: spacing.lg, marginBottom: spacing.lg },
   heroTop:    { flexDirection: "row", gap: spacing.md, alignItems: "center" },
   heroBottom: { marginTop: spacing.md, alignItems: "center" },
-  badge:      { borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 8 },
+  badge:      { borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6, alignSelf: "flex-start", marginBottom: 12 },
   badgeText:  { fontSize: 10, fontWeight: "800", letterSpacing: 1 },
-  heroTitle:  { fontSize: 36, fontWeight: "900", letterSpacing: -1, lineHeight: 40 },
-  heroSub:    { fontSize: 14, marginTop: 6, lineHeight: 20 },
-  logo:       { width: 90, height: 90 },
-  section:    { fontSize: 11, fontWeight: "800", letterSpacing: 2, marginBottom: spacing.sm },
-  moduleCard: { marginBottom: spacing.sm, padding: 0 },
-  moduleInner:{ flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
-  iconBadge:  { width: 52, height: 52, borderRadius: radius.md, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  moduleName: { fontSize: 16, fontWeight: "800" },
-  moduleSub:  { fontSize: 13, marginTop: 3 },
-  cta:        { padding: spacing.lg, marginTop: spacing.md },
-  ctaTitle:   { fontSize: 18, fontWeight: "800", textAlign: "center" },
+  heroTitle:  { fontSize: 38, fontWeight: "800", letterSpacing: -1, lineHeight: 44 },
+  heroSub:    { fontSize: 15, marginTop: 10, lineHeight: 22 },
+  logo:       { width: 70, height: 70, opacity: 0.8 }, // Plus subtil
+  section:    { fontSize: 11, fontWeight: "700", letterSpacing: 2, marginBottom: spacing.md, textAlign: "center" },
+  moduleCard: { marginBottom: spacing.md, padding: 0 },
+  moduleInner:{ flexDirection: "row", alignItems: "center", paddingVertical: spacing.lg, paddingHorizontal: spacing.md, gap: spacing.md },
+  moduleName: { fontSize: 17, fontWeight: "700" },
+  moduleSub:  { fontSize: 13, marginTop: 4 },
 });
 
 export default HomeScreen;

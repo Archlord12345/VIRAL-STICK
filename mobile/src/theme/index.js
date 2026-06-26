@@ -7,7 +7,7 @@ export const typography = {
   fontSize: { xs: 12, sm: 14, md: 16, lg: 18, xl: 22, xxl: 28, xxxl: 36, display: 40 },
 };
 
-export const createShadow = (color = "#FF6B6B", elevation = 4) => ({
+export const createShadow = (color = "#2563EB", elevation = 4) => ({
   shadowColor: color,
   shadowOffset: { width: 0, height: elevation },
   shadowOpacity: 0.22,
@@ -23,11 +23,11 @@ export const lightTheme = {
   textPrimary:         colors.almostBlack,
   textSecondary:       colors.charcoal,
   textMuted:           colors.silver,
-  primary:             colors.coral,
-  primaryLight:        colors.coralLight,
-  primaryDark:         colors.coralDark,
-  secondary:           colors.coralOrange,
-  secondaryLight:      "#FFF3E0",
+  primary:             colors.sapphire,
+  primaryLight:        colors.sapphireLight,
+  primaryDark:         colors.sapphireDark,
+  secondary:           colors.sapphireCyan,
+  secondaryLight:      "#E0F7FA",
   warning:             colors.sunshineYellow,
   danger:              colors.danger,
   border:              colors.cloudGray,
@@ -43,11 +43,11 @@ export const darkTheme = {
   textPrimary:         colors.text,
   textSecondary:       colors.textSecondary,
   textMuted:           colors.textMuted,
-  primary:             colors.coral,
-  primaryLight:        "rgba(255,107,107,0.15)", // Translucent coral for badges
-  primaryDark:         colors.coralDark,
-  secondary:           colors.coralOrange,
-  secondaryLight:      "rgba(255,142,83,0.15)", // Translucent orange
+  primary:             colors.sapphire,
+  primaryLight:        "rgba(37,99,235,0.15)", // Translucent sapphire for badges
+  primaryDark:         colors.sapphireDark,
+  secondary:           colors.sapphireCyan,
+  secondaryLight:      "rgba(6,182,212,0.15)", // Translucent cyan
   warning:             colors.warning,
   danger:              colors.danger,
   border:              colors.border,

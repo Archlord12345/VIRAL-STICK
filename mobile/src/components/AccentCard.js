@@ -1,8 +1,8 @@
 import React, { useRef, useEffect } from "react";
-import { StyleSheet, Animated } from "react-native";
+import { View, StyleSheet, Animated } from "react-native";
 import { useTheme } from "../theme";
 
-const GlassCard = ({ children, style, animate = false, delay = 0 }) => {
+const AccentCard = ({ children, style, accentColor, animate = false, delay = 0 }) => {
   const { theme } = useTheme();
   const fade = useRef(new Animated.Value(animate ? 0 : 1)).current;
   const ty   = useRef(new Animated.Value(animate ? 16 : 0)).current;
@@ -30,17 +30,32 @@ const GlassCard = ({ children, style, animate = false, delay = 0 }) => {
       style,
       { opacity: fade, transform: [{ translateY: ty }] }
     ]}>
-      {children}
+      {/* Accent color bar on the left */}
+      {accentColor && (
+        <View style={[styles.accent, { backgroundColor: accentColor }]} />
+      )}
+      <View style={styles.content}>
+        {children}
+      </View>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 20, // Plus d'espace intérieur
+    flexDirection: "row",
+    overflow: "hidden", // Keeps the accent bar inside the border radius
+  },
+  accent: {
+    width: 4,
+    height: "100%",
+  },
+  content: {
+    flex: 1,
+    padding: 16,
   },
 });
 
-export default GlassCard;
+export default AccentCard;
