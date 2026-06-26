@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 app.use("/api/memes",   require("./routes/memeRoutes"));
 app.use("/api/sticker", require("./routes/stickerRoutes"));
 app.use("/api/share",   require("./routes/shareRoutes"));
+app.use("/api/forum",   require("./routes/forumRoutes"));
 
 // Alias conforme à docs/contrat-api.md : POST /api/context-reader
 // (le contrat ne prévoyait pas le préfixe /memes utilisé par le reste de l'API)

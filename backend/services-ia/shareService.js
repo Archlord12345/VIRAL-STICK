@@ -1,152 +1,59 @@
-/**
- * shareService.js — Viral Stick
- * Compose les mèmes finaux (image + texte) et persiste des assets partageables.
- */
-
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const { v4: uuid } = require("uuid");
 const { applyMemeText } = require("./providers/sticker");
+const { db } = require("../firebase");
+const cloudinary = require("../cloudinary");
 
-const os = require("os");
-const STORAGE_DIR = path.join(os.tmpdir(), "viral-stick-shares");
-const SHARE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-
-function ensureStorageDir() {
-  if (!fs.existsSync(STORAGE_DIR)) {
-    fs.mkdirSync(STORAGE_DIR, { recursive: true });
-  }
-}
-
-function dataUrlToBuffer(dataUrl) {
-  if (!dataUrl || !String(dataUrl).startsWith("data:")) return null;
-  const match = String(dataUrl).match(/^data:([^;]+);base64,(.+)$/s);
-  if (!match) return null;
-  return { mimeType: match[1], buffer: Buffer.from(match[2], "base64") };
-}
-
-function resolveImageBuffer({ imageUrl, imageBase64 }) {
-  if (imageBase64) {
-    return { buffer: Buffer.from(imageBase64, "base64"), mimeType: "image/jpeg" };
-  }
-  if (imageUrl) {
-    const parsed = dataUrlToBuffer(imageUrl);
-    if (parsed) return parsed;
-  }
-  return null;
+/**
+ * Téléverse une image sur Cloudinary
+ */
+async function uploadToCloudinary(buffer, fileName) {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "viral-stick/memes",
+        public_id: fileName.split(".")[0],
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) {
+          console.error("[Cloudinary] Upload Error:", error.message);
+          return resolve(null);
+        }
+        resolve(result.secure_url);
+      }
+    );
+    uploadStream.end(buffer);
+  });
 }
 
 async function composeMemeImage({ imageUrl, imageBase64, topText = "", bottomText = "" }) {
-  const resolved = resolveImageBuffer({ imageUrl, imageBase64 });
-  if (!resolved) return null;
+  let buffer;
+  if (imageBase64) {
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+    buffer = Buffer.from(base64Data, "base64");
+  } else if (imageUrl && imageUrl.startsWith("data:")) {
+    const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/s);
+    if (match) {
+      buffer = Buffer.from(match[2], "base64");
+    }
+  }
 
-  const top = String(topText || "").trim();
-  const bottom = String(bottomText || "").trim();
+  if (!buffer) return null;
 
-  if (!top && !bottom) {
-    const base64 = resolved.buffer.toString("base64");
-    const mime = resolved.mimeType || "image/jpeg";
+  try {
+    const result = await applyMemeText(buffer, { topText, bottomText });
     return {
-      dataUrl: `data:${mime};base64,${base64}`,
-      base64,
-      mimeType: mime,
-      provider: "raw",
+      buffer: result.buffer,
+      dataUrl: result.dataUrl,
+      mimeType: "image/jpeg"
     };
-  }
-
-  const result = await applyMemeText(resolved.buffer, { topText: top, bottomText: bottom });
-  return {
-    dataUrl: result.dataUrl,
-    base64: result.base64,
-    mimeType: "image/jpeg",
-    provider: result.provider,
-  };
-}
-
-function buildShareText({ topText, bottomText, caption, publicUrl }) {
-  const parts = [topText, bottomText, caption].filter((v) => String(v || "").trim());
-  const unique = [...new Set(parts.map((p) => String(p).trim()))];
-  let text = unique.join("\n\n");
-  if (publicUrl) {
-    text += `\n\n📸 Voir le mème : ${publicUrl}`;
-  }
-  text += "\n\nCréé avec Viral Stick";
-  return text.trim();
-}
-
-function getPublicUrl(baseUrl, shareId) {
-  const base = (baseUrl || process.env.PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
-  return `${base}/api/share/${shareId}`;
-}
-
-function cleanupExpiredShares() {
-  ensureStorageDir();
-  const now = Date.now();
-  for (const file of fs.readdirSync(STORAGE_DIR)) {
-    if (!file.endsWith(".json")) continue;
-    try {
-      const meta = JSON.parse(fs.readFileSync(path.join(STORAGE_DIR, file), "utf8"));
-      if (meta.expiresAt && meta.expiresAt < now) {
-        const imagePath = path.join(STORAGE_DIR, `${meta.shareId}.${meta.ext || "jpg"}`);
-        if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-        fs.unlinkSync(path.join(STORAGE_DIR, file));
-      }
-    } catch {
-      /* non-bloquant */
-    }
-  }
-}
-
-function persistShareAsset(buffer, mimeType = "image/jpeg") {
-  ensureStorageDir();
-  cleanupExpiredShares();
-
-  const shareId = uuid().replace(/-/g, "").slice(0, 12);
-  const ext = mimeType.includes("png") ? "png" : "jpg";
-  const filePath = path.join(STORAGE_DIR, `${shareId}.${ext}`);
-  const metaPath = path.join(STORAGE_DIR, `${shareId}.json`);
-
-  fs.writeFileSync(filePath, buffer);
-  fs.writeFileSync(
-    metaPath,
-    JSON.stringify({
-      shareId,
-      mimeType,
-      ext,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + SHARE_TTL_MS,
-    }),
-  );
-
-  return { shareId, filePath, mimeType, ext };
-}
-
-function getShareAsset(shareId) {
-  if (!shareId || !/^[a-z0-9]{8,16}$/i.test(shareId)) return null;
-
-  ensureStorageDir();
-  const metaPath = path.join(STORAGE_DIR, `${shareId}.json`);
-  if (!fs.existsSync(metaPath)) return null;
-
-  const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
-  if (meta.expiresAt && meta.expiresAt < Date.now()) {
-    try {
-      fs.unlinkSync(path.join(STORAGE_DIR, `${shareId}.${meta.ext || "jpg"}`));
-      fs.unlinkSync(metaPath);
-    } catch {
-      /* non-bloquant */
-    }
+  } catch (e) {
+    console.error("[composeMemeImage] Error:", e.message);
     return null;
   }
-
-  const imagePath = path.join(STORAGE_DIR, `${shareId}.${meta.ext || "jpg"}`);
-  if (!fs.existsSync(imagePath)) return null;
-
-  return {
-    buffer: fs.readFileSync(imagePath),
-    mimeType: meta.mimeType || "image/jpeg",
-    meta,
-  };
 }
 
 async function buildShareBundle({ topText, bottomText, caption, imageUrl, imageBase64, baseUrl }) {
@@ -157,20 +64,34 @@ async function buildShareBundle({ topText, bottomText, caption, imageUrl, imageB
     bottomText: bottomText || caption,
   });
 
-  let shareId = null;
+  let shareId = uuid().replace(/-/g, "").slice(0, 12);
   let publicUrl = null;
 
-  if (composed?.base64) {
-    const buffer = Buffer.from(composed.base64, "base64");
-    const persisted = persistShareAsset(buffer, composed.mimeType || "image/jpeg");
-    shareId = persisted.shareId;
-    publicUrl = getPublicUrl(baseUrl, shareId);
+  if (composed) {
+    // 1. Upload sur Cloudinary (plus robuste que Firebase Storage pour les images publiques)
+    const fileName = `${shareId}.jpg`;
+    publicUrl = await uploadToCloudinary(composed.buffer, fileName);
+
+    // 2. Enregistrement dans Firestore pour le Forum (toujours utilisé pour les métadonnées et likes)
+    if (db) {
+      try {
+        await db.collection("memes").doc(shareId).set({
+          shareId,
+          imageUrl: publicUrl || composed.dataUrl, // Fallback dataUrl si Cloudinary échoue
+          topText: topText || "",
+          bottomText: bottomText || caption || "",
+          likes: 0,
+          createdAt: Date.now(),
+        });
+        console.log(`[Firestore] Mème ${shareId} enregistré avec URL Cloudinary`);
+      } catch (e) {
+        console.error("[Firestore] Save error:", e.message);
+      }
+    }
   }
 
-  const text = buildShareText({ topText, bottomText, caption, publicUrl });
-
   return {
-    text,
+    text: `${topText}\n${bottomText || caption}\n\nCréé avec Viral Stick`,
     publicUrl,
     shareId,
     imageDataUrl: composed?.dataUrl || null,
@@ -178,11 +99,4 @@ async function buildShareBundle({ topText, bottomText, caption, imageUrl, imageB
   };
 }
 
-module.exports = {
-  buildShareBundle,
-  composeMemeImage,
-  getShareAsset,
-  getPublicUrl,
-  persistShareAsset,
-  buildShareText,
-};
+module.exports = { buildShareBundle };

@@ -171,60 +171,38 @@ const ContextPage = () => {
                 ✅ MÈME GÉNÉRÉ
               </div>
 
-              {/* Aperçu mème */}
+              {/* Aperçu mème final (Utilise le Cloudinary URL ou Composed Image) */}
               <div style={{
                 background: colors.almostBlack, borderRadius: radius.lg,
-                padding: 24, textAlign: "center", marginBottom: 24,
+                padding: 0, overflow: "hidden", textAlign: "center", marginBottom: 24,
+                border: `3px solid ${colors.cloudGray}`,
+                boxShadow: "0 4px 0 #e5e5e5"
               }}>
-                <p style={{
-                  fontFamily: "'Fredoka One', cursive", fontSize: 22,
-                  color: "#ffffff", margin: "0 0 16px",
-                  textTransform: "uppercase", letterSpacing: 1,
-                }}>
-                  {result.topText}
-                </p>
-                <div style={{
-                  width: "100%", aspectRatio: "16/9",
-                  background: "rgba(255,255,255,0.05)", borderRadius: radius.md,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  marginBottom: 16, border: "1px solid rgba(255,255,255,0.1)",
-                }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 48, marginBottom: 8 }}>🎬</div>
-                    <p style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: "rgba(255,255,255,0.6)", margin: 0, padding: "0 16px" }}>
-                      {result.descriptionImage}
-                    </p>
-                  </div>
-                </div>
-                <p style={{
-                  fontFamily: "'Fredoka One', cursive", fontSize: 22,
-                  color: "#ffffff", margin: 0,
-                  textTransform: "uppercase", letterSpacing: 1,
-                }}>
-                  {result.bottomText}
-                </p>
+                <img
+                  src={result.composedImageUrl || result.share?.imageDataUrl || result.imageUrl}
+                  alt="Mème généré"
+                  style={{ width: "100%", height: "auto", display: "block" }}
+                />
               </div>
 
-              {/* Détails */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
-                {[["TOP TEXT", result.topText], ["BOTTOM TEXT", result.bottomText]].map(([label, val]) => (
-                  <div key={label} style={{
-                    background: colors.bgSecondary, borderRadius: radius.md,
-                    border: `2px solid ${colors.cloudGray}`, padding: 16,
-                  }}>
-                    <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 11, fontWeight: 800,
-                      color: colors.silver, letterSpacing: 1, marginBottom: 6 }}>
-                      {label}
-                    </div>
-                    <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, color: colors.almostBlack, fontWeight: 700 }}>
-                      {val}
-                    </div>
-                  </div>
-                ))}
+              {/* Commentaire du compagnon */}
+              <div style={{
+                background: colors.bgSecondary, padding: 16, borderRadius: radius.md,
+                marginBottom: 24, border: `2px solid ${colors.cloudGray}`
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <CompanionAvatarWeb companion="art" size={24} />
+                  <span style={{ fontWeight: 800, fontSize: 13, color: colors.art }}>Art dit :</span>
+                </div>
+                <p style={{ fontStyle: "italic", fontSize: 14, margin: 0, color: colors.almostBlack }}>
+                  "{result.companionComment}"
+                </p>
               </div>
 
               <WhatsAppShareButton
-                text={`${result.topText}\n${result.bottomText}`}
+                text={result.share?.text || `${result.topText}\n${result.bottomText}`}
+                url={result.share?.publicUrl}
+                imageDataUrl={result.share?.imageDataUrl}
                 label="Partager ce mème"
                 style={{ width: "100%", justifyContent: "center" }}
               />

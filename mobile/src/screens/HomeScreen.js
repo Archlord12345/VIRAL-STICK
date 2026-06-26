@@ -1,141 +1,81 @@
-import React, { useRef, useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, SafeAreaView, StatusBar, Image, Dimensions } from "react-native";
-import { useTheme, spacing, radius, typography } from "../theme";
-<<<<<<< HEAD
-=======
-import { wp, rs } from "../theme/responsive";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
-import GlassCard from "../components/GlassCard";
-import AnimatedButton from "../components/AnimatedButton";
-import CompanionAvatar from "../components/CompanionAvatar";
-import { colors } from "../theme/tokens";
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { colors, radius, spacing } from '../theme/tokens';
+import CompanionAvatar from '../components/CompanionAvatar';
 
-const { width } = Dimensions.get("window");
-
-const MODULES = [
-  { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel adapté", icon: "📖", color: colors.art },
-  { key: "VoiceToMeme",  title: "Voice → Mème",   subtitle: "Parole spontanée → punchline", icon: "🎙️", color: colors.duoGreen },
-  { key: "StatusRemixer",title: "Status Remixer",  subtitle: "Visuel ou status → remix viral",icon: "🎨", color: colors.bio },
+const TOOLS = [
+  { id: 'context', title: 'Context Reader', icon: '📝', color: colors.art, screen: 'ContextReader' },
+  { id: 'remix', title: 'Status Remixer', icon: '✨', color: colors.bio, screen: 'StatusRemixer' },
+  { id: 'voice', title: 'Voice to Meme', icon: '🎙️', color: colors.ubu, screen: 'VoiceToMeme' },
+  { id: 'forum', title: 'Forum Viral', icon: '🌍', color: colors.duoGreen, screen: 'Forum' },
 ];
 
-const COMPANIONS = ["bio", "ubu", "art"];
-const MESSAGES   = [
-  "Le studio est prêt. On crée quelque chose de viral ?",
-  "Un bon angle, une bonne image : voilà la méthode.",
-  "Tes mèmes méritent une identité forte.",
-];
-
-const HomeScreen = ({ navigate }) => {
-  const [companionIdx, setCompanionIdx] = useState(0);
-  const headerY  = useRef(new Animated.Value(-30)).current;
-  const headerOp = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.spring(headerY, { toValue: 0, tension: 60, friction: 8, useNativeDriver: true }),
-      Animated.timing(headerOp, { toValue: 1, duration: 600, useNativeDriver: true }),
-    ]).start();
-    const t = setInterval(() => setCompanionIdx((i) => (i + 1) % 3), 4500);
-    return () => clearInterval(t);
-  }, []);
+const HomeScreen = () => {
+  const navigation = useNavigation();
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Header Style Duolingo */}
+      <View style={styles.hero}>
+        <CompanionAvatar companion="arch" size={120} />
+        <View style={styles.heroText}>
+          <Text style={styles.title}>Viral Stick</Text>
+          <Text style={styles.subtitle}>Crée du contenu viral en quelques secondes.</Text>
+        </View>
+      </View>
 
-        {/* Hero */}
-        <Animated.View style={{ opacity: headerOp, transform: [{ translateY: headerY }] }}>
-          <GlassCard animate style={styles.hero}>
-            <View style={styles.heroTop}>
-              <View style={{ flex: 1 }}>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>STUDIO IA MULTIMODAL</Text>
-                </View>
-                <Text style={styles.heroTitle}>
-                  Viral {"\n"}<Text style={{ color: colors.duoGreen }}>Stick</Text>
-                </Text>
-                <Text style={styles.heroSub}>Crée du contenu viral avec tes compagnons IA.</Text>
-              </View>
-              <Image source={require("../../assets/logo/logo_sans_fond.png")} style={styles.logo} resizeMode="contain" />
-            </View>
-            <View style={styles.heroBottom}>
-              <CompanionAvatar companion={COMPANIONS[companionIdx]} size={96} floating message={MESSAGES[companionIdx]} />
-            </View>
-          </GlassCard>
-        </Animated.View>
-
-        {/* Modules */}
-        <Text style={styles.section}>MODULES</Text>
-        {MODULES.map((m, i) => (
-          <GlassCard key={m.key} animate delay={100 + i * 80} style={styles.moduleCard}>
-            <TouchableOpacity onPress={() => navigate?.(m.key)} activeOpacity={0.8} style={styles.moduleInner}>
-              <View style={[styles.iconBadge, { backgroundColor: `${m.color}18`, borderColor: `${m.color}44` }]}>
-                <Text style={styles.moduleIcon}>{m.icon}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.moduleName}>{m.title}</Text>
-                <Text style={styles.moduleSub}>{m.subtitle}</Text>
-              </View>
-              <Text style={[styles.arrow, { color: m.color }]}>›</Text>
-            </TouchableOpacity>
-          </GlassCard>
+      {/* Grid de Outils */}
+      <View style={styles.grid}>
+        {TOOLS.map((tool) => (
+          <TouchableOpacity
+            key={tool.id}
+            style={[styles.card, { borderColor: tool.color + '44' }]}
+            onPress={() => navigation.navigate(tool.screen)}
+          >
+            <Text style={styles.cardIcon}>{tool.icon}</Text>
+            <Text style={styles.cardTitle}>{tool.title}</Text>
+          </TouchableOpacity>
         ))}
+      </View>
 
-        {/* CTA */}
-        <GlassCard animate delay={400} style={[styles.cta, { backgroundColor: colors.duoGreenLight, borderColor: `${colors.duoGreen}44` }]}>
-          <Text style={styles.ctaTitle}>Prêt à créer du contenu viral ? 🚀</Text>
-          <AnimatedButton title="Commencer avec Context Reader" onPress={() => navigate?.("ContextReader")} size="lg" style={{ marginTop: spacing.md }} />
-        </GlassCard>
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
-    </SafeAreaView>
+      {/* CTA Forum */}
+      <TouchableOpacity
+        style={styles.forumCta}
+        onPress={() => navigation.navigate('Forum')}
+      >
+        <Text style={styles.forumCtaText}>Découvrir le Forum ❤️</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  safe:       { flex: 1, backgroundColor: "#ffffff" },
-<<<<<<< HEAD
-  scroll:     { paddingHorizontal: spacing.md, paddingTop: 80 },
-=======
-  scroll:     { paddingHorizontal: spacing.md, paddingTop: spacing.md },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
-  hero:       { padding: spacing.lg, marginBottom: spacing.lg },
-  heroTop:    { flexDirection: "row", gap: spacing.md, alignItems: "center" },
-  heroBottom: { marginTop: spacing.md, alignItems: "center" },
-  badge:      { backgroundColor: colors.duoGreenLight, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start", marginBottom: 8 },
-<<<<<<< HEAD
-  badgeText:  { fontSize: 10, fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  heroTitle:  { fontSize: 36, fontWeight: "900", color: colors.almostBlack, letterSpacing: -1, lineHeight: 40 },
-  heroSub:    { fontSize: 14, color: colors.graphite, marginTop: 6, lineHeight: 20 },
-  logo:       { width: 90, height: 90 },
-  section:    { fontSize: 11, fontWeight: "800", color: colors.silver, letterSpacing: 2, marginBottom: spacing.sm },
-  moduleCard: { marginBottom: spacing.sm, padding: 0 },
-  moduleInner:{ flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
-  iconBadge:  { width: 52, height: 52, borderRadius: radius.md, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  moduleIcon: { fontSize: 24 },
-  moduleName: { fontSize: 16, fontWeight: "800", color: colors.almostBlack },
-  moduleSub:  { fontSize: 13, color: colors.graphite, marginTop: 3 },
-  arrow:      { fontSize: 28, fontWeight: "300" },
-  cta:        { padding: spacing.lg, marginTop: spacing.md },
-  ctaTitle:   { fontSize: 18, fontWeight: "800", color: colors.almostBlack, textAlign: "center" },
-=======
-  badgeText:  { fontSize: rs(10), fontWeight: "800", color: colors.duoGreenDark, letterSpacing: 1 },
-  heroTitle:  { fontSize: rs(36), fontWeight: "900", color: colors.almostBlack, letterSpacing: -1, lineHeight: rs(40) },
-  heroSub:    { fontSize: rs(14), color: colors.graphite, marginTop: 6, lineHeight: rs(20) },
-  logo:       { width: wp(23), height: wp(23) },
-  section:    { fontSize: rs(11), fontWeight: "800", color: colors.silver, letterSpacing: 2, marginBottom: spacing.sm },
-  moduleCard: { marginBottom: spacing.sm, padding: 0 },
-  moduleInner:{ flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
-  iconBadge:  { width: 52, height: 52, borderRadius: radius.md, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  moduleIcon: { fontSize: rs(24) },
-  moduleName: { fontSize: rs(16), fontWeight: "800", color: colors.almostBlack },
-  moduleSub:  { fontSize: rs(13), color: colors.graphite, marginTop: 3 },
-  arrow:      { fontSize: rs(28), fontWeight: "300" },
-  cta:        { padding: spacing.lg, marginTop: spacing.md },
-  ctaTitle:   { fontSize: rs(18), fontWeight: "800", color: colors.almostBlack, textAlign: "center" },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+  container: { flex: 1, backgroundColor: '#fff' },
+  content: { padding: spacing.lg },
+  hero: {
+    flexDirection: 'row', alignItems: 'center', gap: 20,
+    marginBottom: 40, marginTop: 20
+  },
+  heroText: { flex: 1 },
+  title: { fontSize: 32, fontWeight: '900', color: colors.almostBlack },
+  subtitle: { fontSize: 16, color: colors.graphite, marginTop: 4 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
+  card: {
+    width: '47%', aspectRatio: 1, backgroundColor: '#fff',
+    borderRadius: radius.xl, borderWidth: 2, padding: 20,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05, elevation: 2
+  },
+  cardIcon: { fontSize: 40, marginBottom: 12 },
+  cardTitle: { fontWeight: '800', color: colors.almostBlack, textAlign: 'center' },
+  forumCta: {
+    marginTop: 30, backgroundColor: colors.duoGreenLight,
+    padding: 20, borderRadius: radius.xl, alignItems: 'center',
+    borderWidth: 2, borderColor: colors.duoGreen + '33'
+  },
+  forumCtaText: { fontWeight: '900', color: colors.duoGreenDark, fontSize: 16 }
 });
 
 export default HomeScreen;

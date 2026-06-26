@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { colors, spacing, borderRadius } from "../theme/tokens";
 
-const Header = ({ title, subtitle, rightElement, onBack }) => {
+const Header = ({ title, subtitle, rightElement, onBack, onProfile }) => {
   return (
     <View style={styles.container}>
       <View style={styles.left}>
@@ -18,6 +18,11 @@ const Header = ({ title, subtitle, rightElement, onBack }) => {
       </View>
       <View style={styles.right}>
         {rightElement}
+        {onProfile && (
+          <TouchableOpacity onPress={onProfile} style={styles.profileBtn}>
+            <Text style={styles.profileEmoji}>👤</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -72,6 +77,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  profileBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.duoGreenLight,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: colors.duoGreen + '33',
+  },
+  profileEmoji: {
+    fontSize: 18,
+  }
 });
 
 export default Header;

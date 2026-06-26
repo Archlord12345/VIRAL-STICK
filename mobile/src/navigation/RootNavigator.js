@@ -1,18 +1,7 @@
-/**
- * RootNavigator — Application root with screen rendering
- * Viral Stick | KERNEL FORGE — 2026
- */
-
 import React, { useState } from "react";
-<<<<<<< HEAD
-import { View, StyleSheet } from "react-native";
-import DrawerNavigator from "./DrawerNavigator";
-=======
-import { View, StyleSheet, StatusBar } from "react-native";
-import BottomTabNavigator from "./BottomTabNavigator";
+import { View, StyleSheet, StatusBar, Text } from "react-native";
 import Header from "../components/Header";
 import { colors } from "../theme/tokens";
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
@@ -23,19 +12,9 @@ import CompanionChatScreen from "../screens/CompanionChatScreen";
 import MultiChatScreen from "../screens/MultiChatScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import AboutScreen from "../screens/AboutScreen";
-<<<<<<< HEAD
-
-const SCREENS = {
-  Home: HomeScreen,
-  ContextReader: ContextReaderScreen,
-  VoiceToMeme: VoiceToMemeScreen,
-  StatusRemixer: StatusRemixerScreen,
-  CompanionChat: CompanionChatScreen,
-  MultiChat: MultiChatScreen,
-  Settings: SettingsScreen,
-  About: AboutScreen,
-=======
 import MenuScreen from "../screens/MenuScreen";
+import ForumScreen from "../screens/ForumScreen";
+import AuthScreen from "../screens/AuthScreen";
 
 const SCREENS = {
   Home: { comp: HomeScreen, title: "Accueil", sub: "Viral Stick Studio" },
@@ -47,37 +26,20 @@ const SCREENS = {
   Settings: { comp: SettingsScreen, title: "Paramètres", sub: "Configuration" },
   About: { comp: AboutScreen, title: "À propos", sub: "Manifeste" },
   Menu: { comp: MenuScreen, title: "Menu", sub: "Options du Studio" },
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+  Forum: { comp: ForumScreen, title: "Forum", sub: "Flux Viral" },
+  Auth: { comp: AuthScreen, title: "Compte", sub: "Connexion / Inscription" },
 };
 
 const RootNavigator = () => {
   const [currentScreen, setCurrentScreen] = useState("Home");
 
-<<<<<<< HEAD
-  const Screen = SCREENS[currentScreen] || HomeScreen;
-
-  return (
-    <DrawerNavigator
-      currentScreen={currentScreen}
-      onNavigate={setCurrentScreen}
-    >
-      <View style={StyleSheet.absoluteFill}>
-        <Screen navigate={setCurrentScreen} />
-      </View>
-    </DrawerNavigator>
-  );
-};
-
-=======
   const screenInfo = SCREENS[currentScreen] || SCREENS.Home;
   const ScreenComp = screenInfo.comp;
 
-  // Si on est sur un écran qui n'est pas dans les onglets principaux, on pourrait vouloir un bouton retour
-  const mainTabs = ["Home", "ContextReader", "VoiceToMeme", "StatusRemixer", "Menu"];
+  const mainTabs = ["Home", "ContextReader", "VoiceToMeme", "StatusRemixer", "Menu", "Forum"];
   const showBack = !mainTabs.includes(currentScreen);
 
   const goBack = () => {
-    // Si on vient d'un écran secondaire accessible via le menu, on retourne au menu
     const menuItems = ["CompanionChat", "MultiChat", "Settings", "About"];
     if (menuItems.includes(currentScreen)) {
       setCurrentScreen("Menu");
@@ -93,28 +55,43 @@ const RootNavigator = () => {
         title={screenInfo.title}
         subtitle={screenInfo.sub}
         onBack={showBack ? goBack : null}
+        onProfile={() => setCurrentScreen("Auth")}
       />
-      <BottomTabNavigator
-        currentScreen={currentScreen}
-        onNavigate={setCurrentScreen}
-      >
-        <View style={styles.screenWrapper}>
-          <ScreenComp navigate={setCurrentScreen} />
-        </View>
-      </BottomTabNavigator>
+      <View style={styles.screenWrapper}>
+        <ScreenComp navigate={setCurrentScreen} />
+      </View>
+      {/* Footer navigation simple */}
+      <View style={styles.tabBar}>
+        {["Home", "Forum", "ContextReader", "StatusRemixer", "Menu"].map((tab) => (
+          <View key={tab} style={{ flex: 1, alignItems: 'center' }}>
+            <Text
+              onPress={() => setCurrentScreen(tab)}
+              style={{
+                color: currentScreen === tab ? colors.duoGreen : colors.silver,
+                fontWeight: '900',
+                fontSize: 12
+              }}
+            >
+              {tab === "Home" ? "🏠" : tab === "Forum" ? "🌍" : tab === "ContextReader" ? "📝" : tab === "StatusRemixer" ? "✨" : "☰"}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-  },
-  screenWrapper: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: "#ffffff" },
+  screenWrapper: { flex: 1 },
+  tabBar: {
+    height: 60,
+    flexDirection: 'row',
+    borderTopWidth: 2,
+    borderColor: colors.cloudGray,
+    alignItems: 'center',
+    paddingBottom: 5
+  }
 });
 
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
 export default RootNavigator;
