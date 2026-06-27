@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
-import { View, Text, TextInput, StyleSheet, ScrollView, SafeAreaView, Animated, Alert, Keyboard, ActivityIndicator, StatusBar } from "react-native";
+import { View, Text, TextInput, StyleSheet, ScrollView, SafeAreaView, Animated, Alert, Keyboard, ActivityIndicator, Image, StatusBar } from "react-native";
 import axios from "axios";
 import { useTheme, spacing, radius } from "../theme";
 import GlassCard from "../components/GlassCard";
@@ -69,7 +69,6 @@ const ContextReaderScreen = ({ navigate }) => {
             </View>
             <Text style={[styles.counter, { color: theme.textMuted }]}>{text.length}/500</Text>
           </View>
-          {/* Quick ideas */}
           <View style={{ gap: 6, marginTop: spacing.sm }}>
             {QUICK_IDEAS.map((idea) => (
               <Text key={idea} style={[styles.quickIdea, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border, color: theme.textSecondary }]} onPress={() => setText(idea)}>{idea}</Text>
@@ -77,7 +76,6 @@ const ContextReaderScreen = ({ navigate }) => {
           </View>
         </GlassCard>
 
-        {/* Actions */}
         <View style={styles.actions}>
           <AnimatedButton title={loading ? "Génération..." : "Générer le mème"} onPress={generateMeme} loading={loading} disabled={loading} size="lg" style={{ flex: 1 }} />
           <AnimatedButton title="Reset" onPress={() => { setText(""); setMeme(null); }} variant="ghost" size="lg" style={{ flex: 1 }} />
@@ -96,12 +94,22 @@ const ContextReaderScreen = ({ navigate }) => {
             <GlassCard style={styles.card}>
               <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>✅ RÉSULTAT IA</Text></View>
               <View style={[styles.memePreview, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.topText || ""}</Text>
-                <View style={[styles.memeScene, { backgroundColor: theme.backgroundCard, borderColor: theme.border }]}>
-                  <AppIcon name="remix" color={theme.primary} size={36} />
-                  <Text style={[styles.memeSceneText, { color: theme.textSecondary }]}>{meme.descriptionImage || "Scène en attente"}</Text>
-                </View>
-                <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.bottomText || ""}</Text>
+                {meme.composedImageUrl || meme.share?.imageDataUrl || meme.imageUrl ? (
+                  <Image
+                    source={{ uri: meme.composedImageUrl || meme.share?.imageDataUrl || meme.imageUrl }}
+                    style={styles.fullMeme}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <>
+                    <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.topText || ""}</Text>
+                    <View style={[styles.memeScene, { backgroundColor: theme.backgroundCard, borderColor: theme.border }]}>
+                      <AppIcon name="image" color={theme.primary} size={36} />
+                      <Text style={[styles.memeSceneText, { color: theme.textSecondary }]}>{meme.descriptionImage || "Scène en attente"}</Text>
+                    </View>
+                    <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.bottomText || ""}</Text>
+                  </>
+                )}
               </View>
               <View style={styles.grid}>
                 {[["TOP TEXT", meme.topText], ["BOTTOM TEXT", meme.bottomText]].map(([l, v]) => (
@@ -111,6 +119,12 @@ const ContextReaderScreen = ({ navigate }) => {
                   </View>
                 ))}
               </View>
+              <AnimatedButton
+                title="Partager"
+                onPress={() => Alert.alert("Partage", "Lien Cloudinary: " + meme.share?.publicUrl)}
+                size="lg"
+                style={{ marginTop: spacing.md }}
+              />
             </GlassCard>
           </Animated.View>
         )}
@@ -130,22 +144,23 @@ const styles = StyleSheet.create({
   sub:         { fontSize: 14, marginTop: 6, lineHeight: 20 },
   card:        { marginBottom: spacing.md },
   label:       { fontSize: 14, fontWeight: "800", marginBottom: 8 },
-  input:       { minHeight: 140, borderWidth: 2, borderRadius: radius.md, padding: spacing.md, fontSize: 15 },
+  input:       { minHeight: 140, borderWidth: 1, borderRadius: radius.md, padding: spacing.md, fontSize: 15 },
   meta:        { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginTop: 8 },
   progressTrack:{ flex: 1, height: 6, borderRadius: radius.pill, overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: radius.pill },
   counter:     { fontSize: 12, fontWeight: "700" },
-  quickIdea:   { borderWidth: 2, borderRadius: radius.md, padding: 10, fontSize: 13, fontWeight: "600" },
+  quickIdea:   { borderWidth: 1, borderRadius: radius.md, padding: 10, fontSize: 13, fontWeight: "600" },
   actions:     { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
-  loadCard:    { alignItems: "center", gap: spacing.sm, marginBottom: spacing.md },
+  loadCard:    { alignItems: "center", gap: spacing.sm, marginBottom: spacing.md, padding: spacing.md },
   loadTitle:   { fontSize: 17, fontWeight: "800", marginTop: spacing.sm },
   loadSub:     { textAlign: "center", fontSize: 13, lineHeight: 18 },
-  memePreview: { borderWidth: 2, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md },
+  memePreview: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md, overflow: "hidden" },
+  fullMeme:    { width: "100%", aspectRatio: 1 },
   memeText:    { fontSize: 17, fontWeight: "900", textTransform: "uppercase", textAlign: "center", lineHeight: 22 },
-  memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 120, borderWidth: 2, borderRadius: radius.md, alignItems: "center", justifyContent: "center", padding: spacing.md },
+  memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 120, borderWidth: 1, borderRadius: radius.md, alignItems: "center", justifyContent: "center", padding: spacing.md },
   memeSceneText:{ textAlign: "center", fontSize: 13, lineHeight: 19, marginTop: 8 },
   grid:        { gap: spacing.sm },
-  gridItem:    { padding: spacing.md, borderRadius: radius.md, borderWidth: 2 },
+  gridItem:    { padding: spacing.md, borderRadius: radius.md, borderWidth: 1 },
   gridLabel:   { fontSize: 11, fontWeight: "800", letterSpacing: 1, marginBottom: 6 },
   gridValue:   { fontSize: 14, fontWeight: "700", lineHeight: 19 },
 });

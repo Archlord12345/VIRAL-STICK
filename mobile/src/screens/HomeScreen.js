@@ -21,9 +21,10 @@ const HomeScreen = ({ navigate }) => {
   const headerOp = useRef(new Animated.Value(0)).current;
 
   const MODULES = [
-    { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel", icon: "book", color: theme.warning },
-    { key: "VoiceToMeme",  title: "Voice → Mème",   subtitle: "Parole spontanée", icon: "mic", color: theme.secondary },
-    { key: "StatusRemixer",title: "Status Remixer",  subtitle: "Visuel ou status",icon: "image", color: theme.primary },
+    { key: "ContextReader", title: "Context Reader", subtitle: "Texte → mème culturel", icon: "book",   color: theme.warning },
+    { key: "VoiceToMeme",   title: "Voice → Mème",   subtitle: "Parole spontanée",       icon: "mic",    color: theme.secondary },
+    { key: "StatusRemixer", title: "Status Remixer",  subtitle: "Visuel ou status",       icon: "image",  color: theme.primary },
+    { key: "Forum",         title: "Forum Viral",     subtitle: "Flux communautaire",     icon: "globe",  color: theme.success },
   ];
 
   useEffect(() => {
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   badgeText:  { fontSize: 10, fontWeight: "800", letterSpacing: 1 },
   heroTitle:  { fontSize: 38, fontWeight: "800", letterSpacing: -1, lineHeight: 44 },
   heroSub:    { fontSize: 15, marginTop: 10, lineHeight: 22 },
-  logo:       { width: 70, height: 70, opacity: 0.8 }, // Plus subtil
+  logo:       { width: 70, height: 70, opacity: 0.8 },
   section:    { fontSize: 11, fontWeight: "700", letterSpacing: 2, marginBottom: spacing.md, textAlign: "center" },
   moduleCard: { marginBottom: spacing.md, padding: 0 },
   moduleInner:{ flexDirection: "row", alignItems: "center", paddingVertical: spacing.lg, paddingHorizontal: spacing.md, gap: spacing.md },

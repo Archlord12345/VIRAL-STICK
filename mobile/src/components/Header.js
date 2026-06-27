@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { spacing, radius } from "../theme";
+import { spacing } from "../theme";
 import { useTheme } from "../theme";
 import AppIcon from "./AppIcon";
 
-const Header = ({ title, subtitle, rightElement, onBack }) => {
+const Header = ({ title, subtitle, rightElement, onBack, onProfile }) => {
   const { theme } = useTheme();
 
   return (
@@ -22,6 +22,11 @@ const Header = ({ title, subtitle, rightElement, onBack }) => {
       </View>
       <View style={styles.right}>
         {rightElement}
+        {onProfile && (
+          <TouchableOpacity onPress={onProfile} style={[styles.profileBtn, { backgroundColor: theme.backgroundCard, borderColor: theme.border }]}>
+            <AppIcon name="user" color={theme.textSecondary} size={18} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -29,12 +34,12 @@ const Header = ({ title, subtitle, rightElement, onBack }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 56, // Plus compact (Linear style)
+    height: 56,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: spacing.md,
-    borderBottomWidth: 1, // Bordure fine
+    borderBottomWidth: 1,
   },
   left: {
     flexDirection: "row",
@@ -47,7 +52,15 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1, // Bordure fine
+    borderWidth: 1,
+  },
+  profileBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
   },
   title: {
     fontSize: 18,
@@ -63,6 +76,7 @@ const styles = StyleSheet.create({
   right: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
 });
 

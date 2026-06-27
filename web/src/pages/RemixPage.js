@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import CompanionAvatarWeb from "../components/CompanionAvatarWeb";
 import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
@@ -14,18 +15,30 @@ const FILTERS = [
 ];
 
 const RemixPage = () => {
+  const locationState = useLocation().state;
   const [remixText, setRemixText]               = useState("");
   const [inputImageBase64, setInputImageBase64] = useState("");
   const [filter, setFilter]                     = useState("none");
   const [loading, setLoading]                   = useState(false);
   const [result, setResult]                     = useState(null);
   const [error, setError]                       = useState("");
+  const [published, setPublished]               = useState(false);
+  const [sourceMemeId, setSourceMemeId]         = useState(null);
+
+  useEffect(() => {
+    if (locationState?.imageUrl) {
+      // Si on vient du forum avec une image
+      setInputImageBase64(locationState.imageUrl);
+    }
+    if (locationState?.text) {
+      setRemixText(locationState.text);
+    }
+    if (locationState?.sourceMemeId) {
+      setSourceMemeId(locationState.sourceMemeId);
+    }
+  }, [locationState]);
 
   const shareText = useMemo(() => {
-<<<<<<< HEAD
-    if (result?.share?.text) return result.share.text;
-=======
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
     if (!result) return remixText;
     return [result.meme_text, result.companionComment].filter(Boolean).join("\n\n");
   }, [result, remixText]);
@@ -40,7 +53,7 @@ const RemixPage = () => {
 
   const handleRemix = async () => {
     if (!remixText.trim() && !inputImageBase64) return;
-    setLoading(true); setError(""); setResult(null);
+    setLoading(true); setError(""); setResult(null); setPublished(false);
     try {
       const res  = await fetch("/api/memes/status-remixer", {
         method: "POST",
@@ -52,6 +65,32 @@ const RemixPage = () => {
       setResult(data);
     } catch (e) { setError(e.message); }
     setLoading(false);
+  };
+
+  const publishToForum = async () => {
+    if (!result || published) return;
+    try {
+      const res = await fetch("/api/forum/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shareId: result.share?.shareId,
+          imageUrl: result.share?.publicUrl || result.imageUrl,
+          topText: result.meme_text,
+          bottomText: result.companionComment,
+          sourceMemeId: sourceMemeId
+        }),
+      });
+      if (res.ok) {
+        setPublished(true);
+      } else {
+        const errData = await res.json();
+        alert("Erreur publication: " + (errData.error || res.statusText));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Erreur réseau lors de la publication");
+    }
   };
 
   const overlayColor = {
@@ -189,13 +228,8 @@ const RemixPage = () => {
             marginBottom: 24,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-<<<<<<< HEAD
-            {result?.composedImageUrl || result?.imageUrl ? (
-              <img src={result.composedImageUrl || result.imageUrl} alt="Remix" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
-=======
             {result?.imageUrl ? (
-              <img src={result.imageUrl} alt="Remix" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
+              <img src={result.composedImageUrl || result.share?.imageDataUrl || result.imageUrl} alt="Remix" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
             ) : inputImageBase64 ? (
               <img src={inputImageBase64} alt="Source" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0, opacity: 0.4 }} />
             ) : (
@@ -224,32 +258,25 @@ const RemixPage = () => {
                 </div>
               </div>
 
-              {Array.isArray(result.visual_enhancements) && result.visual_enhancements.length > 0 && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 800, fontSize: 13, color: colors.charcoal, marginBottom: 8 }}>
-                    Recommandations visuelles :
-                  </div>
-                  {result.visual_enhancements.map((item, i) => (
-                    <div key={i} style={{
-                      display: "flex", gap: 10, alignItems: "flex-start",
-                      padding: "8px 0", borderBottom: i < result.visual_enhancements.length - 1 ? `1px solid ${colors.cloudGray}` : "none",
-                    }}>
-                      <span style={{ color: colors.duoGreen, fontWeight: 800, fontSize: 14 }}>{i + 1}.</span>
-                      <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, color: colors.graphite }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <WhatsAppShareButton
+                  text={shareText}
+                  url={result.share?.publicUrl}
+                  imageDataUrl={result.share?.imageDataUrl}
+                  label="Partager le remix"
+                  style={{ width: "100%", justifyContent: "center" }}
+                />
 
-              <WhatsAppShareButton
-                text={shareText}
-<<<<<<< HEAD
-                imageDataUrl={result.share?.imageDataUrl || result.composedImageUrl}
-=======
->>>>>>> 9a71b9ba62fd2eb4616a0c864cc0b21c7a0ed075
-                label="Partager le remix"
-                style={{ width: "100%", justifyContent: "center" }}
-              />
+                {!published ? (
+                  <PremiumButton variant="green" onClick={publishToForum} style={{ width: "100%" }}>
+                    🌍 Propulser sur le Forum
+                  </PremiumButton>
+                ) : (
+                  <div style={{ textAlign: "center", padding: 12, background: colors.duoGreenLight, color: colors.duoGreenDark, borderRadius: radius.md, fontWeight: 800 }}>
+                    ✅ Remix publié !
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div style={{ textAlign: "center", padding: 16 }}>

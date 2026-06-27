@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, TextInput, Alert, StatusBar, ActivityIndicator } from "react-native";
 import axios from "axios";
@@ -19,9 +20,9 @@ const SettingsScreen = ({ navigate }) => {
   const anim                    = useRef(new Animated.Value(0)).current;
 
   const PROVIDERS = [
-    { key: "gemini",   label: "Gemini",   icon: "context", color: "#7C3AED", desc: "Provider principal — texte et image." },
-    { key: "mistral",  label: "Mistral",  icon: "voice",   color: "#06B6D4", desc: "Fallback texte — garantit la génération." },
-    { key: "deepseek", label: "DeepSeek", icon: "settings", color: theme.secondary, desc: "Deuxième fallback texte." },
+    { key: "gemini",   label: "Gemini",   icon: "sparkles", color: "#7C3AED", desc: "Provider principal — texte et image." },
+    { key: "mistral",  label: "Mistral",  icon: "wind",     color: "#06B6D4", desc: "Fallback texte — garantit la génération." },
+    { key: "deepseek", label: "DeepSeek", icon: "search",   color: theme.secondary, desc: "Deuxième fallback texte." },
   ];
 
   useEffect(() => {
@@ -35,7 +36,7 @@ const SettingsScreen = ({ navigate }) => {
       const url = apiUrl("/health");
       const res = await axios.get(url, { timeout: 5000 });
       if (res.status === 200) {
-        setStatus("✅ Connexion établie avec le backend Vercel.");
+        setStatus("✅ Connexion établie avec le backend.");
       } else {
         setStatus("⚠️ Le serveur a répondu avec un statut inattendu.");
       }
@@ -73,7 +74,7 @@ const SettingsScreen = ({ navigate }) => {
           {/* Thème */}
           <GlassCard animate delay={50} style={styles.card}>
             <View style={styles.sectionHeader}>
-              <AppIcon name="remix" color={theme.primary} size={20} />
+              <AppIcon name="sun" color={theme.primary} size={20} />
               <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Préférences d'affichage</Text>
             </View>
             <View style={styles.themeRow}>
@@ -84,7 +85,7 @@ const SettingsScreen = ({ navigate }) => {
               <TouchableOpacity
                 onPress={toggleTheme}
                 activeOpacity={0.8}
-                style={[styles.switchContainer, { backgroundColor: isDark ? theme.secondary : theme.border }]}
+                style={[styles.switchContainer, { backgroundColor: isDark ? theme.primary : theme.border }]}
               >
                 <View style={[styles.switchPin, {
                   alignSelf: isDark ? "flex-end" : "flex-start",
@@ -97,7 +98,7 @@ const SettingsScreen = ({ navigate }) => {
           {/* Providers actifs */}
           <GlassCard animate delay={100} style={styles.card}>
             <View style={styles.sectionHeader}>
-              <AppIcon name="about" color={theme.primary} size={20} />
+              <AppIcon name="zap" color={theme.primary} size={20} />
               <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Providers actifs</Text>
             </View>
             {PROVIDERS.map((p) => (
@@ -116,7 +117,7 @@ const SettingsScreen = ({ navigate }) => {
           <GlassCard animate delay={200} style={styles.card}>
             <View style={styles.keyHeader}>
               <View style={styles.sectionHeader}>
-                <AppIcon name="settings" color={theme.primary} size={20} />
+                <AppIcon name="key" color={theme.primary} size={20} />
                 <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>Clés API</Text>
               </View>
               <TouchableOpacity
@@ -128,8 +129,8 @@ const SettingsScreen = ({ navigate }) => {
             </View>
 
             {[
-              ["Gemini API Key", gemini, setGemini, "AIza..."],
-              ["Mistral API Key", mistral, setMistral, "mistral-..."],
+              ["Gemini API Key",   gemini,   setGemini,   "AIza..."],
+              ["Mistral API Key",  mistral,  setMistral,  "mistral-..."],
               ["DeepSeek API Key", deepseek, setDeepseek, "sk-..."],
             ].map(([label, value, setter, ph]) => (
               <View key={label} style={{ marginBottom: 16 }}>
@@ -165,7 +166,7 @@ const SettingsScreen = ({ navigate }) => {
           <GlassCard animate delay={300} style={styles.card}>
             <TouchableOpacity onPress={() => navigate?.("About")} activeOpacity={0.8} style={styles.aboutRow}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <AppIcon name="about" color={theme.primary} size={20} />
+                <AppIcon name="info" color={theme.primary} size={20} />
                 <View>
                   <Text style={[styles.aboutLabel, { color: theme.textPrimary }]}>À propos du produit</Text>
                   <Text style={[styles.aboutDesc, { color: theme.textSecondary }]}>Identité, stack, équipe et vision.</Text>
@@ -198,19 +199,19 @@ const styles = StyleSheet.create({
   themeDesc:   { fontSize: 12, marginTop: 2 },
   switchContainer:{ width: 50, height: 28, borderRadius: 14, padding: 3, justifyContent: "center" },
   switchPin:   { width: 22, height: 22, borderRadius: 11 },
-  providerRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: radius.md, borderWidth: 2, marginBottom: 8 },
+  providerRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: radius.md, borderWidth: 1, marginBottom: 8 },
   providerDot: { width: 8, height: 8, borderRadius: 4 },
   providerName:{ fontSize: 15, fontWeight: "800" },
   providerDesc:{ fontSize: 12, marginTop: 2, lineHeight: 16 },
   keyHeader:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md },
-  toggleBtn:   { borderWidth: 2, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 7 },
+  toggleBtn:   { borderWidth: 1, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 7 },
   toggleText:  { fontSize: 13, fontWeight: "700" },
   fieldLabel:  { fontSize: 14, fontWeight: "800", marginBottom: 8 },
-  input:       { borderWidth: 2, borderRadius: radius.md, padding: spacing.md, fontSize: 14 },
+  input:       { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, fontSize: 14 },
   actions:     { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
-  testBtn:     { flex: 1, borderWidth: 2, borderRadius: radius.md, justifyContent: "center", alignItems: "center" },
+  testBtn:     { flex: 1, borderWidth: 1, borderRadius: radius.md, justifyContent: "center", alignItems: "center" },
   testBtnText: { fontSize: 14, fontWeight: "800" },
-  statusBox:   { borderWidth: 2, borderRadius: radius.md, padding: 12, marginTop: spacing.md },
+  statusBox:   { borderWidth: 1, borderRadius: radius.md, padding: 12, marginTop: spacing.md },
   statusText:  { fontSize: 14, fontWeight: "700", lineHeight: 19 },
   aboutRow:    { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   aboutLabel:  { fontSize: 16, fontWeight: "800" },

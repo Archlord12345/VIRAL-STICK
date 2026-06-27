@@ -57,6 +57,8 @@ export const borderRadius = {
   sm: 8, md: 12, lg: 16, xl: 20, pill: 999,
 };
 
+export const radius = borderRadius;
+
 export const shadows = {
   card: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 5 },
   btn:  { shadowColor: "#2563EB", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },

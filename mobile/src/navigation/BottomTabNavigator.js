@@ -1,15 +1,41 @@
-import React from "react";
-import { View, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from "react-native";
+import React, { useRef } from "react";
+import { View, TouchableOpacity, StyleSheet, SafeAreaView, Platform, Animated } from "react-native";
 import { useTheme } from "../theme";
 import AppIcon from "../components/AppIcon";
 
 const TAB_ITEMS = [
   { key: "Home",           icon: "home",           accentKey: "primary" },
+  { key: "Forum",          icon: "globe",          accentKey: "secondary" },
   { key: "ContextReader",  icon: "book",           accentKey: "warning" },
-  { key: "VoiceToMeme",    icon: "mic",            accentKey: "secondary" },
   { key: "StatusRemixer",  icon: "image",          accentKey: "danger" },
   { key: "Menu",           icon: "settings",       accentKey: "textPrimary" },
 ];
+
+const TabButton = ({ item, active, accentColor, onPress, theme }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => Animated.spring(scale, { toValue: 0.85, useNativeDriver: true }).start();
+  const onPressOut = () => Animated.spring(scale, { toValue: 1, friction: 3, tension: 40, useNativeDriver: true }).start();
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      activeOpacity={0.7}
+      style={styles.tabItem}
+    >
+      <Animated.View style={{ transform: [{ scale }], alignItems: "center" }}>
+        <AppIcon
+          name={item.icon}
+          color={active ? accentColor : theme.textMuted}
+          size={24}
+        />
+        {active && <View style={[styles.activeIndicator, { backgroundColor: accentColor }]} />}
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
   const { theme } = useTheme();
@@ -24,9 +50,9 @@ const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
       {/* Barre de navigation basse (Pill flottant) */}
       <SafeAreaView style={styles.safeArea}>
         <View style={[
-          styles.tabBar, 
-          { 
-            backgroundColor: theme.backgroundCard, 
+          styles.tabBar,
+          {
+            backgroundColor: theme.backgroundCard,
             borderColor: theme.border,
             shadowColor: theme.cardShadow.shadowColor,
             shadowOffset: theme.cardShadow.shadowOffset,
@@ -39,20 +65,14 @@ const BottomTabNavigator = ({ children, currentScreen, onNavigate }) => {
             const active = currentScreen === item.key;
             const accentColor = theme[item.accentKey] || theme.primary;
             return (
-              <TouchableOpacity
+              <TabButton
                 key={item.key}
+                item={item}
+                active={active}
+                accentColor={accentColor}
                 onPress={() => onNavigate(item.key)}
-                activeOpacity={0.7}
-                style={styles.tabItem}
-              >
-                <AppIcon
-                  name={item.icon}
-                  color={active ? accentColor : theme.textMuted}
-                  size={24}
-                />
-                {/* Active indicator dot */}
-                {active && <View style={[styles.activeIndicator, { backgroundColor: accentColor }]} />}
-              </TouchableOpacity>
+                theme={theme}
+              />
             );
           })}
         </View>
@@ -79,7 +99,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     height: 64,
     width: "90%",
-    maxWidth: 400,
+    maxWidth: 420,
     borderRadius: 32,
     borderWidth: 1,
     alignItems: "center",
@@ -93,8 +113,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   activeIndicator: {
-    position: "absolute",
-    bottom: 10,
+    marginTop: 4,
     width: 4,
     height: 4,
     borderRadius: 2,

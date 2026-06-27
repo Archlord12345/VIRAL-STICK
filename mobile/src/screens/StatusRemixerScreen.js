@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, TextInput, Alert, Image, ActivityIndicator, StatusBar } from "react-native";
 import axios from "axios";
 import { useTheme, spacing, radius } from "../theme";
@@ -9,25 +9,38 @@ import AppIcon from "../components/AppIcon";
 import { apiUrl } from "../config/api";
 
 const FILTERS = [
-  { id: "none", label: "Original", icon: "remix" },
-  { id: "dramatic", label: "Dramatic", icon: "context" },
-  { id: "neon", label: "Neon", icon: "rocket" },
-  { id: "vintage", label: "Vintage", icon: "about" },
-  { id: "fire", label: "Fire", icon: "settings" },
+  { id: "none", label: "Original", icon: "refresh-cw" },
+  { id: "dramatic", label: "Dramatic", icon: "eye" },
+  { id: "neon", label: "Neon", icon: "zap" },
+  { id: "vintage", label: "Vintage", icon: "clock" },
+  { id: "fire", label: "Fire", icon: "flame" },
 ];
 
 const POSITIONS = ["top", "center", "bottom"];
 
-const StatusRemixerScreen = ({ navigate }) => {
+const StatusRemixerScreen = ({ navigate, route }) => {
   const { theme, isDark } = useTheme();
+  const params = route?.params || {};
   const [filter, setFilter]       = useState("none");
   const [caption, setCaption]     = useState("");
   const [position, setPosition]   = useState("bottom");
   const [imagePicked, setImagePicked] = useState(false);
+  const [initialImage, setInitialImage] = useState(null);
   const [loading, setLoading]     = useState(false);
   const [remix, setRemix]         = useState(null);
   const [msg, setMsg]             = useState("Envoie un visuel ou une intention. Je m'occupe du reste.");
   const previewAnim               = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (params.imageUrl) {
+      setInitialImage(params.imageUrl);
+      setImagePicked(true);
+      animatePreview();
+    }
+    if (params.text) {
+      setCaption(params.text);
+    }
+  }, [params]);
 
   const overlay = useMemo(() => ({
     dramatic: "rgba(0,0,0,0.55)", neon: "rgba(34,211,238,0.22)",
@@ -53,6 +66,7 @@ const StatusRemixerScreen = ({ navigate }) => {
     try {
       const res = await axios.post(apiUrl("/api/memes/status-remixer"), {
         text: caption || "Image de réaction expressive à transformer en mème",
+        inputImageUrl: initialImage || undefined,
         imageContext: imagePicked ? `Filtre: ${filter}. Position: ${position}.` : undefined,
       });
       setRemix(res.data);
@@ -92,16 +106,16 @@ const StatusRemixerScreen = ({ navigate }) => {
                 <Text style={[styles.label, { color: theme.textMuted }]}>CANVAS</Text>
                 <View style={[styles.canvas, { borderColor: theme.border }]}>
                   <View style={[StyleSheet.absoluteFill, { backgroundColor: overlay, borderRadius: radius.md, zIndex: 2 }]} pointerEvents="none" />
-                  {remix?.imageUrl ? (
-                    <Image source={{ uri: remix.imageUrl }} style={styles.canvasImg} resizeMode="cover" />
+                  {remix?.imageUrl || initialImage ? (
+                    <Image source={{ uri: remix?.imageUrl || initialImage }} style={styles.canvasImg} resizeMode="cover" />
                   ) : (
                     <View style={styles.canvasPlaceholder}>
-                      <AppIcon name="remix" color={theme.textMuted} size={48} />
+                      <AppIcon name="image" color={theme.textMuted} size={48} />
                       <Text style={[styles.canvasLabel, { color: theme.textMuted }]}>Visuel de démonstration</Text>
                     </View>
                   )}
                   {!!caption && (
-                    <Text style={[styles.overlay, position === "top" ? styles.top : position === "center" ? styles.center : styles.bottom]}>
+                    <Text style={[styles.overlayText, position === "top" ? styles.top : position === "center" ? styles.center : styles.bottom]}>
                       {caption.toUpperCase()}
                     </Text>
                   )}
@@ -198,20 +212,20 @@ const styles = StyleSheet.create({
   label:        { fontSize: 11, fontWeight: "800", letterSpacing: 1.5, marginBottom: 8 },
   sectionTitle: { fontSize: 16, fontWeight: "800", marginBottom: 6 },
   sectionSub:   { fontSize: 13, lineHeight: 19, marginBottom: spacing.sm },
-  canvas:       { borderWidth: 2, borderRadius: radius.md, minHeight: 280, overflow: "hidden", justifyContent: "center", alignItems: "center", position: "relative" },
+  canvas:       { borderWidth: 1, borderRadius: radius.md, minHeight: 280, overflow: "hidden", justifyContent: "center", alignItems: "center", position: "relative" },
   canvasImg:    { ...StyleSheet.absoluteFillObject, width: "100%", height: "100%" },
   canvasPlaceholder: { alignItems: "center", justifyContent: "center", gap: 10 },
   canvasLabel:  { fontSize: 13, marginTop: 8 },
-  overlay:      { position: "absolute", left: 16, right: 16, color: "#ffffff", fontSize: 20, fontWeight: "900", textAlign: "center", textTransform: "uppercase", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6, zIndex: 10 },
+  overlayText:  { position: "absolute", left: 16, right: 16, color: "#ffffff", fontSize: 20, fontWeight: "900", textAlign: "center", textTransform: "uppercase", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6, zIndex: 10 },
   top:          { top: 16 },
   center:       { top: "44%" },
   bottom:       { bottom: 16 },
-  input:        { borderWidth: 2, borderRadius: radius.md, padding: spacing.md, fontSize: 15, minHeight: 80, textAlignVertical: "top" },
+  input:        { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, fontSize: 15, minHeight: 80, textAlignVertical: "top" },
   filterRow:    { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  filterChip:   { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 2, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 9 },
+  filterChip:   { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 9 },
   filterLabel:  { fontSize: 13, fontWeight: "700" },
   posRow:       { flexDirection: "row", gap: spacing.sm },
-  posBtn:       { flex: 1, borderWidth: 2, borderRadius: radius.md, paddingVertical: 11, alignItems: "center" },
+  posBtn:       { flex: 1, borderWidth: 1, borderRadius: radius.md, paddingVertical: 11, alignItems: "center" },
   posLabel:     { fontSize: 14, fontWeight: "800" },
   actions:      { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
   loadTitle:    { fontSize: 17, fontWeight: "800" },

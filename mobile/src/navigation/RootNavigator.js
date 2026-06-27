@@ -1,13 +1,7 @@
-/**
- * RootNavigator — Application root with screen rendering
- * Viral Stick | KERNEL FORGE — 2026
- */
-
 import React, { useState } from "react";
 import { View, StyleSheet, StatusBar } from "react-native";
 import BottomTabNavigator from "./BottomTabNavigator";
 import Header from "../components/Header";
-import { colors } from "../theme/tokens";
 import { useTheme } from "../theme";
 
 // Screens
@@ -20,39 +14,59 @@ import MultiChatScreen from "../screens/MultiChatScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import AboutScreen from "../screens/AboutScreen";
 import MenuScreen from "../screens/MenuScreen";
+import ForumScreen from "../screens/ForumScreen";
+import AuthScreen from "../screens/AuthScreen";
+import LeaderboardScreen from "../screens/LeaderboardScreen";
 
 const SCREENS = {
-  Home: { comp: HomeScreen, title: "Accueil", sub: "Viral Stick Studio" },
+  Home:          { comp: HomeScreen,          title: "Accueil",       sub: "Viral Stick Studio" },
   ContextReader: { comp: ContextReaderScreen, title: "Context Reader", sub: "Texte → Mème" },
-  VoiceToMeme: { comp: VoiceToMemeScreen, title: "Voice → Mème", sub: "Voix → Mème" },
+  VoiceToMeme:   { comp: VoiceToMemeScreen,   title: "Voice → Mème",  sub: "Voix → Mème" },
   StatusRemixer: { comp: StatusRemixerScreen, title: "Status Remixer", sub: "Image → Mème" },
-  CompanionChat: { comp: CompanionChatScreen, title: "Compagnons", sub: "Discute avec l'IA" },
-  MultiChat: { comp: MultiChatScreen, title: "Multi-Chat", sub: "Débat IA" },
-  Settings: { comp: SettingsScreen, title: "Paramètres", sub: "Configuration" },
-  About: { comp: AboutScreen, title: "À propos", sub: "Manifeste" },
-  Menu: { comp: MenuScreen, title: "Menu", sub: "Options du Studio" },
+  CompanionChat: { comp: CompanionChatScreen, title: "Compagnons",    sub: "Discute avec l'IA" },
+  MultiChat:     { comp: MultiChatScreen,     title: "Multi-Chat",    sub: "Débat IA" },
+  Settings:      { comp: SettingsScreen,      title: "Paramètres",    sub: "Configuration" },
+  About:         { comp: AboutScreen,         title: "À propos",      sub: "Manifeste" },
+  Menu:          { comp: MenuScreen,          title: "Menu",          sub: "Options du Studio" },
+  Forum:         { comp: ForumScreen,         title: "Forum",         sub: "Flux Viral" },
+  Leaderboard:   { comp: LeaderboardScreen,   title: "Classement",    sub: "Top Créateurs" },
+  Auth:          { comp: AuthScreen,          title: "Compte",        sub: "Connexion / Inscription" },
 };
 
 const RootNavigator = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState("Home");
   const { theme } = useTheme();
 
   const screenInfo = SCREENS[currentScreen] || SCREENS.Home;
   const ScreenComp = screenInfo.comp;
 
-  // Si on est sur un écran qui n'est pas dans les onglets principaux, on pourrait vouloir un bouton retour
-  const mainTabs = ["Home", "ContextReader", "VoiceToMeme", "StatusRemixer", "Menu"];
+  const mainTabs = ["Home", "Forum", "ContextReader", "StatusRemixer", "Menu"];
   const showBack = !mainTabs.includes(currentScreen);
 
   const goBack = () => {
-    // Si on vient d'un écran secondaire accessible via le menu, on retourne au menu
-    const menuItems = ["CompanionChat", "MultiChat", "Settings", "About"];
+    const menuItems = ["CompanionChat", "MultiChat", "Settings", "About", "Leaderboard"];
     if (menuItems.includes(currentScreen)) {
       setCurrentScreen("Menu");
     } else {
       setCurrentScreen("Home");
     }
   };
+
+  if (!isLoggedIn && currentScreen !== "Auth") {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.backgroundSecondary} />
+        <Header title="Bienvenue" subtitle="Viral Stick Studio" />
+        <View style={styles.screenWrapper}>
+          <AuthScreen navigate={(s) => {
+            if (s === 'Home') setIsLoggedIn(true);
+            setCurrentScreen(s);
+          }} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -61,14 +75,10 @@ const RootNavigator = () => {
         title={screenInfo.title}
         subtitle={screenInfo.sub}
         onBack={showBack ? goBack : null}
+        onProfile={() => setCurrentScreen("Auth")}
       />
-      <BottomTabNavigator
-        currentScreen={currentScreen}
-        onNavigate={setCurrentScreen}
-      >
-        <View style={styles.screenWrapper}>
-          <ScreenComp navigate={setCurrentScreen} />
-        </View>
+      <BottomTabNavigator currentScreen={currentScreen} onNavigate={setCurrentScreen}>
+        <ScreenComp navigate={setCurrentScreen} />
       </BottomTabNavigator>
     </View>
   );
