@@ -106,11 +106,9 @@ const MultiChatScreen = ({ navigate }) => {
                   <Image source={COMPANIONS[meta.id]} style={[styles.msgAvatar, { borderColor: col }]} resizeMode="contain" />
                 )}
                 <View style={[styles.msgBubble, {
-                  backgroundColor: isUser ? theme.secondary : theme.backgroundCard,
-                  borderColor: isUser ? theme.secondary : theme.border,
-                  shadowColor: isUser ? theme.secondaryLight : "#000",
-                  shadowOffset: { width: 0, height: isUser ? 3 : 2 },
-                  shadowOpacity: 0.2, shadowRadius: 0, elevation: 3,
+                  backgroundColor: isUser ? theme.primary : theme.backgroundCard,
+                  borderColor: isUser ? theme.primary : theme.border,
+                  borderWidth: 1,
                 }]}>
                   {!isUser && meta && <Text style={[styles.msgCompName, { color: col }]}>{COMPANION_NAMES[meta.id]}</Text>}
                   <Text style={[styles.msgText, { color: isUser ? "#ffffff" : theme.textPrimary }]}>{item.text}</Text>
@@ -142,18 +140,18 @@ const MultiChatScreen = ({ navigate }) => {
           <TouchableOpacity
             onPress={sendToAll} disabled={loading}
             style={[styles.sendBtn, {
-              backgroundColor: loading ? theme.border : theme.secondary,
-              shadowColor: theme.secondaryLight,
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.35,
-              shadowRadius: 0,
-              elevation: 3
+              backgroundColor: loading ? theme.border : theme.primary,
+              shadowColor: theme.primaryLight,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4
             }]}
           >
             {loading ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <AppIcon name="rocket" color="#ffffff" size={18} />
+              <AppIcon name="send" color="#ffffff" size={18} />
             )}
           </TouchableOpacity>
         </View>
@@ -165,23 +163,23 @@ const MultiChatScreen = ({ navigate }) => {
 const styles = StyleSheet.create({
   safe:      { flex: 1 },
   page:      { flex: 1, paddingTop: 0 },
-  grid:      { flexDirection: "row", flexWrap: "wrap", gap: 8, padding: spacing.md, borderBottomWidth: 2 },
-  statusCard:{ width: "12.5%", minWidth: 70, alignItems: "center", gap: 5, padding: 8, borderRadius: radius.md, borderWidth: 2 },
-  statusAvatar:{ width: 36, height: 36, borderRadius: 18, borderWidth: 2 },
+  grid:      { flexDirection: "row", flexWrap: "wrap", gap: 8, padding: spacing.md, borderBottomWidth: 1 },
+  statusCard:{ width: "12.5%", minWidth: 70, alignItems: "center", gap: 5, padding: 8, borderRadius: radius.md, borderWidth: 1 },
+  statusAvatar:{ width: 36, height: 36, borderRadius: 18, borderWidth: 1 },
   statusName:  { fontSize: 10, fontWeight: "900" },
   statusDot:   { width: 8, height: 8, borderRadius: 4 },
   msgRow:    { flexDirection: "row", alignItems: "flex-end", marginBottom: 2 },
   msgLeft:   { justifyContent: "flex-start" },
   msgRight:  { justifyContent: "flex-end" },
-  msgAvatar: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, marginRight: 8 },
-  msgBubble: { maxWidth: "82%", borderRadius: 14, padding: 11, borderWidth: 2 },
+  msgAvatar: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, marginRight: 8 },
+  msgBubble: { maxWidth: "82%", borderRadius: 14, padding: 11, borderWidth: 1 },
   msgCompName:{ fontSize: 10, fontWeight: "900", marginBottom: 4, letterSpacing: 0.4 },
   msgText:   { fontSize: 14, lineHeight: 19, fontWeight: "600" },
   msgTime:   { fontSize: 10, fontWeight: "700", marginTop: 5 },
   loadWrap:  { flexDirection: "row", alignItems: "center", gap: 8, padding: spacing.sm },
   loadText:  { fontSize: 12, fontWeight: "700" },
-  inputBar:  { flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.md, paddingVertical: 10, borderTopWidth: 2, gap: 10 },
-  input:     { flex: 1, borderWidth: 2, borderRadius: radius.pill, paddingHorizontal: 16, paddingVertical: 11, fontSize: 14 },
+  inputBar:  { flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.md, paddingVertical: 10, borderTopWidth: 1, gap: 10 },
+  input:     { flex: 1, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 16, paddingVertical: 11, fontSize: 14 },
   sendBtn:   { width: 46, height: 46, borderRadius: 23, justifyContent: "center", alignItems: "center" },
 });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, Alert, ActivityIndicator, StatusBar } from "react-native";
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, TouchableOpacity, Alert, ActivityIndicator, Image, StatusBar } from "react-native";
 import axios from "axios";
 import { useTheme, spacing, radius } from "../theme";
 import GlassCard from "../components/GlassCard";
@@ -39,6 +39,7 @@ const VoiceToMemeScreen = ({ navigate }) => {
   const [meme, setMeme]               = useState(null);
   const [loading, setLoading]         = useState(false);
   const [duration, setDuration]       = useState(0);
+  const [published, setPublished]     = useState(false);
   const [msg, setMsg]                 = useState("Donne-moi une phrase dite à chaud. Je garde l'énergie.");
   const timerRef                      = useRef(null);
   const micScale                      = useRef(new Animated.Value(1)).current;
@@ -47,7 +48,7 @@ const VoiceToMemeScreen = ({ navigate }) => {
   useEffect(() => () => clearInterval(timerRef.current), []);
 
   const startRec = () => {
-    setRecording(true); setTranscription(""); setMeme(null); setDuration(0);
+    setRecording(true); setTranscription(""); setMeme(null); setDuration(0); setPublished(false);
     setMsg("Parle comme tu le sens. Plus c'est spontané, mieux c'est.");
     Animated.loop(Animated.sequence([
       Animated.timing(micScale, { toValue: 1.12, duration: 500, useNativeDriver: true }),
@@ -81,6 +82,23 @@ const VoiceToMemeScreen = ({ navigate }) => {
     } finally { setLoading(false); }
   };
 
+  const publishToForum = async () => {
+    if (!meme || published) return;
+    try {
+      await axios.post(apiUrl("/api/forum/publish"), {
+        shareId: meme.share?.shareId,
+        imageUrl: meme.share?.publicUrl || meme.imageUrl,
+        topText: meme.topText,
+        bottomText: meme.bottomText
+      });
+      setPublished(true);
+      Alert.alert("Succès", "Mème vocal propulsé sur le Forum !");
+    } catch (e) {
+      const errorMsg = e.response?.data?.error || e.message;
+      Alert.alert("Erreur publication", errorMsg);
+    }
+  };
+
   const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   return (
@@ -97,7 +115,7 @@ const VoiceToMemeScreen = ({ navigate }) => {
         </GlassCard>
 
         {/* Recorder */}
-        <GlassCard style={[styles.card, { alignItems: "center", gap: spacing.md }]}>
+        <GlassCard animate delay={80} style={[styles.card, { alignItems: "center", gap: spacing.md }]}>
           <Text style={[styles.label, { color: theme.textMuted }]}>RECORDER STUDIO</Text>
           <View style={styles.wave}>
             {Array.from({ length: 26 }).map((_, i) => <WaveBar key={i} index={i} active={recording} />)}
@@ -117,7 +135,7 @@ const VoiceToMemeScreen = ({ navigate }) => {
               {recording ? (
                 <View style={styles.stopIcon} />
               ) : (
-                <AppIcon name="voice" color="#ffffff" size={32} />
+                <AppIcon name="mic" color="#ffffff" size={32} />
               )}
             </TouchableOpacity>
           </Animated.View>
@@ -146,13 +164,19 @@ const VoiceToMemeScreen = ({ navigate }) => {
           <Animated.View style={{ opacity: resultAnim, transform: [{ translateY: resultAnim.interpolate({ inputRange: [0,1], outputRange: [24,0] }) }] }}>
             <GlassCard style={styles.card}>
               <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>✅ MÈME VOCAL PRÊT</Text></View>
-              <View style={[styles.memeBox, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.topText}</Text>
-                <View style={styles.memeScene}>
-                  <AppIcon name="voice" color={theme.secondary} size={36} />
-                  <Text style={[styles.memeSceneText, { color: theme.textSecondary }]}>{meme.descriptionImage}</Text>
-                </View>
-                <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.bottomText}</Text>
+              <View style={[styles.memePreview, { borderColor: theme.border }]}>
+                {meme.imageUrl ? (
+                  <Image source={{ uri: meme.imageUrl }} style={styles.fullMeme} resizeMode="contain" />
+                ) : (
+                  <View style={[styles.memeBox, { backgroundColor: theme.backgroundSecondary }]}>
+                    <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.topText}</Text>
+                    <View style={styles.memeScene}>
+                      <AppIcon name="mic" color={theme.secondary} size={36} />
+                      <Text style={[styles.memeSceneText, { color: theme.textSecondary }]}>{meme.descriptionImage}</Text>
+                    </View>
+                    <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.bottomText}</Text>
+                  </View>
+                )}
               </View>
               {meme.original_transcript_subtitle ? (
                 <View style={[styles.subtitleCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
@@ -160,6 +184,14 @@ const VoiceToMemeScreen = ({ navigate }) => {
                   <Text style={[styles.subtitleText, { color: theme.textPrimary }]}>"{meme.original_transcript_subtitle}"</Text>
                 </View>
               ) : null}
+              <View style={styles.actions}>
+                <AnimatedButton title="Partager" onPress={() => Alert.alert("Partage", "Lien: " + meme.share?.publicUrl)} size="lg" style={{ flex: 1 }} />
+                {!published ? (
+                  <AnimatedButton title="Propulser 🌍" onPress={publishToForum} size="lg" variant="primary" style={{ flex: 1, backgroundColor: theme.secondary }} />
+                ) : (
+                  <View style={[styles.publishedBadge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.publishedText, { color: theme.secondary }]}>✅ PUBLIÉ</Text></View>
+                )}
+              </View>
             </GlassCard>
           </Animated.View>
         )}
@@ -188,13 +220,18 @@ const styles = StyleSheet.create({
   transcript:  { fontSize: 16, fontStyle: "italic", lineHeight: 24, fontWeight: "600" },
   loadTitle:   { fontSize: 17, fontWeight: "800" },
   loadSub:     { textAlign: "center", fontSize: 13, lineHeight: 18 },
-  memeBox:     { borderWidth: 2, borderRadius: radius.md, padding: spacing.md, alignItems: "center", marginBottom: spacing.md },
+  memePreview: { borderWidth: 1, borderRadius: radius.md, overflow: "hidden", marginBottom: spacing.md, backgroundColor: "#000000" },
+  fullMeme:    { width: "100%", aspectRatio: 1 },
+  memeBox:     { borderWidth: 1, padding: spacing.md, alignItems: "center" },
   memeText:    { fontSize: 17, fontWeight: "900", textTransform: "uppercase", textAlign: "center", lineHeight: 22 },
   memeScene:   { marginVertical: spacing.md, width: "100%", minHeight: 100, alignItems: "center", justifyContent: "center", padding: spacing.md },
   memeSceneText:{ textAlign: "center", fontSize: 13, lineHeight: 19, marginTop: 8 },
-  subtitleCard:{ padding: spacing.md, borderRadius: radius.md, borderWidth: 2 },
+  subtitleCard:{ padding: spacing.md, borderRadius: radius.md, borderWidth: 1, marginBottom: spacing.md },
   gridLabel:   { fontSize: 11, fontWeight: "800", letterSpacing: 1, marginBottom: 6 },
   subtitleText:{ fontSize: 14, fontStyle: "italic", lineHeight: 19 },
+  actions:     { flexDirection: "row", gap: spacing.sm },
+  publishedBadge: { flex: 1, height: 54, borderRadius: radius.md, justifyContent: "center", alignItems: "center" },
+  publishedText: { fontWeight: "900" },
 });
 
 export default VoiceToMemeScreen;

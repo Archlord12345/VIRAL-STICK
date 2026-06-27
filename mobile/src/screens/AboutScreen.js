@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Animated, Linking, Image, StatusBar } from "react-native";
 import { useTheme, spacing, radius } from "../theme";
@@ -11,15 +12,15 @@ const AboutScreen = () => {
   const anim = useRef(new Animated.Value(0)).current;
 
   const PILLARS = [
-    { icon: "remix", title: "Identité créative", text: "7 compagnons IA uniques avec personnalités et rôles distincts.", color: theme.primary },
-    { icon: "context", title: "IA multimodale",    text: "Texte, voix, image — trois canaux vers les meilleurs modèles IA.", color: theme.warning },
-    { icon: "rocket", title: "Contenu viral",     text: "Chaque outil produit du contenu prêt à poster, adapté à ta culture.", color: theme.secondary },
+    { icon: "palette",    title: "Identité créative", text: "7 compagnons IA uniques avec personnalités et rôles distincts.", color: theme.primary },
+    { icon: "cpu",        title: "IA multimodale",    text: "Texte, voix, image — trois canaux vers les meilleurs modèles IA.", color: theme.warning },
+    { icon: "trending-up",title: "Contenu viral",     text: "Chaque outil produit du contenu prêt à poster, adapté à ta culture.", color: theme.secondary },
   ];
 
   const TECH = ["React Native 0.75", "Node.js / Express", "Hugging Face API", "Google Gemini", "Mistral AI", "7 compagnons IA"];
 
   const TEAM = [
-    { name: "Ravel", role: "Lead Technique", companion: "arch", github: "@Archlord12345" },
+    { name: "Ravel",        role: "Lead Technique",         companion: "arch", github: "@Archlord12345" },
     { name: "Kernel Forge", role: "Équipe de développement", companion: "data", github: "#KERNELFORGE" },
   ];
 
@@ -70,7 +71,7 @@ const AboutScreen = () => {
             <View style={styles.techGrid}>
               {TECH.map((t) => (
                 <View key={t} style={[styles.techItem, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                  <AppIcon name="about" color={theme.secondary} size={14} />
+                  <AppIcon name="check" color={theme.secondary} size={14} />
                   <Text style={[styles.techLabel, { color: theme.textPrimary }]}>{t}</Text>
                 </View>
               ))}
@@ -131,13 +132,13 @@ const styles = StyleSheet.create({
   logo:        { width: 80, height: 80 },
   card:        { marginBottom: spacing.md },
   sectionTitle:{ fontSize: 18, fontWeight: "800", marginBottom: spacing.md },
-  pillar:      { flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 14, borderRadius: radius.md, borderWidth: 2, marginBottom: 8 },
+  pillar:      { flexDirection: "row", alignItems: "flex-start", gap: 12, padding: 14, borderRadius: radius.md, borderWidth: 1, marginBottom: 8 },
   pillarTitle: { fontSize: 15, fontWeight: "800", marginBottom: 4 },
   pillarText:  { fontSize: 13, lineHeight: 18 },
   techGrid:    { gap: 8 },
-  techItem:    { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: radius.md, borderWidth: 2 },
+  techItem:    { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: radius.md, borderWidth: 1 },
   techLabel:   { fontSize: 14, fontWeight: "700" },
-  teamRow:     { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 2, marginBottom: spacing.sm },
+  teamRow:     { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: 1, marginBottom: spacing.sm },
   teamName:    { fontSize: 16, fontWeight: "800" },
   teamRole:    { fontSize: 13, marginTop: 2 },
   teamGithub:  { fontSize: 13, fontWeight: "800", marginTop: 3 },

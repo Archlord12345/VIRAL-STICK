@@ -9,27 +9,29 @@
 import { Platform } from "react-native";
 
 // ──────────────────────────────────────────────
-// Mets à true pour forcer le backend de production
-// même en mode développement local.
+// Mets FORCE_LOCAL à true pour forcer le backend local
+// Mets USE_PROD_IN_DEV à true pour forcer la production
 // ──────────────────────────────────────────────
-const USE_PROD_IN_DEV = true;
+const FORCE_LOCAL = false;
+const USE_PROD_IN_DEV = true; // Forcer l'API de production en tout temps
 
 const PRODUCTION_URL = "https://viral-stick.vercel.app";
 
-// Sur Android l'emulateur mappe 10.0.2.2 → localhost machine hôte
 const LOCAL_URL =
   Platform.OS === "android"
     ? "http://10.0.2.2:3000"
     : "http://localhost:3000";
 
-/**
- * Retourne l'URL complète d'un endpoint.
- * @param {string} path  - ex: "/api/memes/generate-from-text"
- * @returns {string}
- */
 export function apiUrl(path = "") {
   const isDev = __DEV__;
-  const base = (isDev && !USE_PROD_IN_DEV) ? LOCAL_URL : PRODUCTION_URL;
+  let base;
+  if (FORCE_LOCAL) {
+    base = LOCAL_URL;
+  } else if (isDev && !USE_PROD_IN_DEV) {
+    base = LOCAL_URL;
+  } else {
+    base = PRODUCTION_URL;
+  }
 
   // Évite les doubles slashes
   const cleanPath = path.startsWith("/") ? path : `/${path}`;

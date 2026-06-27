@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, FlatList, SafeAreaView, Animated, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Image, ActivityIndicator, StatusBar } from "react-native";
 import axios from "axios";
@@ -41,12 +42,9 @@ const Bubble = ({ msg, accentColor }) => {
         <Image source={COMPANIONS[msg.companion]} style={[styles.bubbleAvatar, { borderColor: accentColor }]} resizeMode="contain" />
       )}
       <View style={[styles.bubble, {
-        backgroundColor: isUser ? theme.secondary : theme.backgroundCard,
-        borderColor: isUser ? theme.secondary : theme.border,
-        borderWidth: 2,
-        shadowColor: isUser ? theme.secondaryLight : "#000",
-        shadowOffset: { width: 0, height: isUser ? 3 : 2 },
-        shadowOpacity: 0.2, shadowRadius: 0, elevation: 3,
+        backgroundColor: isUser ? theme.primary : theme.backgroundCard,
+        borderColor: isUser ? theme.primary : theme.border,
+        borderWidth: 1,
       }]}>
         {!isUser && (
           <Text style={[styles.compName, { color: accentColor }]}>{COMPANION_NAMES[msg.companion]}</Text>
@@ -91,7 +89,7 @@ const CompanionChatScreen = () => {
     }
   };
 
-  const accent = theme.primary; // uniform professional brand primary color
+  const accent = theme.primary;
   const info   = LIST.find((c) => c.id === active);
 
   return (
@@ -106,19 +104,14 @@ const CompanionChatScreen = () => {
             contentContainerStyle={{ gap: 8, paddingHorizontal: spacing.md, paddingBottom: 4 }}
             renderItem={({ item }) => {
               const isA = item.id === active;
-              const col = isA ? theme.secondary : theme.textSecondary;
-              const bgCol = isA ? theme.secondaryLight : theme.backgroundCard;
+              const col = isA ? theme.primary : theme.textSecondary;
+              const bgCol = isA ? theme.primaryLight : theme.backgroundCard;
               return (
                 <TouchableOpacity
                   onPress={() => setActive(item.id)}
                   style={[styles.selectorItem, {
-                    borderColor: isA ? theme.secondary : theme.border,
+                    borderColor: isA ? theme.primary : theme.border,
                     backgroundColor: bgCol,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: isA ? 3 : 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 0,
-                    elevation: isA ? 3 : 2
                   }]}
                 >
                   <Image source={COMPANIONS[item.id]} style={styles.selectorAvatar} resizeMode="contain" />
@@ -171,18 +164,18 @@ const CompanionChatScreen = () => {
           <TouchableOpacity
             onPress={send} disabled={loading}
             style={[styles.sendBtn, {
-              backgroundColor: loading ? theme.border : theme.secondary,
-              shadowColor: theme.secondaryLight,
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.35,
-              shadowRadius: 0,
-              elevation: 3
+              backgroundColor: loading ? theme.border : theme.primary,
+              shadowColor: theme.primaryLight,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4
             }]}
           >
             {loading ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <AppIcon name="rocket" color="#ffffff" size={18} />
+              <AppIcon name="send" color="#ffffff" size={18} />
             )}
           </TouchableOpacity>
         </View>
@@ -193,14 +186,14 @@ const CompanionChatScreen = () => {
 
 const styles = StyleSheet.create({
   safe:         { flex: 1 },
-  page:         { flex: 1, paddingTop: 0 },
-  selectorWrap: { paddingVertical: 8, borderBottomWidth: 2 },
-  selectorItem: { width: 80, borderWidth: 2, borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 6, alignItems: "center", gap: 6 },
+  page:         { flex: 1 },
+  selectorWrap: { paddingVertical: 8, borderBottomWidth: 1 },
+  selectorItem: { width: 80, borderWidth: 1, borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 6, alignItems: "center", gap: 6 },
   selectorAvatar:{ width: 40, height: 40 },
   selectorName: { fontSize: 11, fontWeight: "800" },
-  chatHeader:   { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.md, paddingVertical: 12, borderBottomWidth: 2 },
-  headerAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 2 },
-  headerName:   { fontSize: 17, fontWeight: "900" },
+  chatHeader:   { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.md, paddingVertical: 12, borderBottomWidth: 1 },
+  headerAvatar: { width: 48, height: 48, borderRadius: 24, borderWidth: 1 },
+  headerName:   { fontSize: 17, fontWeight: "700" },
   headerRole:   { fontSize: 12, fontWeight: "600", marginTop: 2 },
   onlineBadge:  { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill },
   onlineDot:    { width: 7, height: 7, borderRadius: 3.5 },
@@ -208,15 +201,15 @@ const styles = StyleSheet.create({
   bubbleRow:    { flexDirection: "row", alignItems: "flex-end", marginBottom: 2 },
   left:         { justifyContent: "flex-start" },
   right:        { justifyContent: "flex-end" },
-  bubbleAvatar: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, marginRight: 8 },
+  bubbleAvatar: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, marginRight: 8 },
   bubble:       { maxWidth: "80%", borderRadius: 16, padding: 12 },
   compName:     { fontSize: 11, fontWeight: "900", marginBottom: 5, letterSpacing: 0.5 },
   bubbleText:   { fontSize: 14, lineHeight: 20, fontWeight: "600" },
   bubbleTime:   { fontSize: 10, fontWeight: "700", marginTop: 6 },
   loadingBubble:{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, paddingHorizontal: spacing.md },
   loadingText:  { fontSize: 13, fontWeight: "700" },
-  inputBar:     { flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.md, paddingVertical: 10, borderTopWidth: 2, gap: 10 },
-  input:        { flex: 1, borderWidth: 2, borderRadius: radius.pill, paddingHorizontal: 16, paddingVertical: 11, fontSize: 14 },
+  inputBar:     { flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.md, paddingVertical: 10, borderTopWidth: 1, gap: 10 },
+  input:        { flex: 1, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 16, paddingVertical: 11, fontSize: 14 },
   sendBtn:      { width: 46, height: 46, borderRadius: 23, justifyContent: "center", alignItems: "center" },
 });
 

@@ -3,13 +3,16 @@
  * Style Duolingo : fond blanc, nav verte, formes arrondies
  */
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase";
 import { colors, radius, spacing } from "../theme/tokens";
 import CompanionAvatarWeb from "./CompanionAvatarWeb";
 import AppIcon from "./AppIcon";
 
 const NAV = [
   ["/",           "Accueil",         "dashboard"],
+  ["/forum",      "Forum",           "global"],
   ["/context",    "Context Reader",  "context"],
   ["/remix",      "Remixer",         "remix"],
   ["/chat",       "Compagnons",      "chat"],
@@ -20,10 +23,18 @@ const NAV = [
 
 const WebShell = ({ children, title, companion }) => {
   const { pathname } = useLocation();
+  const [user, setUser] = React.useState(null);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    return unsub;
+  }, [auth]);
+
+  const handleLogout = () => signOut(auth).then(() => navigate("/"));
 
   return (
     <div style={{ minHeight: "100vh", background: colors.bg, display: "flex", flexDirection: "column" }}>
-
       {/* ── HEADER ─────────────────────────────── */}
       <header style={{
         position: "sticky",
@@ -69,12 +80,31 @@ const WebShell = ({ children, title, companion }) => {
           })}
         </nav>
 
-        {/* Compagnon actif */}
-        {companion && (
-          <div style={{ flexShrink: 0 }}>
-            <CompanionAvatarWeb companion={companion} size={36} ring={false} />
-          </div>
-        )}
+        {/* User / Login */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {user ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ textAlign: "right", display: "none", sm: "block" }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: colors.almostBlack }}>{user.displayName || "Utilisateur"}</div>
+                <button onClick={handleLogout} style={{ background: "none", border: "none", padding: 0, fontSize: 11, color: colors.silver, fontWeight: 700, cursor: "pointer" }}>DÉCONNEXION</button>
+              </div>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: colors.duoGreen, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 14 }}>
+                {(user.displayName || user.email || "?")[0].toUpperCase()}
+              </div>
+            </div>
+          ) : (
+            <Link to="/auth" className="nav-item" style={{ background: colors.duoGreenLight, color: colors.duoGreenDark }}>
+              Connexion
+            </Link>
+          )}
+
+          {/* Compagnon actif */}
+          {companion && (
+            <div style={{ flexShrink: 0 }}>
+              <CompanionAvatarWeb companion={companion} size={36} ring={false} />
+            </div>
+          )}
+        </div>
       </header>
 
       {/* ── CONTENU ────────────────────────────── */}
