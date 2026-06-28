@@ -1,7 +1,33 @@
 const { db, admin } = require("../firebase");
+const fs = require("fs");
+const path = require("path");
 
-// Demo data for fallback
+const PERSISTENCE_FILE = path.join(__dirname, "../storage/forum_persistence.json");
+
+// Ensure storage directory exists
+if (!fs.existsSync(path.join(__dirname, "../storage"))) {
+  fs.mkdirSync(path.join(__dirname, "../storage"), { recursive: true });
+}
+
+// Load local memes if they exist
 let demoMemes = [];
+try {
+  if (fs.existsSync(PERSISTENCE_FILE)) {
+    const data = fs.readFileSync(PERSISTENCE_FILE, "utf8");
+    demoMemes = JSON.parse(data);
+    console.log(`[Forum] Persistance locale chargée : ${demoMemes.length} mèmes.`);
+  }
+} catch (e) {
+  console.error("[Forum] Erreur chargement persistance locale:", e.message);
+}
+
+function saveLocalPersistence() {
+  try {
+    fs.writeFileSync(PERSISTENCE_FILE, JSON.stringify(demoMemes, null, 2));
+  } catch (e) {
+    console.error("[Forum] Erreur sauvegarde persistance locale:", e.message);
+  }
+}
 
 async function isDbUsable() {
   if (!db) return false;
@@ -23,20 +49,40 @@ const ForumController = {
       const id = String(shareId || Date.now());
 
       const usable = await isDbUsable();
+
+      const newMeme = {
+        id: id,
+        shareId: id,
+        imageUrl: imageUrl || "https://placehold.co/600x600/1cb0f6/ffffff?text=Image+Missing",
+        topText: topText || "",
+        bottomText: bottomText || "",
+        likes: 0,
+        remixes: 0,
+        createdAt: Date.now(),
+        userId: userId || "anon",
+        username: username || "Anonyme"
+      };
+
       if (!usable) {
-        const newMeme = {
-          id: id, shareId: id, imageUrl: imageUrl || "https://placehold.co/600x600/1cb0f6/ffffff?text=Image+Missing",
-          topText: topText || "", bottomText: bottomText || "", likes: 0, remixes: 0,
-          createdAt: Date.now(), userId: userId || "anon", username: username || "Anonyme"
-        };
-        demoMemes.unshift(newMeme);
-        return res.json({ success: true, message: "Publié (Mode Démo)" });
+        // Mode persistance locale
+        const exists = demoMemes.find(m => m.id === id);
+        if (!exists) {
+          demoMemes.unshift(newMeme);
+          saveLocalPersistence();
+        }
+        return res.json({ success: true, message: "Publié (Mode Persistance Locale)" });
       }
 
       await db.collection("memes").doc(id).set({
-        shareId: id, imageUrl, topText: topText || "", bottomText: bottomText || "",
-        likes: 0, remixes: 0, createdAt: Date.now(),
-        userId: userId || null, username: username || "Anonyme"
+        shareId: id,
+        imageUrl,
+        topText: topText || "",
+        bottomText: bottomText || "",
+        likes: 0,
+        remixes: 0,
+        createdAt: Date.now(),
+        userId: userId || null,
+        username: username || "Anonyme"
       });
 
       if (sourceMemeId && sourceMemeId !== "null" && sourceMemeId !== "undefined") {
@@ -55,7 +101,7 @@ const ForumController = {
   },
 
   /**
-   * Récupère les mèmes du forum avec tri et statut "liked"
+   * Récupère les mèmes du forum
    */
   getMemes: async (req, res) => {
     try {
@@ -73,7 +119,6 @@ const ForumController = {
       const snapshot = await db.collection("memes").orderBy(sortBy, "desc").limit(50).get();
       const memes = [];
 
-      // Collecte des IDs de mèmes pour vérifier les likes en une fois si possible ou boucle
       for (const doc of snapshot.docs) {
         const data = doc.data();
         let likedByUser = false;
@@ -92,7 +137,7 @@ const ForumController = {
   },
 
   /**
-   * Système de Like unique avec transaction
+   * Système de Like
    */
   likeMeme: async (req, res) => {
     try {
@@ -101,7 +146,14 @@ const ForumController = {
       if (!userId) return res.status(400).json({ error: "Connexion requise" });
 
       const usable = await isDbUsable();
-      if (!usable) return res.json({ success: true, liked: true });
+      if (!usable) {
+        const meme = demoMemes.find(m => m.id === id);
+        if (meme) {
+          meme.likes = (meme.likes || 0) + 1;
+          saveLocalPersistence();
+        }
+        return res.json({ success: true, liked: true });
+      }
 
       const likeRef = db.collection("likes").doc(`${userId}_${id}`);
       const memeRef = db.collection("memes").doc(id);
@@ -128,22 +180,20 @@ const ForumController = {
     }
   },
 
-  /**
-   * Leaderboard cohérent (Likes cumulés + Nombre de mèmes + Remixes générés)
-   */
   getLeaderboard: async (req, res) => {
     try {
       const usable = await isDbUsable();
+      let memesSource = [];
+
       if (!usable) {
-        return res.json([]);
+        memesSource = demoMemes;
+      } else {
+        const snapshot = await db.collection("memes").get();
+        snapshot.forEach(doc => memesSource.push({ id: doc.id, ...doc.data() }));
       }
 
-      // On calcule les stats par utilisateur à partir de la collection memes
-      const snapshot = await db.collection("memes").get();
       const stats = {};
-
-      snapshot.forEach(doc => {
-        const data = doc.data();
+      memesSource.forEach(data => {
         const uid = data.userId || "anon";
         if (!stats[uid]) {
           stats[uid] = {

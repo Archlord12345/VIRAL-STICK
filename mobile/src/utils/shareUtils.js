@@ -1,16 +1,34 @@
-import { Alert, Platform } from 'react-native';
+import { Alert, Platform, PermissionsAndroid } from 'react-native';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 
-/**
- * Prépare un fichier local pour le partage à partir d'une source (URL, Base64 ou File)
- * @param {string} source - L'URL, le base64 ou le chemin du fichier
- * @returns {Promise<string>} - Le chemin local du fichier (format file://...)
- */
+const requestStoragePermission = async () => {
+  if (Platform.OS !== 'android') return true;
+  try {
+    if (Platform.Version >= 33) return true;
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        title: "Permission de stockage",
+        message: "Accès au stockage requis pour enregistrer et partager vos mèmes.",
+        buttonNeutral: "Plus tard",
+        buttonNegative: "Annuler",
+        buttonPositive: "OK"
+      }
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  } catch (err) {
+    return false;
+  }
+};
+
 const prepareFileForSharing = async (source) => {
+  if (!source) throw new Error('Source image manquante');
+
   const timestamp = Date.now();
-  const fileName = `viral_stick_${timestamp}.jpg`;
-  const destPath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+  const fileName = `vs_share_${timestamp}.jpg`;
+  const dir = Platform.OS === 'android' ? RNFS.ExternalCachesDirectoryPath : RNFS.TemporaryDirectoryPath;
+  const destPath = `${dir}/${fileName}`;
 
   try {
     if (source.startsWith('data:image')) {
@@ -21,83 +39,74 @@ const prepareFileForSharing = async (source) => {
         fromUrl: source,
         toFile: destPath,
       }).promise;
-
-      if (downloadResult.statusCode !== 200) {
-        throw new Error('Échec du téléchargement');
-      }
-    } else if (source.startsWith('file://')) {
-      const cleanPath = source.replace('file://', '');
-      await RNFS.copyFile(cleanPath, destPath);
-    } else if (source.startsWith('/')) {
-      await RNFS.copyFile(source, destPath);
+      if (downloadResult.statusCode !== 200) throw new Error('Download failed');
     } else {
-      throw new Error('Format de source inconnu');
+      const cleanPath = source.replace('file://', '');
+      if (cleanPath !== destPath) {
+        await RNFS.copyFile(cleanPath, destPath);
+      }
     }
 
-    return `file://${destPath}`;
+    // Format URI critique pour Android
+    return Platform.OS === 'android' ? `file://${destPath}` : destPath;
   } catch (error) {
     console.error('[prepareFileForSharing] Erreur:', error);
     throw error;
   }
 };
 
-/**
- * Partage une image sur WhatsApp
- */
 export const shareToWhatsApp = async (imageUrl, text = '') => {
+  if (!imageUrl) {
+    Alert.alert('Erreur', 'Image non disponible pour le partage.');
+    return;
+  }
+
   try {
-    console.log('[shareToWhatsApp] Source:', imageUrl);
     const localUri = await prepareFileForSharing(imageUrl);
-    
+
+    // Pour WhatsApp, sur Android, Share.open sans social spécifié est souvent plus stable
+    // ou Share.shareSingle si on veut forcer l'app.
     const shareOptions = {
-      title: 'Partager via',
+      title: 'Partager le mème',
       message: text,
       url: localUri,
       type: 'image/jpeg',
-      social: Share.Social.WHATSAPP,
       failOnCancel: false,
     };
 
-    // Sur Android, on utilise shareSingle pour forcer WhatsApp
-    // Sur iOS, Share.open est souvent préférable car shareSingle peut être capricieux
     if (Platform.OS === 'android') {
-      await Share.shareSingle(shareOptions);
+      await Share.open({
+        ...shareOptions,
+        social: Share.Social.WHATSAPP
+      });
     } else {
       await Share.open(shareOptions);
     }
   } catch (error) {
     console.error('[shareToWhatsApp] Erreur:', error);
-    // Fallback: partage générique si WhatsApp spécifique échoue
-    try {
-      const localUri = await prepareFileForSharing(imageUrl);
-      await Share.open({
-        url: localUri,
-        title: 'Partager le mème',
-        message: text,
-      });
-    } catch (fallbackError) {
-      Alert.alert('Erreur', 'Impossible de partager l\'image.');
+    if (error.message && !error.message.includes('User did not share')) {
+       Alert.alert('Erreur', 'Impossible de partager sur WhatsApp.');
     }
   }
 };
 
-/**
- * Sauvegarde une image dans la galerie
- */
 export const downloadImageToGallery = async (imageUrl) => {
   try {
+    const hasPermission = await requestStoragePermission();
+    if (!hasPermission) {
+      Alert.alert("Permission", "Accès au stockage requis.");
+      return;
+    }
+
     const timestamp = Date.now();
     const fileName = `viral_stick_${timestamp}.jpg`;
-    
-    // Pour Android, on essaie de mettre dans Pictures pour que ce soit visible
-    // Pour iOS, on télécharge d'abord en cache puis on pourrait utiliser une lib comme CameraRoll
-    // Mais ici on reste simple avec RNFS
-    
+
     let destPath;
     if (Platform.OS === 'android') {
       const picturesDir = `${RNFS.ExternalStorageDirectoryPath}/Pictures/ViralStick`;
-      const exists = await RNFS.exists(picturesDir);
-      if (!exists) await RNFS.mkdir(picturesDir);
+      if (!(await RNFS.exists(picturesDir))) {
+        await RNFS.mkdir(picturesDir).catch(() => {});
+      }
       destPath = `${picturesDir}/${fileName}`;
     } else {
       destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
@@ -116,27 +125,9 @@ export const downloadImageToGallery = async (imageUrl) => {
     if (Platform.OS === 'android') {
       await RNFS.scanFile(destPath);
     }
-
     return destPath;
   } catch (error) {
     console.error('[downloadImageToGallery] Erreur:', error);
     throw error;
-  }
-};
-
-/**
- * Partage générique
- */
-export const shareImage = async (imageUrl, text = '') => {
-  try {
-    const localUri = await prepareFileForSharing(imageUrl);
-    await Share.open({
-      url: localUri,
-      title: 'Partager',
-      message: text,
-    });
-  } catch (error) {
-    console.error('[shareImage] Erreur:', error);
-    Alert.alert('Erreur', 'Impossible de partager.');
   }
 };
