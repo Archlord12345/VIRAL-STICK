@@ -14,8 +14,9 @@ yarn-error.log*
 .env.*.local
 backend/.env
 
-# Configuration Firebase (Autorisé explicitement pour le déploiement)
-!backend/firebase-service-account.json
+# Configuration Firebase (NE JAMAIS COMMITTER)
+backend/firebase-service-account.json
+backend/firebase-service-account.json.BAK
 
 # Builds
 dist/
