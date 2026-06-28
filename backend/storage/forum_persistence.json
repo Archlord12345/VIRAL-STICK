@@ -1,0 +1,14 @@
+[
+  {
+    "id": "testshare123",
+    "shareId": "testshare123",
+    "imageUrl": "data:image/jpeg;base64,composed",
+    "topText": "MOCK TOP",
+    "bottomText": "MOCK BOTTOM",
+    "likes": 0,
+    "remixes": 0,
+    "createdAt": 1782633246818,
+    "userId": "anon",
+    "username": "Viral Creator"
+  }
+]

@@ -92,7 +92,9 @@ const StatusRemixerScreen = ({ navigate, route }) => {
       await saveMemeToDB(res.data);
     } catch (error) {
       console.error('[StatusRemixer] Erreur API:', error);
-      setMsg("Le remix IA n'a pas répondu. Réessaie.");
+      const serverMsg = error.response?.data?.error || error.response?.data?.message || "Le remix IA n'a pas répondu. Réessaie.";
+      setMsg("Échec: " + serverMsg);
+      Alert.alert("Erreur", serverMsg);
     } finally { setLoading(false); }
   };
 

@@ -59,8 +59,9 @@ const ContextReaderScreen = ({ navigate }) => {
       await saveMemeToDB(res.data);
     } catch (error) {
       console.error('[ContextReader] Erreur API:', error);
-      setMsg("Le studio n'a pas pu générer. Relance avec plus de contexte.");
-      Alert.alert("Erreur", "Connexion backend impossible.");
+      const serverMsg = error.response?.data?.error || error.response?.data?.message || "Connexion backend impossible.";
+      setMsg("Le studio n'a pas pu générer: " + serverMsg);
+      Alert.alert("Erreur", serverMsg);
     } finally { setLoading(false); }
   };
 
@@ -96,7 +97,9 @@ const ContextReaderScreen = ({ navigate }) => {
       });
     } catch (error) {
       console.error('[ContextReader] Erreur régénération:', error);
-      setMsg("Échec de la régénération.");
+      const serverMsg = error.response?.data?.error || error.response?.data?.message || "Échec de la régénération.";
+      setMsg("Échec: " + serverMsg);
+      Alert.alert("Erreur", serverMsg);
     } finally {
       setRegenerating(false);
     }
