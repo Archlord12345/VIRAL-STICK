@@ -147,9 +147,30 @@ const MemeController = {
     try {
       const { companionId, message } = req.body;
       const response = await AIService.chatWithCompanion(companionId, message);
-      res.json({ response });
+      res.json({ reply: response, response });
     } catch (error) {
       res.status(500).json({ error: "Le compagnon ne répond pas" });
+    }
+  },
+
+  getGreeting: async (req, res) => {
+    try {
+      const { companionId } = req.body;
+      const response = await AIService.chatWithCompanion(companionId, "Génère un message d'accueil court et percutant dans ton style.");
+      res.json({ reply: response, response });
+    } catch (error) {
+      res.status(500).json({ error: "Le compagnon ne répond pas" });
+    }
+  },
+
+  generateImage: async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      if (!prompt) return res.status(400).json({ error: "Prompt requis" });
+      const result = await AIService.generateImage(prompt);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: "Échec de génération d'image", details: error.message });
     }
   }
 };

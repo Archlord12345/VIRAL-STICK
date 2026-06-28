@@ -133,10 +133,125 @@ async function applyMemeText(imageBuffer, options = {}) {
     </svg>
   `;
 
-  return sharp(imageBuffer)
+  const outBuffer = await sharp(imageBuffer)
     .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
     .jpeg({ quality: 90 })
     .toBuffer();
+
+  return {
+    buffer: outBuffer,
+    dataUrl: `data:image/jpeg;base64,${outBuffer.toString("base64")}`,
+    base64: outBuffer.toString("base64"),
+    provider: "sharp-meme-text",
+    width: w,
+    height: h,
+  };
 }
 
-module.exports = { exportSticker, applyMemeText };
+/**
+ * Composite un sticker sur une photo de base
+ */
+async function compositeSticker(photoBuffer, stickerBuffer, options = {}) {
+  const { position = "center", scale = 0.4, offsetX = 0, offsetY = 0 } = options;
+  const photo = sharp(photoBuffer);
+  const photoMeta = await photo.metadata();
+  const pw = photoMeta.width || 1024;
+  const ph = photoMeta.height || 1024;
+
+  const sticker = sharp(stickerBuffer);
+  const stickerMeta = await sticker.metadata();
+  const sw = stickerMeta.width || 512;
+  const sh = stickerMeta.height || 512;
+
+  // target width for sticker
+  const targetW = Math.round(pw * scale);
+  const targetH = Math.round(sh * (targetW / sw));
+
+  const resizedStickerBuffer = await sticker
+    .resize(targetW, targetH)
+    .png()
+    .toBuffer();
+
+  let left = Math.round((pw - targetW) / 2) + offsetX;
+  let top = Math.round((ph - targetH) / 2) + offsetY;
+
+  if (position === "top-left") {
+    left = offsetX;
+    top = offsetY;
+  } else if (position === "top-right") {
+    left = pw - targetW + offsetX;
+    top = offsetY;
+  } else if (position === "bottom-left") {
+    left = offsetX;
+    top = ph - targetH + offsetY;
+  } else if (position === "bottom-right") {
+    left = pw - targetW + offsetX;
+    top = ph - targetH + offsetY;
+  }
+
+  const outBuffer = await photo
+    .composite([{ input: resizedStickerBuffer, top, left }])
+    .jpeg({ quality: 90 })
+    .toBuffer();
+
+  return {
+    buffer: outBuffer,
+    dataUrl: `data:image/jpeg;base64,${outBuffer.toString("base64")}`,
+    base64: outBuffer.toString("base64"),
+    width: pw,
+    height: ph,
+    provider: "sharp-composite",
+    stickerPosition: { top, left, width: targetW, height: targetH },
+  };
+}
+
+/**
+ * Face swap: colle une photo de visage sur la région visage d'un sticker
+ */
+async function addFaceToSticker(stickerBuffer, faceBuffer, options = {}) {
+  const {
+    outputSize = 512,
+    faceRegionX = 0.20,
+    faceRegionY = 0.08,
+    faceRegionW = 0.60,
+    faceRegionH = 0.38,
+  } = options;
+
+  const sticker = sharp(stickerBuffer);
+  const stickerResized = await sticker
+    .resize(outputSize, outputSize, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
+
+  const fx = Math.round(outputSize * faceRegionX);
+  const fy = Math.round(outputSize * faceRegionY);
+  const fw = Math.round(outputSize * faceRegionW);
+  const fh = Math.round(outputSize * faceRegionH);
+
+  const faceResized = await sharp(faceBuffer)
+    .resize(fw, fh, { fit: "cover" })
+    .png()
+    .toBuffer();
+
+  const outBuffer = await sharp(stickerResized)
+    .composite([{ input: faceResized, top: fy, left: fx }])
+    .png()
+    .toBuffer();
+
+  return {
+    buffer: outBuffer,
+    dataUrl: `data:image/png;base64,${outBuffer.toString("base64")}`,
+    base64: outBuffer.toString("base64"),
+    width: outputSize,
+    height: outputSize,
+    provider: "sharp-face-swap",
+    faceRegion: { top: fy, left: fx, width: fw, height: fh },
+  };
+}
+
+module.exports = {
+  exportSticker,
+  compositeSticker,
+  addFaceToSticker,
+  applyMemeText
+};

@@ -60,7 +60,13 @@ const RemixPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: remixText, inputImageBase64: inputImageBase64 || undefined }),
       });
-      const data = await res.json();
+      const contentType = res.headers.get("content-type");
+      let data;
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        throw new Error(`Serveur indisponible (erreur ${res.status})`);
+      }
       if (!res.ok) throw new Error(data?.error || "Erreur remix");
       setResult(data);
     } catch (e) { setError(e.message); }
@@ -91,6 +97,18 @@ const RemixPage = () => {
       console.error(e);
       alert("Erreur réseau lors de la publication");
     }
+  };
+
+  const handleDownload = () => {
+    if (!result) return;
+    const imageUrl = result.composedImageUrl || result.share?.imageDataUrl || result.imageUrl;
+    if (!imageUrl) return;
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    link.download = `viral-stick-remix-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const overlayColor = {
@@ -259,13 +277,18 @@ const RemixPage = () => {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <WhatsAppShareButton
-                  text={shareText}
-                  url={result.share?.publicUrl}
-                  imageDataUrl={result.share?.imageDataUrl}
-                  label="Partager le remix"
-                  style={{ width: "100%", justifyContent: "center" }}
-                />
+                <div style={{ display: "flex", gap: 12 }}>
+                  <WhatsAppShareButton
+                    text={shareText}
+                    url={result.share?.publicUrl}
+                    imageDataUrl={result.composedImageUrl || result.share?.imageDataUrl || result.imageUrl}
+                    label="Partager le remix"
+                    style={{ flex: 1, justifyContent: "center" }}
+                  />
+                  <PremiumButton variant="ghost" onClick={handleDownload} style={{ flex: 1 }}>
+                    📥 Télécharger
+                  </PremiumButton>
+                </div>
 
                 {!published ? (
                   <PremiumButton variant="green" onClick={publishToForum} style={{ width: "100%" }}>

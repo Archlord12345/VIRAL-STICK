@@ -2,8 +2,19 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import WebShell from "../components/WebShell";
 import PremiumButton from "../components/PremiumButton";
+import WhatsAppShareButton from "../components/WhatsAppShareButton";
 import { colors, radius } from "../theme/tokens";
 import { useUser } from "../contexts/UserContext";
+
+const handleDownloadImage = (imageUrl) => {
+  if (!imageUrl) return;
+  const link = document.createElement("a");
+  link.href = imageUrl;
+  link.download = `viral-stick-${Date.now()}.jpg`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 const ForumPage = () => {
   const [memes, setMemes] = useState([]);
@@ -21,6 +32,13 @@ const ForumPage = () => {
       const params = new URLSearchParams({ sortBy });
       if (userId) params.append("userId", userId);
       const res = await fetch(`/api/forum/memes?${params.toString()}`);
+      if (!res.ok) {
+        throw new Error(`Server status ${res.status}`);
+      }
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Response is not JSON");
+      }
       const data = await res.json();
       setMemes(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -142,7 +160,7 @@ const ForumPage = () => {
                     </div>
                   )}
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                   <PremiumButton 
                     variant={meme.likedByUser ? "green" : "ghost"} 
                     onClick={() => handleLike(meme.id)} 
@@ -156,6 +174,21 @@ const ForumPage = () => {
                     style={{ flex: 1, minHeight: 40 }}
                   >
                     ✨ Remix
+                  </PremiumButton>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <WhatsAppShareButton
+                    text="Regarde ce mème ! 🔥"
+                    imageDataUrl={meme.imageUrl}
+                    label="WhatsApp"
+                    style={{ flex: 1, minHeight: 40 }}
+                  />
+                  <PremiumButton
+                    variant="ghost"
+                    onClick={() => handleDownloadImage(meme.imageUrl)}
+                    style={{ flex: 1, minHeight: 40 }}
+                  >
+                    📥 Télécharger
                   </PremiumButton>
                 </div>
               </div>

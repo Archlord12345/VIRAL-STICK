@@ -132,7 +132,12 @@ const ForumController = {
       }
       res.json(memes);
     } catch (e) {
-      res.status(500).json({ error: "Erreur lors de la récupération" });
+      console.error("[Forum getMemes] Firestore query failed, falling back to local persistence:", e.message);
+      let sorted = [...demoMemes];
+      if (sortBy === "likes") sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+      else if (sortBy === "remixes") sorted.sort((a, b) => (b.remixes || 0) - (a.remixes || 0));
+      else sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      return res.json(sorted.map(m => ({ ...m, likedByUser: false })));
     }
   },
 
