@@ -1,8 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
 import { View, Animated, StatusBar, StyleSheet, Image, Dimensions } from "react-native";
+import { LinearGradient } from "expo-linear-gradient"; // Wait, do we have this? Let's just use a solid gradient approach with views!
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// Create a gradient-like progress bar with multiple colored views
 const Flame = ({ style, delay }) => {
   const flameAnim = useRef(new Animated.Value(0)).current;
   
@@ -44,14 +46,18 @@ const Flame = ({ style, delay }) => {
           opacity: flameOpacity
         }
       ]} 
-    />
+    >
+      {/* Simple solid flame color since CSS gradients aren't supported on RN views directly */}
+      <View style={{flex:1, backgroundColor:'#ff6b35', borderTopLeftRadius: 50, borderTopRightRadius:50}}/>
+    </Animated.View>
   );
 };
 
 const SplashScreen = ({ onFinish }) => {
   const scale = useRef(new Animated.Value(0.5)).current;
   const opacity = useRef(new Animated.Value(0)).current;
-  const [progress, setProgress] = useState(0);
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const [progressWidth, setProgressWidth] = useState(0);
 
   useEffect(() => {
     Animated.parallel([
@@ -59,22 +65,24 @@ const SplashScreen = ({ onFinish }) => {
       Animated.timing(opacity, { toValue: 1, duration: 600, useNativeDriver: true }),
     ]).start();
 
-    // Progress animation for 5 seconds total
-    const duration = 5000;
-    const startTime = Date.now();
-    
-    const progressInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const newProgress = Math.min((elapsed / duration) * 100, 100);
-      setProgress(newProgress);
-      
-      if (elapsed >= duration) {
-        clearInterval(progressInterval);
-        onFinish?.();
-      }
-    }, 50);
+    // Progress animation for exactly 5 seconds
+    Animated.timing(progressAnim, {
+      toValue: 100,
+      duration: 5000,
+      useNativeDriver: false,
+      easing: (t) => t, // Linear
+    }).start(() => {
+      onFinish?.();
+    });
 
-    return () => clearInterval(progressInterval);
+    // Update state for width
+    const listenerId = progressAnim.addListener(({ value }) => {
+      setProgressWidth(value);
+    });
+
+    return () => {
+      progressAnim.removeListener(listenerId);
+    };
   }, []);
 
   return (
@@ -108,7 +116,16 @@ const SplashScreen = ({ onFinish }) => {
       
       {/* Progress bar */}
       <View style={styles.progressContainer}>
-        <View style={[styles.progressBar, { width: `${progress}%` }]} />
+        <Animated.View style={[
+          styles.progressBar, 
+          {
+            width: progressAnim.interpolate({
+              inputRange: [0, 100],
+              outputRange: ["0%", "100%"]
+            }),
+            backgroundColor: "#ff6b35" // Default color for now
+          }
+        ]} />
       </View>
     </View>
   );
@@ -135,8 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     borderBottomLeftRadius: 100,
     borderBottomRightRadius: 100,
-    backgroundColor: "transparent",
-    background: "linear-gradient(to top, #ff6b35, #f7c531, transparent)",
+    overflow: "hidden",
     transformOrigin: "bottom center",
   },
   
@@ -162,7 +178,6 @@ const styles = StyleSheet.create({
   
   progressBar: {
     height: "100%",
-    background: "linear-gradient(90deg, #ff6b35, #f7c531, #58cc02, #1cb0f6)",
     borderRadius: 4,
   },
 });

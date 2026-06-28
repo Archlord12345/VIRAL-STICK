@@ -1,26 +1,53 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 const LoadingScreen = ({ onComplete }) => {
+  const progressRef = useRef(0);
+  const startTimeRef = useRef(Date.now());
+  const animationFrameRef = useRef(null);
+  const duration = 5000; // 5 seconds
+
+  useEffect(() => {
+    const animate = () => {
+      const elapsed = Date.now() - startTimeRef.current;
+      const newProgress = Math.min((elapsed / duration) * 100, 100);
+      progressRef.current = newProgress;
+      
+      // Force a re-render
+      window.dispatchEvent(new CustomEvent('loadingProgress', { detail: newProgress }));
+      
+      if (newProgress >= 100) {
+        if (onComplete) {
+          onComplete();
+        }
+        return;
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+    
+    animationFrameRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [onComplete]);
+
+  // Use local state for UI updates
   const [progress, setProgress] = useState(0);
   
   useEffect(() => {
-    const duration = 5000; // 5 seconds
-    const steps = 100;
-    const intervalTime = duration / steps;
-
-    const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          if (onComplete) onComplete();
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, intervalTime);
-
-    return () => clearInterval(timer);
-  }, [onComplete]);
+    const handleProgressUpdate = (e) => {
+      setProgress(e.detail);
+    };
+    
+    window.addEventListener('loadingProgress', handleProgressUpdate);
+    
+    return () => {
+      window.removeEventListener('loadingProgress', handleProgressUpdate);
+    };
+  }, []);
 
   return (
     <div style={styles.container}>
@@ -49,7 +76,11 @@ const LoadingScreen = ({ onComplete }) => {
       </div>
 
       <div style={styles.progressContainer}>
-        <div style={{...styles.progressBar, width: `${progress}%`}}/>
+        <div style={{
+          ...styles.progressBar, 
+          width: `${progress}%`,
+          transition: 'width 0.016s linear' // 60fps
+        }}/>
       </div>
     </div>
   );
@@ -112,7 +143,6 @@ const styles = {
     height: '100%',
     background: 'linear-gradient(90deg, #ff6b35, #f7c531, #58cc02, #1cb0f6)',
     borderRadius: '4px',
-    transition: 'width 0.05s ease-out',
   },
 };
 
