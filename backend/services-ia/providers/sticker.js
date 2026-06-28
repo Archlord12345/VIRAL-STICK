@@ -19,11 +19,32 @@ function escapeXml(unsafe) {
 }
 
 /**
+ * Wrap text into multiple lines to fit within the image width
+ */
+function wrapText(text, maxCharsPerLine) {
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+
+  words.forEach(word => {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    if (testLine.length <= maxCharsPerLine) {
+      currentLine = testLine;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+  });
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
+/**
  * Applique le texte de mème sur une image avec positionnement flexible.
  * FIX : Évite les barres noires en utilisant un SVG simplifié et un rendu propre.
  */
 async function applyMemeText(imageBuffer, options = {}) {
-  const { topText = "", bottomText = "", topY = 10, bottomY = 88 } = options;
+  const { topText = "", bottomText = "", topY = 8, bottomY = 92 } = options;
   const safeTopText = escapeXml(topText);
   const safeBottomText = escapeXml(bottomText);
 
@@ -37,13 +58,34 @@ async function applyMemeText(imageBuffer, options = {}) {
     const w = info.width || 1024;
     const h = info.height || 1024;
 
-    // Adjust font size to be responsive
-    let fontSize = Math.max(Math.round(w * 0.075), 28);
-    // Reduce font size if text is long
-    if (safeTopText.length > 25 || safeBottomText.length > 25) {
-      fontSize = Math.max(Math.round(w * 0.055), 22);
+    // Adjust font size and max chars per line based on image width
+    let fontSize = Math.max(Math.round(w * 0.07), 28);
+    let maxCharsPerLine = Math.max(Math.round(w / (fontSize * 0.6)), 10);
+
+    // Further reduce font size for long text
+    if (safeTopText.length > 40 || safeBottomText.length > 40) {
+      fontSize = Math.max(Math.round(w * 0.05), 22);
+      maxCharsPerLine = Math.max(Math.round(w / (fontSize * 0.6)), 8);
     }
     const strokeW = Math.max(Math.round(fontSize * 0.18), 4);
+    const lineHeight = fontSize * 1.2;
+
+    // Wrap text into lines
+    const topLines = safeTopText ? wrapText(safeTopText, maxCharsPerLine) : [];
+    const bottomLines = safeBottomText ? wrapText(safeBottomText, maxCharsPerLine) : [];
+
+    // Generate SVG text elements
+    let topTextSvg = '';
+    topLines.forEach((line, index) => {
+      const y = (topY / 100) * h + (index * lineHeight);
+      topTextSvg += `<text x="50%" y="${y}" text-anchor="middle" class="txt top" font-size="${fontSize}">${line}</text>`;
+    });
+
+    let bottomTextSvg = '';
+    bottomLines.forEach((line, index) => {
+      const y = (bottomY / 100) * h - ((bottomLines.length - 1 - index) * lineHeight);
+      bottomTextSvg += `<text x="50%" y="${y}" text-anchor="middle" class="txt bottom" font-size="${fontSize}">${line}</text>`;
+    });
 
     // SVG with proper text alignment (better visibility)
     const svgOverlay = Buffer.from(`
@@ -62,7 +104,7 @@ async function applyMemeText(imageBuffer, options = {}) {
             font-family: Impact, Arial Black, sans-serif;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             filter: url(#textShadow);
           }
           .top {
@@ -72,8 +114,8 @@ async function applyMemeText(imageBuffer, options = {}) {
             dominant-baseline: auto;
           }
         </style>
-        ${safeTopText ? `<text x="50%" y="${topY}%" text-anchor="middle" class="txt top" font-size="${fontSize}">${safeTopText}</text>` : ""}
-        ${safeBottomText ? `<text x="50%" y="${bottomY}%" text-anchor="middle" class="txt bottom" font-size="${fontSize}">${safeBottomText}</text>` : ""}
+        ${topTextSvg}
+        ${bottomTextSvg}
       </svg>
     `);
 
