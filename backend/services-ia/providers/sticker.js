@@ -28,13 +28,12 @@ async function applyMemeText(imageBuffer, options = {}) {
   const safeBottomText = escapeXml(bottomText);
 
   try {
-    // First ensure the original image is in a consistent RGB format
-    const normalizedImage = await sharp(imageBuffer)
-      .toFormat('jpeg')
-      .jpeg({ quality: 90 })
-      .toBuffer();
-
-    const info = await sharp(normalizedImage).metadata();
+    // Process the original image properly without adding bars
+    const imageProcessor = sharp(imageBuffer)
+      .rotate() // Auto-rotate based on EXIF data
+      .flatten({ background: { r: 0, g: 0, b: 0 } }); // Ensure RGB format
+    
+    const info = await imageProcessor.metadata();
     const w = info.width || 1024;
     const h = info.height || 1024;
 
@@ -71,12 +70,12 @@ async function applyMemeText(imageBuffer, options = {}) {
       </svg>
     `);
 
-    const outBuffer = await sharp(normalizedImage)
+    const outBuffer = await imageProcessor
       .composite([{
         input: svgOverlay,
-        blend: 'over',
-        gravity: 'center'
+        blend: 'over'
       }])
+      .jpeg({ quality: 90 })
       .toBuffer();
 
     return {
