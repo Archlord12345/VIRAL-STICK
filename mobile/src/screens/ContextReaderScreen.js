@@ -164,44 +164,44 @@ const ContextReaderScreen = ({ navigate }) => {
             </View>
 
             <View style={styles.actionFixedBar}>
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: '#25D366' }]}
-                onPress={() => handleAction('whatsapp')}
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <AppIcon name="share-2" color="#fff" size={20} />
-                    <Text style={styles.actionText}>WHATSAPP</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionBtnWhatsapp, { backgroundColor: '#25D366' }]}
+            onPress={() => handleAction('whatsapp')}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <AppIcon name="share-2" color="#fff" size={20} />
+                <Text style={styles.actionText}>WHATSAPP</Text>
+              </>
+            )}
+          </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: colors.duoGreen }]}
-                onPress={() => handleAction('download')}
-              >
-                <AppIcon name="download" color="#fff" size={20} />
-                <Text style={styles.actionText}>SAUVEGARDER</Text>
-              </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionBtnGreen, { backgroundColor: colors.duoGreen }]}
+            onPress={() => handleAction('download')}
+          >
+            <AppIcon name="download" color="#fff" size={20} />
+            <Text style={styles.actionText}>SAUVEGARDER</Text>
+          </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: colors.skyBlue }]}
-                onPress={() => handleAction('forum')}
-              >
-                <AppIcon name="globe" color="#fff" size={20} />
-                <Text style={styles.actionText}>FORUM</Text>
-              </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionBtnBlue, { backgroundColor: colors.skyBlue }]}
+            onPress={() => handleAction('forum')}
+          >
+            <AppIcon name="globe" color="#fff" size={20} />
+            <Text style={styles.actionText}>FORUM</Text>
+          </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: colors.cloudGray }]}
-                onPress={() => setMeme(null)}
-              >
-                <AppIcon name="refresh-cw" color={colors.charcoal} size={20} />
-              </TouchableOpacity>
-            </View>
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionBtnGray, { backgroundColor: colors.cloudGray }]}
+            onPress={() => setMeme(null)}
+          >
+            <AppIcon name="refresh-cw" color={colors.charcoal} size={20} />
+          </TouchableOpacity>
+        </View>
           </View>
         )}
         <View style={{ height: 100 }} />
@@ -268,9 +268,7 @@ const styles = StyleSheet.create({
     borderColor: colors.cloudGray,
     borderRadius: radius.buttons
   },
-  sliderContainer: {
-    marginVertical: 10
-  },
+  sliderContainer: { marginVertical: 10 },
   sliderLabel: {
     fontSize: 12,
     fontWeight: '700',
@@ -300,8 +298,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.1)'
+    borderColor: 'rgba(0,0,0,0.1)',
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4
   },
+  actionBtnWhatsapp: { shadowColor: '#12b534', shadowOffset: { width: 0, height: 4 } },
+  actionBtnGreen: { shadowColor: '#3f8f01', shadowOffset: { width: 0, height: 4 } },
+  actionBtnBlue: { shadowColor: '#1899d6', shadowOffset: { width: 0, height: 4 } },
+  actionBtnGray: { shadowColor: '#b5b5b5', shadowOffset: { width: 0, height: 4 } },
   actionText: {
     color: '#fff',
     fontWeight: '900',

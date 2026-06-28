@@ -84,7 +84,7 @@ const ForumScreen = ({ navigate }) => {
 
         <View style={styles.actionsRow}>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: '#25D366' }]}
+            style={[styles.actionBtn, styles.actionBtnWhatsapp, { backgroundColor: '#25D366' }]}
             onPress={() => shareToWhatsApp(item.imageUrl)}
           >
             <AppIcon name="share-2" color="#fff" size={18} />
@@ -92,7 +92,7 @@ const ForumScreen = ({ navigate }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: colors.duoGreen }]}
+            style={[styles.actionBtn, styles.actionBtnRemix, { backgroundColor: colors.duoGreen }]}
             onPress={() => navigate('StatusRemixer', { imageUrl: item.imageUrl })}
           >
             <AppIcon name="refresh-cw" color="#fff" size={18} />
@@ -157,8 +157,45 @@ const styles = StyleSheet.create({
   statBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statText: { fontWeight: '900', fontSize: 15, color: colors.almostBlack, fontFamily: 'Nunito' },
   actionsRow: { flexDirection: 'row', gap: 10 },
-  actionBtn: { flex: 1, height: 55, borderRadius: radius.buttons, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, borderWidth: 2, borderColor: 'rgba(0,0,0,0.1)' },
-  iconBtn: { width: 55, height: 55, borderRadius: radius.buttons, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: 'rgba(0,0,0,0.1)' },
+  actionBtn: {
+    flex: 1,
+    height: 55,
+    borderRadius: radius.buttons,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.1)'
+  },
+  actionBtnWhatsapp: {
+    shadowColor: '#12b534',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4
+  },
+  actionBtnRemix: {
+    shadowColor: '#3f8f01',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4
+  },
+  iconBtn: {
+    width: 55,
+    height: 55,
+    borderRadius: radius.buttons,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.1)',
+    shadowColor: '#b5b5b5',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4
+  },
   btnText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 0.5, fontFamily: 'Nunito' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   empty: { textAlign: 'center', marginTop: 50, fontWeight: '700', color: colors.silver, fontFamily: 'Nunito' }
