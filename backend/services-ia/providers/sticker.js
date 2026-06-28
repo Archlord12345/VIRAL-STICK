@@ -1,72 +1,121 @@
 const sharp = require("sharp");
 
+/**
+ * Échappe les caractères spéciaux pour le SVG (évite les erreurs de rendu)
+ */
 function escapeXml(unsafe) {
   if (typeof unsafe !== 'string') return '';
-  return unsafe.replace(/[<>&'"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','\'':'&apos;','"':'&quot;'}[c]));
+  return unsafe.replace(/[<>&'"]/g, function (c) {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+      default: return c;
+    }
+  });
 }
 
-function wrapText(text, maxChars) {
+/**
+ * Découpe le texte en plusieurs lignes
+ */
+function wrapText(text, maxCharsPerLine) {
   if (!text) return [];
-  const words = String(text).split(' ');
+  const words = String(text).trim().split(/\s+/);
   const lines = [];
   let currentLine = '';
+
   words.forEach(word => {
-    const test = currentLine ? `${currentLine} ${word}` : word;
-    if (test.length <= maxChars) currentLine = test;
-    else { lines.push(currentLine); currentLine = word; }
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    if (testLine.length <= maxCharsPerLine) {
+      currentLine = testLine;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
   });
-  lines.push(currentLine);
+  if (currentLine) lines.push(currentLine);
   return lines;
 }
 
+/**
+ * Applique le texte de mème sur une image avec positionnement flexible.
+ * Version ultra-robuste avec double passe (contour + remplissage) pour compatibilité maximale.
+ */
 async function applyMemeText(imageBuffer, options = {}) {
-  const { topText = "", bottomText = "", topY = 12, bottomY = 88 } = options;
+  const { topText = "", bottomText = "", topY = 15, bottomY = 85 } = options;
+
   try {
-    if (!imageBuffer) return null;
-    const image = sharp(imageBuffer);
-    const meta = await image.metadata();
-    const w = meta.width || 1024;
-    const h = meta.height || 1024;
+    if (!imageBuffer || imageBuffer.length === 0) {
+      throw new Error("Buffer image vide ou corrompu");
+    }
 
-    const safeTop = escapeXml(topText.toUpperCase());
-    const safeBottom = escapeXml(bottomText.toUpperCase());
+    // 1. Lire les métadonnées sur une instance temporaire
+    const meta = await sharp(imageBuffer).metadata();
+    const w = meta.width;
+    const h = meta.height;
 
-    const fontSize = Math.round(w * 0.07);
-    const strokeW = Math.round(fontSize * 0.15);
-    const maxChars = Math.round(w / (fontSize * 0.6));
-    const lineHeight = fontSize * 1.1;
+    if (!w || !h) throw new Error("Impossible de lire les dimensions de l'image");
+
+    const safeTop = escapeXml(topText).toUpperCase();
+    const safeBottom = escapeXml(bottomText).toUpperCase();
+
+    // 2. Paramètres de style adaptés
+    const fontSize = Math.floor(w * 0.08);
+    const strokeW = Math.floor(fontSize * 0.15);
+    const maxChars = Math.floor(w / (fontSize * 0.6));
+    const lineHeight = fontSize * 1.2;
 
     const topLines = wrapText(safeTop, maxChars);
     const bottomLines = wrapText(safeBottom, maxChars);
 
-    let svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-      <style>
-        .txt { fill: white; stroke: black; stroke-width: ${strokeW}px; font-family: DejaVu Sans, Arial, sans-serif; font-weight: 900; text-anchor: middle; dominant-baseline: middle; paint-order: stroke; }
-      </style>`;
+    // 3. Construction du contenu SVG (Double passe pour contour parfait)
+    let svgTexts = "";
 
-    topLines.forEach((l, i) => {
-      svg += `<text x="50%" y="${(topY/100)*h + (i*lineHeight)}" class="txt" font-size="${fontSize}">${l}</text>`;
+    // Texte du haut
+    topLines.forEach((line, i) => {
+      const y = (topY / 100) * h + (i * lineHeight);
+      // Contour
+      svgTexts += `<text x="50%" y="${y}" text-anchor="middle" font-size="${fontSize}" font-family="sans-serif" font-weight="900" fill="none" stroke="black" stroke-width="${strokeW}" stroke-linejoin="round">${line}</text>`;
+      // Remplissage
+      svgTexts += `<text x="50%" y="${y}" text-anchor="middle" font-size="${fontSize}" font-family="sans-serif" font-weight="900" fill="white">${line}</text>`;
     });
 
-    const bStart = (bottomY/100)*h - ((bottomLines.length - 1) * lineHeight);
-    bottomLines.forEach((l, i) => {
-      svg += `<text x="50%" y="${bStart + (i*lineHeight)}" class="txt" font-size="${fontSize}">${l}</text>`;
+    // Texte du bas
+    const totalBottomHeight = (bottomLines.length - 1) * lineHeight;
+    bottomLines.forEach((line, i) => {
+      const y = (bottomY / 100) * h - totalBottomHeight + (i * lineHeight);
+      // Contour
+      svgTexts += `<text x="50%" y="${y}" text-anchor="middle" font-size="${fontSize}" font-family="sans-serif" font-weight="900" fill="none" stroke="black" stroke-width="${strokeW}" stroke-linejoin="round">${line}</text>`;
+      // Remplissage
+      svgTexts += `<text x="50%" y="${y}" text-anchor="middle" font-size="${fontSize}" font-family="sans-serif" font-weight="900" fill="white">${line}</text>`;
     });
 
-    svg += `</svg>`;
+    const svgOverlay = Buffer.from(`
+      <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+        <style> text { dominant-baseline: middle; } </style>
+        ${svgTexts}
+      </svg>
+    `);
 
-    const result = await image
-      .composite([{ input: Buffer.from(svg), blend: 'over' }])
+    // 4. Fusion finale sur une nouvelle instance
+    const outBuffer = await sharp(imageBuffer)
+      .composite([{ input: svgOverlay, blend: 'over' }])
       .jpeg({ quality: 90 })
       .toBuffer();
 
+    console.log(`[Sticker] Fusion réussie: ${topText.slice(0, 15)}... (${outBuffer.length} octets)`);
+
     return {
-      buffer: result,
-      dataUrl: `data:image/jpeg;base64,${result.toString("base64")}`,
-      width: w, height: h
+      buffer: outBuffer,
+      dataUrl: `data:image/jpeg;base64,${outBuffer.toString("base64")}`,
+      width: w,
+      height: h
     };
-  } catch (e) {
-    console.error("[Sticker] Error:", e.message);
+
+  } catch (error) {
+    console.error("[applyMemeText] ❌ Erreur critique Sharp:", error.message);
     return null;
   }
 }
