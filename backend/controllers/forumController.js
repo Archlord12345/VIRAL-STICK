@@ -118,7 +118,9 @@ const ForumController = {
   getMemes: async (req, res) => {
     try {
       const allowedSortFields = ["createdAt", "likes", "remixes"];
-      let { sortBy = "createdAt", userId } = req.query;
+      let { sortBy = "createdAt", userId, page = 1, limit = 20 } = req.query;
+      page = Math.max(1, parseInt(page) || 1);
+      limit = Math.max(1, Math.min(100, parseInt(limit) || 20));
       
       if (!allowedSortFields.includes(sortBy)) {
           console.warn(`[Forum Get] Invalid sortBy parameter: ${sortBy}. Defaulting to createdAt.`);
@@ -141,9 +143,14 @@ const ForumController = {
           if (sortBy === "likes") sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
           else if (sortBy === "remixes") sorted.sort((a, b) => (b.remixes || 0) - (a.remixes || 0));
           else sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          
+          // Apply pagination to demo data
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          sorted = sorted.slice(startIndex, endIndex);
         } catch (e) {
-          console.warn("[Forum Get] Sorting failed:", e.message);
-          sorted = demoMemes;
+          console.warn("[Forum Get] Sorting/pagination failed:", e.message);
+          sorted = demoMemes.slice(0, limit);
         }
         
         return res.json(sorted.map(m => {
@@ -158,11 +165,12 @@ const ForumController = {
         }));
       }
 
-      console.log(`[Forum Get] Querying memes with sortBy: ${sortBy}`);
+      console.log(`[Forum Get] Querying memes with sortBy: ${sortBy}, page: ${page}, limit: ${limit}`);
       let snapshot = null;
       try {
         const db = Firebase.db;
-        snapshot = await db.collection("memes").orderBy(sortBy, "desc").limit(50).get();
+        const offset = (page - 1) * limit;
+        snapshot = await db.collection("memes").orderBy(sortBy, "desc").limit(limit).offset(offset).get();
       } catch (dbError) {
         console.warn("[Forum Get] Firestore query failed, falling back to demo:", dbError.message);
         let sorted = [];
@@ -171,9 +179,13 @@ const ForumController = {
           if (sortBy === "likes") sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
           else if (sortBy === "remixes") sorted.sort((a, b) => (b.remixes || 0) - (a.remixes || 0));
           else sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          sorted = sorted.slice(startIndex, endIndex);
         } catch (e) {
-          console.warn("[Forum Get] Demo sorting failed:", e.message);
-          sorted = demoMemes;
+          console.warn("[Forum Get] Demo sorting/pagination failed:", e.message);
+          sorted = demoMemes.slice(0, limit);
         }
         
         return res.json(sorted.map(m => {
