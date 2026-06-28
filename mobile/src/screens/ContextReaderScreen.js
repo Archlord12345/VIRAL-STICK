@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, ScrollView, SafeAreaView, Animated, Alert, Keyboard, ActivityIndicator, Image, StatusBar } from "react-native";
 import axios from "axios";
 import { useTheme, spacing, radius } from "../theme";
@@ -9,6 +9,7 @@ import AppIcon from "../components/AppIcon";
 import { apiUrl } from "../config/api";
 import { shareToWhatsApp, downloadImageToGallery } from "../utils/shareUtils";
 import { memeDB, statsDB } from "../services/database";
+import authService from "../services/authService";
 
 const QUICK_IDEAS = [
   "Le prof arrive en retard à son propre cours et nous gronde quand même.",
@@ -23,7 +24,7 @@ const ContextReaderScreen = ({ navigate }) => {
   const [loading, setLoading] = useState(false);
   const [published, setPublished] = useState(false);
   const [msg, setMsg]         = useState("Décris une situation — je trouve l'angle le plus drôle.");
-  const [userId] = useState('demo_user'); // À remplacer par l'ID utilisateur réel
+  const [userId, setUserId]   = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editTopText, setEditTopText] = useState("");
   const [editBottomText, setEditBottomText] = useState("");
@@ -31,18 +32,23 @@ const ContextReaderScreen = ({ navigate }) => {
   const resultAnim            = useRef(new Animated.Value(0)).current;
   const progress              = useMemo(() => Math.min(text.trim().length / 220, 1), [text]);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const id = await authService.getUserId();
+      setUserId(id || 'guest');
+    };
+    fetchUser();
+  }, []);
+
   const generateMeme = async () => {
     if (!text.trim()) { Alert.alert("Viral Stick", "Entre une situation à transformer."); return; }
     Keyboard.dismiss(); setLoading(true); setMeme(null); setPublished(false); setEditMode(false);
     setMsg("J'analyse le contexte et cherche la meilleure chute comique...");
     
     const url = apiUrl("/api/memes/generate-from-text");
-    console.log('[ContextReader] URL API:', url);
-    console.log('[ContextReader] Text envoyé:', text);
-    
+
     try {
       const res = await axios.post(url, { text });
-      console.log('[ContextReader] Réponse API:', res.data);
       setMeme(res.data);
       setEditTopText(res.data.topText || "");
       setEditBottomText(res.data.bottomText || "");
@@ -50,13 +56,11 @@ const ContextReaderScreen = ({ navigate }) => {
       resultAnim.setValue(0);
       Animated.spring(resultAnim, { toValue: 1, tension: 70, friction: 8, useNativeDriver: true }).start();
       
-      // Sauvegarder le mème dans SQLite
       await saveMemeToDB(res.data);
     } catch (error) {
       console.error('[ContextReader] Erreur API:', error);
-      console.error('[ContextReader] Détails erreur:', error.response?.data || error.message);
       setMsg("Le studio n'a pas pu générer. Relance avec plus de contexte.");
-      Alert.alert("Erreur", `Connexion backend impossible: ${error.message}`);
+      Alert.alert("Erreur", "Connexion backend impossible.");
     } finally { setLoading(false); }
   };
 
@@ -70,10 +74,9 @@ const ContextReaderScreen = ({ navigate }) => {
       const res = await axios.post(url, {
         imageUrl: meme.imageUrl,
         topText: "",
-        bottomText: editBottomText || editTopText // Utiliser bottomText pour le pied de page
+        bottomText: editBottomText || editTopText
       });
-      console.log('[ContextReader] Régénération:', res.data);
-      setMeme({ 
+      setMeme({
         ...meme, 
         composedImageUrl: res.data.composedImageUrl,
         share: res.data.share,
@@ -84,8 +87,7 @@ const ContextReaderScreen = ({ navigate }) => {
       resultAnim.setValue(0);
       Animated.spring(resultAnim, { toValue: 1, tension: 70, friction: 8, useNativeDriver: true }).start();
       
-      // Mettre à jour la base de données
-      await saveMemeToDB({ 
+      await saveMemeToDB({
         ...meme, 
         composedImageUrl: res.data.composedImageUrl,
         share: res.data.share,
@@ -94,8 +96,7 @@ const ContextReaderScreen = ({ navigate }) => {
       });
     } catch (error) {
       console.error('[ContextReader] Erreur régénération:', error);
-      setMsg("Échec de la régénération. Réessaie.");
-      Alert.alert("Erreur", "Impossible de régénérer le mème.");
+      setMsg("Échec de la régénération.");
     } finally {
       setRegenerating(false);
     }
@@ -105,7 +106,7 @@ const ContextReaderScreen = ({ navigate }) => {
     try {
       const memeRecord = {
         id: memeData.id || `meme_${Date.now()}`,
-        userId: userId,
+        userId: userId || 'guest',
         imageUrl: memeData.imageUrl,
         topText: memeData.topText,
         bottomText: memeData.bottomText,
@@ -116,7 +117,9 @@ const ContextReaderScreen = ({ navigate }) => {
         likes: 0,
       };
       await memeDB.saveMeme(memeRecord);
-      await statsDB.incrementMemesCreated(userId);
+      if (userId && userId !== 'guest') {
+        await statsDB.incrementMemesCreated(userId);
+      }
     } catch (error) {
       console.error('Erreur sauvegarde mème:', error);
     }
@@ -129,23 +132,21 @@ const ContextReaderScreen = ({ navigate }) => {
         shareId: meme.share?.shareId,
         imageUrl: meme.composedImageUrl || meme.share?.publicUrl || meme.imageUrl,
         topText: meme.topText,
-        bottomText: meme.bottomText
+        bottomText: meme.bottomText,
+        userId: userId // Envoyer le userId réel au backend
       });
       setPublished(true);
       Alert.alert("Succès", "Mème propulsé sur le Forum !");
-      
-      // Mettre à jour la base de données
       await memeDB.updateMemePublished(meme.id, true);
     } catch (e) {
-      const errorMsg = e.response?.data?.error || e.message;
-      Alert.alert("Erreur publication", errorMsg);
+      Alert.alert("Erreur publication", e.message);
     }
   };
 
   const handleShareWhatsApp = async () => {
     const imageUrl = meme.composedImageUrl || meme.share?.publicUrl || meme.imageUrl;
     if (imageUrl) {
-      await shareToWhatsApp(imageUrl, ''); // Pas de texte séparé, l'image contient déjà le texte fusionné
+      await shareToWhatsApp(imageUrl, '');
     }
   };
 
@@ -153,10 +154,9 @@ const ContextReaderScreen = ({ navigate }) => {
     const imageUrl = meme.composedImageUrl || meme.share?.publicUrl || meme.imageUrl;
     if (imageUrl) {
       try {
-        const savedPath = await downloadImageToGallery(imageUrl);
+        await downloadImageToGallery(imageUrl);
         Alert.alert('Succès', 'Image sauvegardée dans votre galerie !');
       } catch (error) {
-        console.error('Erreur téléchargement:', error);
         Alert.alert('Erreur', 'Impossible de télécharger l\'image.');
       }
     }
@@ -166,7 +166,6 @@ const ContextReaderScreen = ({ navigate }) => {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        {/* Hero */}
         <GlassCard style={styles.hero}>
           <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>MODULE 01 · CONTEXT READER</Text></View>
           <Text style={[styles.title, { color: theme.textPrimary }]}>Context <Text style={{ color: theme.warning }}>Reader</Text></Text>
@@ -176,7 +175,6 @@ const ContextReaderScreen = ({ navigate }) => {
           </View>
         </GlassCard>
 
-        {/* Formulaire */}
         <GlassCard style={styles.card}>
           <Text style={[styles.label, { color: theme.textSecondary }]}>Décris la scène ou la contradiction</Text>
           <TextInput
@@ -218,7 +216,6 @@ const ContextReaderScreen = ({ navigate }) => {
               <View style={[styles.badge, { backgroundColor: theme.secondaryLight }]}><Text style={[styles.badgeText, { color: theme.secondary }]}>✅ RÉSULTAT IA</Text></View>
               
               {!editMode ? (
-                // Mode affichage normal
                 <>
                   <View style={[styles.memePreview, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
                     {meme.composedImageUrl || meme.share?.imageDataUrl || meme.imageUrl ? (
@@ -247,33 +244,11 @@ const ContextReaderScreen = ({ navigate }) => {
                     ))}
                   </View>
                   <View style={styles.actions}>
-                    <AnimatedButton
-                      title="Éditer"
-                      onPress={() => setEditMode(true)}
-                      size="lg"
-                      variant="ghost"
-                      style={{ flex: 1 }}
-                    />
-                    <AnimatedButton
-                      title="Télécharger"
-                      onPress={handleDownload}
-                      size="lg"
-                      style={{ flex: 1, backgroundColor: theme.primary }}
-                    />
-                    <AnimatedButton
-                      title="WhatsApp"
-                      onPress={handleShareWhatsApp}
-                      size="lg"
-                      style={{ flex: 1, backgroundColor: '#25D366' }}
-                    />
+                    <AnimatedButton title="Éditer" onPress={() => setEditMode(true)} size="lg" variant="ghost" style={{ flex: 1 }} />
+                    <AnimatedButton title="Galerie" onPress={handleDownload} size="lg" style={{ flex: 1, backgroundColor: theme.primary }} />
+                    <AnimatedButton title="WhatsApp" onPress={handleShareWhatsApp} size="lg" style={{ flex: 1, backgroundColor: '#25D366' }} />
                     {!published ? (
-                      <AnimatedButton
-                        title="Propulser"
-                        onPress={publishToForum}
-                        size="lg"
-                        variant="primary"
-                        style={{ flex: 1, backgroundColor: theme.secondary }}
-                      />
+                      <AnimatedButton title="Propulser" onPress={publishToForum} size="lg" variant="primary" style={{ flex: 1, backgroundColor: theme.secondary }} />
                     ) : (
                       <View style={[styles.publishedBadge, { backgroundColor: theme.secondaryLight }]}>
                         <Text style={[styles.publishedText, { color: theme.secondary }]}>PUBLIÉ</Text>
@@ -282,25 +257,13 @@ const ContextReaderScreen = ({ navigate }) => {
                   </View>
                 </>
               ) : (
-                // Mode édition
                 <>
                   <View style={[styles.memePreview, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                    {meme.composedImageUrl || meme.share?.imageDataUrl || meme.imageUrl ? (
-                      <Image
-                        source={{ uri: meme.composedImageUrl || meme.share?.imageDataUrl || meme.imageUrl }}
-                        style={styles.fullMeme}
-                        resizeMode="contain"
-                      />
-                    ) : (
-                      <>
-                        <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.topText || ""}</Text>
-                        <View style={[styles.memeScene, { backgroundColor: theme.backgroundCard, borderColor: theme.border }]}>
-                          <AppIcon name="image" color={theme.primary} size={36} />
-                          <Text style={[styles.memeSceneText, { color: theme.textSecondary }]}>{meme.descriptionImage || "Scène en attente"}</Text>
-                        </View>
-                        <Text style={[styles.memeText, { color: theme.textPrimary }]}>{meme.bottomText || ""}</Text>
-                      </>
-                    )}
+                    <Image
+                      source={{ uri: meme.composedImageUrl || meme.share?.imageDataUrl || meme.imageUrl }}
+                      style={styles.fullMeme}
+                      resizeMode="contain"
+                    />
                   </View>
                   
                   <View style={styles.editSection}>
@@ -311,9 +274,7 @@ const ContextReaderScreen = ({ navigate }) => {
                       onChangeText={setEditTopText}
                       placeholder="Texte du haut..."
                       placeholderTextColor={theme.textMuted}
-                      maxLength={100}
                     />
-                    
                     <Text style={[styles.editLabel, { color: theme.textSecondary }]}>Texte du bas</Text>
                     <TextInput
                       style={[styles.editInput, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border, color: theme.textPrimary }]}
@@ -321,27 +282,12 @@ const ContextReaderScreen = ({ navigate }) => {
                       onChangeText={setEditBottomText}
                       placeholder="Texte du bas..."
                       placeholderTextColor={theme.textMuted}
-                      maxLength={100}
                     />
                   </View>
                   
                   <View style={styles.actions}>
-                    <AnimatedButton
-                      title="Annuler"
-                      onPress={() => setEditMode(false)}
-                      size="lg"
-                      variant="ghost"
-                      style={{ flex: 1 }}
-                      disabled={regenerating}
-                    />
-                    <AnimatedButton
-                      title={regenerating ? "Régénération..." : "Régénérer"}
-                      onPress={regenerateMeme}
-                      size="lg"
-                      style={{ flex: 1 }}
-                      disabled={regenerating}
-                      loading={regenerating}
-                    />
+                    <AnimatedButton title="Annuler" onPress={() => setEditMode(false)} size="lg" variant="ghost" style={{ flex: 1 }} disabled={regenerating} />
+                    <AnimatedButton title={regenerating ? "..." : "Régénérer"} onPress={regenerateMeme} size="lg" style={{ flex: 1 }} disabled={regenerating} loading={regenerating} />
                   </View>
                 </>
               )}
