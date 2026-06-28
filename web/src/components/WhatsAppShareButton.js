@@ -23,6 +23,7 @@ const WhatsAppShareButton = ({
         ? [text, url].filter(Boolean).join("\n\n")
         : (text || url || "");
 
+    // Try sharing the actual image file via Web Share API
     if (imageDataUrl && navigator.share) {
       try {
         const file = await dataUrlToFile(imageDataUrl);
@@ -36,7 +37,11 @@ const WhatsAppShareButton = ({
       }
     }
 
-    const encoded = encodeURIComponent(shareText || text || url || "");
+    // Fallback: open WhatsApp with text + image URL so the link previews the image
+    const fallbackText = imageDataUrl && imageDataUrl.startsWith("http")
+      ? [text || "", imageDataUrl].filter(Boolean).join("\n\n")
+      : shareText;
+    const encoded = encodeURIComponent(fallbackText);
     window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener,noreferrer");
   };
 

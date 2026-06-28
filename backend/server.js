@@ -85,6 +85,15 @@ app.get("/debug", (req, res) => {
   res.json({ env: envStatus, deps: depsStatus });
 });
 
+// Global error handler middleware
+app.use((err, req, res, next) => {
+  console.error("[Global Error Handler]", err);
+  res.status(500).json({
+    error: "Une erreur interne du serveur est survenue.",
+    details: process.env.NODE_ENV === "development" ? err.message : undefined
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`✅ Serveur Viral Stick en écoute sur le port ${PORT}`);
 });

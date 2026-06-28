@@ -34,7 +34,13 @@ const ContextPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: context, location }),
       });
-      const data = await res.json();
+      const contentType = res.headers.get("content-type");
+      let data;
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        throw new Error(`Serveur indisponible (erreur ${res.status})`);
+      }
       if (!res.ok) throw new Error(data?.error || "Erreur serveur");
       setResult(data);
     } catch (e) { setError(e.message); }
@@ -70,6 +76,18 @@ const ContextPage = () => {
       console.error(e);
       alert("Erreur réseau lors de la publication");
     }
+  };
+
+  const handleDownload = () => {
+    if (!result) return;
+    const imageUrl = result.composedImageUrl || result.share?.imageDataUrl || result.imageUrl;
+    if (!imageUrl) return;
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    link.download = `viral-stick-${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -115,7 +133,17 @@ const ContextPage = () => {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <WhatsAppShareButton text={result.share?.text} url={result.share?.publicUrl} style={{ width: "100%" }} />
+                <div style={{ display: "flex", gap: 12 }}>
+                  <WhatsAppShareButton
+                    text={result.share?.text}
+                    url={result.share?.publicUrl}
+                    imageDataUrl={result.composedImageUrl || result.share?.imageDataUrl || result.imageUrl}
+                    style={{ flex: 1 }}
+                  />
+                  <PremiumButton variant="ghost" onClick={handleDownload} style={{ flex: 1 }}>
+                    📥 Télécharger
+                  </PremiumButton>
+                </div>
 
                 {!published ? (
                   <PremiumButton variant="green" onClick={publishToForum} style={{ width: "100%" }}>

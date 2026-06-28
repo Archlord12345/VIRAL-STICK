@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { colors, radius, spacing } from '../theme/tokens';
 import { apiUrl } from '../config/api';
-import { shareToWhatsApp } from '../utils/shareUtils';
+import { shareToWhatsApp, downloadImageToGallery } from '../utils/shareUtils';
 import { useTheme } from '../theme';
 import authService from '../services/authService';
 
@@ -30,6 +30,13 @@ const ForumScreen = ({ navigate }) => {
       if (id) params.append('userId', id);
 
       const res = await fetch(apiUrl(`/api/forum/memes?${params.toString()}`));
+      if (!res.ok) {
+        throw new Error(`Server status ${res.status}`);
+      }
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Response is not JSON");
+      }
       const data = await res.json();
       setMemes(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -89,6 +96,16 @@ const ForumScreen = ({ navigate }) => {
           </TouchableOpacity>
           <TouchableOpacity style={[styles.btn, { backgroundColor: '#25D366' }]} onPress={() => shareToWhatsApp(item.imageUrl)}>
             <Text style={{ color: '#fff', fontWeight: '800' }}>📱 WhatsApp</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn, { backgroundColor: theme.primary }]} onPress={async () => {
+            try {
+              await downloadImageToGallery(item.imageUrl);
+              Alert.alert('Succès', 'Image sauvegardée dans votre galerie !');
+            } catch (e) {
+              Alert.alert('Erreur', "Impossible de télécharger l'image.");
+            }
+          }}>
+            <Text style={{ color: '#fff', fontWeight: '800' }}>📥</Text>
           </TouchableOpacity>
         </View>
       </View>
